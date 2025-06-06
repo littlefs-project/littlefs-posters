@@ -32,7 +32,7 @@ BENCH_TUNE_CT ?= 0,256,512,1024,2048,4096
 EMMC_READ_SIZE  ?= 512
 EMMC_PROG_SIZE  ?= 512
 EMMC_ERASE_SIZE ?= 512
-EMMC_BLOCK_SIZE      ?= 1024 # v3 performs better with larger block sizes
+EMMC_LFS3_BLOCK_SIZE ?= 1024 # v3 performs better with larger block sizes
 EMMC_LFS2_BLOCK_SIZE ?= 512  # but no reason to penalize v2
 EMMC_READ_TIME  ?= 31   # taken from w25n01gv, read time
 EMMC_PROG_TIME  ?= 156  # taken from w25n01gv, prog time + erase time
@@ -48,7 +48,7 @@ EMMC_ERASE_TIME ?= 0    # noop
 NOR_READ_SIZE  ?= 1
 NOR_PROG_SIZE  ?= 1
 NOR_ERASE_SIZE ?= 4096
-NOR_BLOCK_SIZE 	    ?= 4096
+NOR_LFS3_BLOCK_SIZE ?= 4096
 NOR_LFS2_BLOCK_SIZE ?= 4096
 NOR_READ_TIME  ?= 40    # fR=50 MHz, quad read (20 ns * 8/4)
 NOR_PROG_TIME  ?= 1582  # tPP=0.4 ms, page=256 (0.4 ms / 256 + bus)
@@ -64,7 +64,7 @@ NOR_ERASE_TIME ?= 10986 # tSE=45 ms, sector=4096 (45 ms / 4096)
 NAND_READ_SIZE  ?= 512
 NAND_PROG_SIZE  ?= 512
 NAND_ERASE_SIZE ?= 131072
-NAND_BLOCK_SIZE      ?= 131072
+NAND_LFS3_BLOCK_SIZE ?= 131072
 NAND_LFS2_BLOCK_SIZE ?= 131072
 NAND_READ_TIME  ?= 31     # tRD1=25 us, p=2048, s=512 (25 us / 2048 + bus)
 NAND_PROG_TIME  ?= 141    # tPP=250 us, p=2048, s=512 (250 us / 2048 + bus)
@@ -75,11 +75,11 @@ NAND_ERASE_TIME ?= 15     # tBE=2 ms, block=131072 (2 ms / 131072)
 # find source files
 
 # littlefs v3 sources
-CODEMAP_SRC ?= $(filter-out %.t.c %.b.c %.a.c,$(wildcard littlefs3/*.c))
-CODEMAP_OBJ := $(CODEMAP_SRC:%.c=$(BUILDDIR)/thumb/%.o)
-CODEMAP_DEP := $(CODEMAP_SRC:%.c=$(BUILDDIR)/thumb/%.d)
-CODEMAP_ASM := $(CODEMAP_SRC:%.c=$(BUILDDIR)/thumb/%.s)
-CODEMAP_CI  := $(CODEMAP_SRC:%.c=$(BUILDDIR)/thumb/%.ci)
+CODEMAP_LFS3_SRC ?= $(filter-out %.t.c %.b.c %.a.c,$(wildcard littlefs3/*.c))
+CODEMAP_LFS3_OBJ := $(CODEMAP_LFS3_SRC:%.c=$(BUILDDIR)/thumb/%.o)
+CODEMAP_LFS3_DEP := $(CODEMAP_LFS3_SRC:%.c=$(BUILDDIR)/thumb/%.d)
+CODEMAP_LFS3_ASM := $(CODEMAP_LFS3_SRC:%.c=$(BUILDDIR)/thumb/%.s)
+CODEMAP_LFS3_CI  := $(CODEMAP_LFS3_SRC:%.c=$(BUILDDIR)/thumb/%.ci)
 
 # littlefs v2 sources
 CODEMAP_LFS2_SRC ?= $(filter-out %.t.c %.b.c %.a.c,$(wildcard littlefs2/*.c))
@@ -96,24 +96,24 @@ CODEMAP_LFS1_ASM := $(CODEMAP_LFS1_SRC:%.c=$(BUILDDIR)/thumb/%.s)
 CODEMAP_LFS1_CI  := $(CODEMAP_LFS1_SRC:%.c=$(BUILDDIR)/thumb/%.ci)
 
 # littlefs v3 bench-runner (the default)
-BENCHES ?= $(wildcard benches/*.toml)
-BENCH_RUNNER ?= $(BUILDDIR)/bench_runner
-BENCH_SRC ?= \
+BENCHES_LFS3 ?= $(wildcard benches/*.toml)
+BENCH_LFS3_RUNNER ?= $(BUILDDIR)/bench_lfs3_runner
+BENCH_LFS3_SRC ?= \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard littlefs3/*.c)) \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard bd/*.c)) \
 		runners/bench_runner.c
-BENCH_C     := \
-		$(BENCHES:%.toml=$(BUILDDIR)/%.lfs3.b.c) \
-		$(BENCH_SRC:%.c=$(BUILDDIR)/%.lfs3.b.c)
-BENCH_A     := $(BENCH_C:%.lfs3.b.c=%.lfs3.b.a.c)
-BENCH_OBJ   := $(BENCH_A:%.lfs3.b.a.c=%.lfs3.b.a.o)
-BENCH_DEP   := $(BENCH_A:%.lfs3.b.a.c=%.lfs3.b.a.d)
-BENCH_CI    := $(BENCH_A:%.lfs3.b.a.c=%.lfs3.b.a.ci)
-BENCH_GCNO  := $(BENCH_A:%.lfs3.b.a.c=%.lfs3.b.a.gcno) \
-BENCH_GCDA  := $(BENCH_A:%.lfs3.b.a.c=%.lfs3.b.a.gcda) \
-BENCH_PERF  := $(BENCH_RUNNER:%=%.perf)
-BENCH_TRACE := $(BENCH_RUNNER:%=%.trace)
-BENCH_CSV   := $(BENCH_RUNNER:%=%.csv)
+BENCH_LFS3_C     := \
+		$(BENCHES_LFS3:%.toml=$(BUILDDIR)/%.lfs3.b.c) \
+		$(BENCH_LFS3_SRC:%.c=$(BUILDDIR)/%.lfs3.b.c)
+BENCH_LFS3_A     := $(BENCH_LFS3_C:%.lfs3.b.c=%.lfs3.b.a.c)
+BENCH_LFS3_OBJ   := $(BENCH_LFS3_A:%.lfs3.b.a.c=%.lfs3.b.a.o)
+BENCH_LFS3_DEP   := $(BENCH_LFS3_A:%.lfs3.b.a.c=%.lfs3.b.a.d)
+BENCH_LFS3_CI    := $(BENCH_LFS3_A:%.lfs3.b.a.c=%.lfs3.b.a.ci)
+BENCH_LFS3_GCNO  := $(BENCH_LFS3_A:%.lfs3.b.a.c=%.lfs3.b.a.gcno) \
+BENCH_LFS3_GCDA  := $(BENCH_LFS3_A:%.lfs3.b.a.c=%.lfs3.b.a.gcda) \
+BENCH_LFS3_PERF  := $(BENCH_LFS3_RUNNER:%=%.perf)
+BENCH_LFS3_TRACE := $(BENCH_LFS3_RUNNER:%=%.trace)
+BENCH_LFS3_CSV   := $(BENCH_LFS3_RUNNER:%=%.csv)
 
 # littlefs v2 bench-runner
 BENCHES_LFS2 ?= benches/bench_vs_lfs2.toml
@@ -164,7 +164,7 @@ else
 CFLAGS += -Os
 endif
 ifdef TRACE
-CFLAGS += -DLFS_YES_TRACE
+CFLAGS += $(foreach P,LFS LFS1 LFS2 LFS3,-D$P_YES_TRACE)
 endif
 ifdef COVGEN
 CFLAGS += --coverage
@@ -205,18 +205,18 @@ $(if $(findstring n,$(MAKEFLAGS)),, $(shell mkdir -p \
 	$(RESULTSDIR) \
 	$(PLOTSDIR) \
     $(addprefix $(BUILDDIR)/,$(dir \
-		$(CODEMAP_SRC) \
+		$(CODEMAP_LFS3_SRC) \
 		$(CODEMAP_LFS2_SRC) \
 		$(CODEMAP_LFS1_SRC) \
-        $(BENCHES) \
-        $(BENCH_SRC) \
+        $(BENCHES_LFS3) \
+        $(BENCH_LFS3_SRC) \
         $(BENCH_LFS2_SRC))) \
     $(addprefix $(BUILDDIR)/thumb/,$(dir \
-		$(CODEMAP_SRC) \
+		$(CODEMAP_LFS3_SRC) \
 		$(CODEMAP_LFS2_SRC) \
 		$(CODEMAP_LFS1_SRC) \
-        $(BENCHES) \
-        $(BENCH_SRC) \
+        $(BENCHES_LFS3) \
+        $(BENCH_LFS3_SRC) \
         $(BENCH_LFS2_SRC)))))
 endif
 
@@ -232,24 +232,24 @@ build bench-runner build-benches: CFLAGS+=$(BENCH_CFLAGS)
 # note we remove some binary dependent files during compilation,
 # otherwise it's way to easy to end up with outdated results
 build bench-runner build-benches: \
-		$(BENCH_RUNNER) \
+		$(BENCH_LFS3_RUNNER) \
 		$(BENCH_LFS2_RUNNER)
 ifdef COVGEN
-	rm -f $(BENCH_GCDA)
+	rm -f $(BENCH_LFS3_GCDA)
 	rm -f $(BENCH_LFS2_GCDA)
 endif
 ifdef PERFGEN
-	rm -f $(BENCH_PERF)
+	rm -f $(BENCH_LFS3_PERF)
 	rm -f $(BENCH_LFS2_PERF)
 endif
 ifdef PERFBDGEN
-	rm -f $(BENCH_TRACE)
+	rm -f $(BENCH_LFS3_TRACE)
 	rm -f $(BENCH_LFS2_TRACE)
 endif
 
 ## Find total section sizes
 .PHONY: size
-size: $(BENCH_OBJ)
+size: $(BENCH_LFS3_OBJ)
 	$(SIZE) -t $^
 
 ## Generate a ctags file
@@ -258,7 +258,7 @@ tags ctags:
 	$(strip $(CTAGS) \
 		--totals --fields=+n --c-types=+p \
 		$(shell find -H -name '*.h') \
-		$(BENCH_SRC) \
+		$(BENCH_LFS3_SRC) \
 		$(BENCH_LFS2_SRC))
 
 ## Show this help text
@@ -279,13 +279,13 @@ help:
 
 
 # low-level rules
--include $(BENCH_DEP)
+-include $(BENCH_LFS3_DEP)
 -include $(BENCH_LFS2_DEP)
 .SUFFIXES:
 .SECONDARY:
 , := ,
 
-$(BENCH_RUNNER): $(BENCH_OBJ)
+$(BENCH_LFS3_RUNNER): $(BENCH_LFS3_OBJ)
 	$(CC) $(CFLAGS) $^ $(LFLAGS) -o$@
 
 $(BENCH_LFS2_RUNNER): $(BENCH_LFS2_OBJ)
@@ -333,8 +333,8 @@ $(BUILDDIR)/%.a.c: $(BUILDDIR)/%.c
 $(BUILDDIR)/%.lfs3.b.c: %.toml
 	./scripts/bench.py -c $< $(BENCHCFLAGS) -o$@
 
-$(BUILDDIR)/%.lfs3.b.c: %.c $(BENCHES)
-	./scripts/bench.py -c $(BENCHES) -s $< $(BENCHCFLAGS) -o$@
+$(BUILDDIR)/%.lfs3.b.c: %.c $(BENCHES_LFS3)
+	./scripts/bench.py -c $(BENCHES_LFS3) -s $< $(BENCHCFLAGS) -o$@
 
 # limit .lfs2 files to lfs2 benches
 $(BUILDDIR)/%.lfs2.b.c: %.toml
@@ -354,10 +354,10 @@ BENCHFLAGS += -b
 # forward -j flag
 BENCHFLAGS += $(filter -j%,$(MAKEFLAGS))
 ifdef PERFGEN
-BENCHFLAGS += -p$(BENCH_PERF)
+BENCHFLAGS += -p$(BENCH_LFS3_PERF)
 endif
 ifdef PERFBDGEN
-BENCHFLAGS += -t$(BENCH_TRACE) --trace-backtrace --trace-freq=100
+BENCHFLAGS += -t$(BENCH_LFS3_TRACE) --trace-backtrace --trace-freq=100
 endif
 ifdef VERBOSE
 BENCHFLAGS  += -v
@@ -474,7 +474,7 @@ bench-vs-lfs2-logging: \
 
 
 # run the benches!
-$(RESULTSDIR)/bench_rbyd.csv: $(BENCH_RUNNER)
+$(RESULTSDIR)/bench_rbyd.csv: $(BENCH_LFS3_RUNNER)
 	$(strip ./scripts/bench.py -R$< -B bench_rbyd \
 		-DSEED="range($(SAMPLES))" \
 		$(BENCHFLAGS) \
@@ -495,7 +495,7 @@ $(RESULTSDIR)/bench_rby%.per.csv: $(RESULTSDIR)/bench_rby%.csv
 		-o$@)
 
 # run the benches!
-$(RESULTSDIR)/bench_btree.csv: $(BENCH_RUNNER)
+$(RESULTSDIR)/bench_btree.csv: $(BENCH_LFS3_RUNNER)
 	$(strip ./scripts/bench.py -R$< -B bench_btree \
 		-DSEED="range($(SAMPLES))" \
 		$(BENCHFLAGS) \
@@ -523,7 +523,7 @@ $(RESULTSDIR)/bench_btre%.per.csv: $(RESULTSDIR)/bench_btre%.csv
 		-o$@)
 
 # run the benches!
-$(RESULTSDIR)/bench_mtree.csv: $(BENCH_RUNNER)
+$(RESULTSDIR)/bench_mtree.csv: $(BENCH_LFS3_RUNNER)
 	$(strip ./scripts/bench.py -R$< -B bench_mtree \
 		-DSEED="range($(SAMPLES))" \
 		$(BENCHFLAGS) \
@@ -551,7 +551,7 @@ $(RESULTSDIR)/bench_mtre%.per.csv: $(RESULTSDIR)/bench_mtre%.csv
 		-o$@)
 
 # run the benches!
-$(RESULTSDIR)/bench_many.csv: $(BENCH_RUNNER)
+$(RESULTSDIR)/bench_many.csv: $(BENCH_LFS3_RUNNER)
 	$(strip ./scripts/bench.py -R$< -B bench_many \
 		-DSEED="range($(SAMPLES))" \
 		$(BENCHFLAGS) \
@@ -579,34 +579,34 @@ $(RESULTSDIR)/bench_man%.per.csv: $(RESULTSDIR)/bench_man%.csv
 		-o$@)
 
 # run the benches!
-$(RESULTSDIR)/bench_fwrite.csv: $(BENCH_RUNNER)
+$(RESULTSDIR)/bench_fwrite.csv: $(BENCH_LFS3_RUNNER)
 	$(strip ./scripts/bench.py -R$< -B bench_fwrite \
 		-DSEED="range($(SAMPLES))" \
 		$(BENCHFLAGS) \
 		-o$@)
 
-$(RESULTSDIR)/bench_fwrite_tune_bs.csv: $(BENCH_RUNNER)
+$(RESULTSDIR)/bench_fwrite_tune_bs.csv: $(BENCH_LFS3_RUNNER)
 	$(strip ./scripts/bench.py -R$< -B bench_fwrite \
 		-DSEED="range($(SAMPLES))" \
 		-DBLOCK_SIZE=$(BENCH_TUNE_BS) \
 		$(BENCHFLAGS) \
 		-o$@)
 
-$(RESULTSDIR)/bench_fwrite_tune_is.csv: $(BENCH_RUNNER)
+$(RESULTSDIR)/bench_fwrite_tune_is.csv: $(BENCH_LFS3_RUNNER)
 	$(strip ./scripts/bench.py -R$< -B bench_fwrite \
 		-DSEED="range($(SAMPLES))" \
 		-DINLINE_SIZE=$(BENCH_TUNE_IS) \
 		$(BENCHFLAGS) \
 		-o$@)
 
-$(RESULTSDIR)/bench_fwrite_tune_fs.csv: $(BENCH_RUNNER)
+$(RESULTSDIR)/bench_fwrite_tune_fs.csv: $(BENCH_LFS3_RUNNER)
 	$(strip ./scripts/bench.py -R$< -B bench_fwrite \
 		-DSEED="range($(SAMPLES))" \
 		-DFRAGMENT_SIZE=$(BENCH_TUNE_FS) \
 		$(BENCHFLAGS) \
 		-o$@)
 
-$(RESULTSDIR)/bench_fwrite_tune_ct.csv: $(BENCH_RUNNER)
+$(RESULTSDIR)/bench_fwrite_tune_ct.csv: $(BENCH_LFS3_RUNNER)
 	$(strip ./scripts/bench.py -R$< -B bench_fwrite \
 		-DSEED="range($(SAMPLES))" \
 		-DCRYSTAL_THRESH=$(BENCH_TUNE_CT) \
@@ -707,7 +707,7 @@ endef
 $(foreach V_, lfs3/LFS3 lfs2/LFS2, \
 	$(foreach V, $(word 1,$(subst /, ,$(V_))), \
 	$(foreach V_RUNNER, $(if $(filter lfs3/%,$(V_)), \
-			$$(BENCH_RUNNER), \
+			$$(BENCH_LFS3_RUNNER), \
 			$$(BENCH_LFS2_RUNNER)), \
 	$(foreach SIM_, emmc/EMMC nor/NOR nand/NAND, \
 		$(foreach SIM, $(word 1,$(subst /, ,$(SIM_))), \
@@ -719,7 +719,7 @@ $(foreach V_, lfs3/LFS3 lfs2/LFS2, \
 			$$($(word 2,$(subst /, ,$(SIM_)))_ERASE_SIZE), \
 		$(foreach SIM_BLOCK_SIZE, \
 			$(if $(filter lfs3/%,$(V_)), \
-				$$($(word 2,$(subst /, ,$(SIM_)))_BLOCK_SIZE), \
+				$$($(word 2,$(subst /, ,$(SIM_)))_LFS3_BLOCK_SIZE), \
 				$$($(word 2,$(subst /, ,$(SIM_)))_LFS2_BLOCK_SIZE)), \
 		$(foreach SIM_READ_TIME, \
 			$$($(word 2,$(subst /, ,$(SIM_)))_READ_TIME), \
@@ -1103,12 +1103,12 @@ endef
 $(foreach V_, lfs3/LFS3 lfs2/LFS2 lfs1/LFS1, \
 	$(foreach V, $(word 1,$(subst /, ,$(V_))), \
 	$(foreach V_OBJ, $(if $(filter lfs3/%,$(V_)), \
-			$$(CODEMAP_OBJ), \
+			$$(CODEMAP_LFS3_OBJ), \
 			$(if $(filter lfs2/%,$(V_)), \
 				$$(CODEMAP_LFS2_OBJ), \
 				$$(CODEMAP_LFS1_OBJ))), \
 	$(foreach V_CI, $(if $(filter lfs3/%,$(V_)), \
-			$$(CODEMAP_CI), \
+			$$(CODEMAP_LFS3_CI), \
 			$(if $(filter lfs2/%,$(V_)), \
 				$$(CODEMAP_LFS2_CI), \
 				$$(CODEMAP_LFS1_CI))), \
@@ -2318,7 +2318,8 @@ $(PLOTSDIR)/bench_fwrite_tune_ct_random.svg: \
 PLOT_VS_LFS2_FLAGS += -W1750 -H750
 PLOT_VS_LFS2_FLAGS += \
 		--subplot=" \
-				-DBLOCK_SIZE='$(EMMC_BLOCK_SIZE)$(,)$(EMMC_LFS2_BLOCK_SIZE)' \
+				-DBLOCK_SIZE='$(EMMC_LFS3_BLOCK_SIZE)$(,)$\
+					$(EMMC_LFS2_BLOCK_SIZE)' \
 				-Dm=$2 \
 				$(if $(filter amor,$3),--ylabel=raw) \
 				$(if $(filter per,$3),--ylabel=total) \
@@ -2326,33 +2327,38 @@ PLOT_VS_LFS2_FLAGS += \
 				$(if $3,--add-xticklabel=,)" \
 			$(if $3, \
 			--subplot-below=" \
-				-DBLOCK_SIZE='$(EMMC_BLOCK_SIZE)$(,)$(EMMC_LFS2_BLOCK_SIZE)' \
+				-DBLOCK_SIZE='$(EMMC_LFS3_BLOCK_SIZE)$(,)$\
+					$(EMMC_LFS2_BLOCK_SIZE)' \
 				-Dm=$2+$3 \
 				$(if $(filter amor,$3),--ylabel=amortized) \
 				$(if $(filter per,$3),--ylabel=per) \
 				--ylim-stddev=3 \
 				-H0.5",) \
 		--subplot-right=" \
-				-DBLOCK_SIZE='$(NOR_BLOCK_SIZE)$(,)$(NOR_LFS2_BLOCK_SIZE)' \
+				-DBLOCK_SIZE='$(NOR_LFS3_BLOCK_SIZE)$(,)$\
+					$(NOR_LFS2_BLOCK_SIZE)' \
 				-Dm=$2 \
 				--title=nor \
 				$(if $3,--add-xticklabel=,) \
 				-W0.5 \
 			$(if $3, \
 			--subplot-below=\" \
-				-DBLOCK_SIZE='$(NOR_BLOCK_SIZE)$(,)$(NOR_LFS2_BLOCK_SIZE)' \
+				-DBLOCK_SIZE='$(NOR_LFS3_BLOCK_SIZE)$(,)$\
+					$(NOR_LFS2_BLOCK_SIZE)' \
 				-Dm=$2+$3 \
 				--ylim-stddev=3 \
 				-H0.5\",)" \
 		--subplot-right=" \
-				-DBLOCK_SIZE='$(NAND_BLOCK_SIZE)$(,)$(NAND_LFS2_BLOCK_SIZE)' \
+				-DBLOCK_SIZE='$(NAND_LFS3_BLOCK_SIZE)$(,)$\
+					$(NAND_LFS2_BLOCK_SIZE)' \
 				-Dm=$2 \
 				--title=nand \
 				$(if $3,--add-xticklabel=,) \
 				-W0.33 \
 			$(if $3, \
 			--subplot-below=\" \
-				-DBLOCK_SIZE='$(NAND_BLOCK_SIZE)$(,)$(NAND_LFS2_BLOCK_SIZE)' \
+				-DBLOCK_SIZE='$(NAND_LFS3_BLOCK_SIZE)$(,)$\
+					$(NAND_LFS2_BLOCK_SIZE)' \
 				-Dm=$2+$3 \
 				--ylim-stddev=3 \
 				-H0.5\",)"
@@ -2380,9 +2386,9 @@ $$(PLOTSDIR)/bench_vs_lfs2_$1.svg: \
 		-y$4_avg -y$4_bnd \
 		--legend \
 		-L'3,$4_avg=lfs3 (no bmap)%n$\
-			- bs=$(EMMC_BLOCK_SIZE)%n$\
-			- bs=$(NOR_BLOCK_SIZE)%n$\
-			- bs=$(NAND_BLOCK_SIZE)' \
+			- bs=$(EMMC_LFS3_BLOCK_SIZE)%n$\
+			- bs=$(NOR_LFS3_BLOCK_SIZE)%n$\
+			- bs=$(NAND_LFS3_BLOCK_SIZE)' \
 		-L'3,$4_bnd=' \
 		-L'2,$4_avg=lfs2%n$\
 			- bs=$(EMMC_LFS2_BLOCK_SIZE)%n$\
