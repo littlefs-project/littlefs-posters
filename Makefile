@@ -324,10 +324,10 @@ $(BUILDDIR)/%.s: $(BUILDDIR)/%.c
 	$(CC) -S $(CFLAGS) $< -o$@
 
 $(BUILDDIR)/%.a.c: %.c
-	$(PRETTYASSERTS) -Plfs_ $< -o$@
+	$(PRETTYASSERTS) -Plfs_ -Plfs1_ -Plfs2_ -Plfs3_ $< -o$@
 
 $(BUILDDIR)/%.a.c: $(BUILDDIR)/%.c
-	$(PRETTYASSERTS) -Plfs_ $< -o$@
+	$(PRETTYASSERTS) -Plfs_ -Plfs1_ -Plfs2_ -Plfs3_ $< -o$@
 
 # limit .lfs3 files to lfs3 benches
 $(BUILDDIR)/%.lfs3.b.c: %.toml
