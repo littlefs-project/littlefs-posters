@@ -314,6 +314,21 @@ $(BUILDDIR)/thumb/%.o $(BUILDDIR)/thumb/%.ci: $(BUILDDIR)/thumb/%.c
 	$(strip $(CODEMAP_CC) -c -MMD $(CFLAGS) $(CODEMAP_CFLAGS) $< \
 		-o $(BUILDDIR)/thumb/$*.o)
 
+# other interesting codemap builds
+$(BUILDDIR)/thumb/%.rdonly.o $(BUILDDIR)/thumb/%.rdonly.ci: \
+		%.c
+	$(strip $(CODEMAP_CC) -c -MMD $(CFLAGS) \
+		-DLFS3_RDONLY -DLFS2_READONLY \
+		$(CODEMAP_CFLAGS) $< \
+		-o $(BUILDDIR)/thumb/$*.rdonly.o)
+
+$(BUILDDIR)/thumb/%.rdonly.o $(BUILDDIR)/thumb/%.rdonly.ci: \
+		$(BUILDDIR)/thumb/%.c
+	$(strip $(CODEMAP_CC) -c -MMD $(CFLAGS) \
+		-DLFS3_RDONLY -DLFS2_READONLY \
+		$(CODEMAP_CFLAGS) $< \
+		-o $(BUILDDIR)/thumb/$*.rdonly.o)
+
 # .lfs3 files need -DLFS3=1
 $(BUILDDIR)/%.lfs3.b.a.o $(BUILDDIR)/%.lfs3.b.a.ci: %.lfs3.b.a.c
 	$(CC) -c -MMD -DLFS3=1 $(CFLAGS) $< -o $(BUILDDIR)/$*.lfs3.b.a.o
@@ -834,9 +849,10 @@ endif
 ## Generate all codemaps!
 .PHONY: codemap
 codemap codemap-all: \
-		codemap-default
+		codemap-default \
+		codemap-rdonly
 
-## Generate codemap for the default build
+## Generate codemaps for the default build
 .PHONY: codemap-default
 codemap-default: \
 		$(CODEMAPSDIR)/codemap_lfs3_tiny.svg \
@@ -846,11 +862,19 @@ codemap-default: \
 		$(CODEMAPSDIR)/codemap_lfs2.svg \
 		$(CODEMAPSDIR)/codemap_lfs1.svg
 
+## Generate codemaps for the rdonly build
+.PHONY: codemap-rdonly
+codemap-rdonly: \
+		$(CODEMAPSDIR)/codemap_lfs3_rdonly_tiny.svg \
+		$(CODEMAPSDIR)/codemap_lfs2_rdonly_tiny.svg \
+		$(CODEMAPSDIR)/codemap_lfs3_rdonly.svg \
+		$(CODEMAPSDIR)/codemap_lfs2_rdonly.svg
+
 
 # codemap rules!
 define CODEMAP_RULES
 
-$$(CODEMAPSDIR)/codemap_$(V).svg: $(V_OBJ) $(V_CI)
+$$(CODEMAPSDIR)/codemap_$(subst -,_,$(V)).svg: $(V_OBJ) $(V_CI)
 	$$(strip ./scripts/codemapsvg.py $$^ \
 		--title="$(V) code %(code)s stack %(stack)s ctx %(ctx)s" \
 		-W1125 -H525 \
@@ -859,7 +883,7 @@ $$(CODEMAPSDIR)/codemap_$(V).svg: $(V_OBJ) $(V_CI)
 		-o$$@ \
 		&& ./scripts/codemap.py $$^ --no-header)
 
-$$(CODEMAPSDIR)/codemap_$(V)_tiny.svg: $(V_OBJ) $(V_CI)
+$$(CODEMAPSDIR)/codemap_$(subst -,_,$(V))_tiny.svg: $(V_OBJ) $(V_CI)
 	$$(strip ./scripts/codemapsvg.py $$^ \
 		--tiny --background=\#00000000 \
 		$$(CODEMAP_COLORS) \
@@ -869,21 +893,27 @@ $$(CODEMAPSDIR)/codemap_$(V)_tiny.svg: $(V_OBJ) $(V_CI)
 
 endef
 
+# default codemaps
+#
 # parameterize based on lfs3/lfs2/lfs1
 $(foreach V_, lfs3/LFS3 lfs2/LFS2 lfs1/LFS1, \
 	$(foreach V, $(word 1,$(subst /, ,$(V_))), \
-	$(foreach V_OBJ, $(if $(filter lfs3/%,$(V_)), \
-			$$(CODEMAP_LFS3_OBJ), \
-			$(if $(filter lfs2/%,$(V_)), \
-				$$(CODEMAP_LFS2_OBJ), \
-				$$(CODEMAP_LFS1_OBJ))), \
-	$(foreach V_CI, $(if $(filter lfs3/%,$(V_)), \
-			$$(CODEMAP_LFS3_CI), \
-			$(if $(filter lfs2/%,$(V_)), \
-				$$(CODEMAP_LFS2_CI), \
-				$$(CODEMAP_LFS1_CI))), \
+	$(foreach V_OBJ, \
+		$$(CODEMAP_$(word 2,$(subst /, ,$(V_)))_OBJ), \
+	$(foreach V_CI, \
+		$$(CODEMAP_$(word 2,$(subst /, ,$(V_)))_CI), \
 	$(eval $(CODEMAP_RULES))))))
 
+# default codemaps
+#
+# parameterize based on lfs3/lfs2/lfs1
+$(foreach V_, lfs3/LFS3 lfs2/LFS2 lfs1/LFS1, \
+	$(foreach V, $(word 1,$(subst /, ,$(V_)))-rdonly, \
+	$(foreach V_OBJ, \
+		$$(CODEMAP_$(word 2,$(subst /, ,$(V_)))_OBJ:.o=.rdonly.o), \
+	$(foreach V_CI, \
+		$$(CODEMAP_$(word 2,$(subst /, ,$(V_)))_CI:.ci=.rdonly.ci), \
+	$(eval $(CODEMAP_RULES))))))
 
 
 
