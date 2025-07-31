@@ -126,6 +126,8 @@ void bench_permutation(size_t i, uint32_t *buffer, size_t size);
     /*           name                value (overridable)                   */ \
     BENCH_DEFINE(READ_SIZE,          1                                      ) \
     BENCH_DEFINE(PROG_SIZE,          1                                      ) \
+    /* ERASE_SIZE is just informative                                      */ \
+    BENCH_DEFINE(ERASE_SIZE,         4096                                   ) \
     BENCH_DEFINE(BLOCK_SIZE,         4096                                   ) \
     BENCH_DEFINE(BLOCK_COUNT,        DISK_SIZE/BLOCK_SIZE                   ) \
     /* TODO we can drop this back to 1MiB, but we'd need to support        */ \
@@ -160,6 +162,8 @@ void bench_permutation(size_t i, uint32_t *buffer, size_t size);
     /*           name                value (overridable)                   */ \
     BENCH_DEFINE(READ_SIZE,          1                                      ) \
     BENCH_DEFINE(PROG_SIZE,          1                                      ) \
+    /* ERASE_SIZE is just informative                                      */ \
+    BENCH_DEFINE(ERASE_SIZE,         4096                                   ) \
     BENCH_DEFINE(BLOCK_SIZE,         4096                                   ) \
     BENCH_DEFINE(BLOCK_COUNT,        DISK_SIZE/BLOCK_SIZE                   ) \
     BENCH_DEFINE(DISK_SIZE,          2*1024*1024                            ) \

@@ -472,7 +472,8 @@ bench-p26-litmus-random: \
 # $3 - bench case
 # $4 - read size
 # $5 - prog size
-# $6 - block size
+# $6 - erase size
+# $7 - block size, which may be different from erase size
 #
 define BENCH_P26_LITMUS_RULE
 $1: $2
@@ -480,7 +481,8 @@ $1: $2
 		-DSEED="range($$(SAMPLES))" \
 		-DREAD_SIZE=$4 \
 		-DPROG_SIZE=$5 \
-		-DBLOCK_SIZE=$6 \
+		-DERASE_SIZE=$6 \
+		-DBLOCK_SIZE=$7 \
 		$$(BENCHFLAGS) \
 		-o$$@)
 endef
@@ -491,6 +493,7 @@ $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		bench_p26_litmus_$$*,$\
 		$(EMMC_READ_SIZE),$\
 		$(EMMC_PROG_SIZE),$\
+		$(EMMC_ERASE_SIZE),$\
 		$(EMMC_LFS3_BLOCK_SIZE)))
 $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		$(RESULTSDIR)/bench_p26_litmus_%.lfs3.nor.csv,$\
@@ -498,6 +501,7 @@ $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		bench_p26_litmus_$$*,$\
 		$(NOR_READ_SIZE),$\
 		$(NOR_PROG_SIZE),$\
+		$(NOR_ERASE_SIZE),$\
 		$(NOR_LFS3_BLOCK_SIZE)))
 $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		$(RESULTSDIR)/bench_p26_litmus_%.lfs3.nand.csv,$\
@@ -505,6 +509,7 @@ $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		bench_p26_litmus_$$*,$\
 		$(NAND_READ_SIZE),$\
 		$(NAND_PROG_SIZE),$\
+		$(NAND_ERASE_SIZE),$\
 		$(NAND_LFS3_BLOCK_SIZE)))
 
 $(eval $(call BENCH_P26_LITMUS_RULE,$\
@@ -513,6 +518,7 @@ $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		bench_p26_litmus_$$*,$\
 		$(EMMC_READ_SIZE),$\
 		$(EMMC_PROG_SIZE),$\
+		$(EMMC_ERASE_SIZE),$\
 		$(EMMC_LFS3NB_BLOCK_SIZE)))
 $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		$(RESULTSDIR)/bench_p26_litmus_%.lfs3nb.nor.csv,$\
@@ -520,6 +526,7 @@ $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		bench_p26_litmus_$$*,$\
 		$(NOR_READ_SIZE),$\
 		$(NOR_PROG_SIZE),$\
+		$(NOR_ERASE_SIZE),$\
 		$(NOR_LFS3NB_BLOCK_SIZE)))
 $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		$(RESULTSDIR)/bench_p26_litmus_%.lfs3nb.nand.csv,$\
@@ -527,6 +534,7 @@ $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		bench_p26_litmus_$$*,$\
 		$(NAND_READ_SIZE),$\
 		$(NAND_PROG_SIZE),$\
+		$(NAND_ERASE_SIZE),$\
 		$(NAND_LFS3NB_BLOCK_SIZE)))
 
 $(eval $(call BENCH_P26_LITMUS_RULE,$\
@@ -535,6 +543,7 @@ $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		bench_p26_litmus_$$*,$\
 		$(EMMC_READ_SIZE),$\
 		$(EMMC_PROG_SIZE),$\
+		$(EMMC_ERASE_SIZE),$\
 		$(EMMC_LFS2_BLOCK_SIZE)))
 $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		$(RESULTSDIR)/bench_p26_litmus_%.lfs2.nor.csv,$\
@@ -542,6 +551,7 @@ $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		bench_p26_litmus_$$*,$\
 		$(NOR_READ_SIZE),$\
 		$(NOR_PROG_SIZE),$\
+		$(NOR_ERASE_SIZE),$\
 		$(NOR_LFS2_BLOCK_SIZE)))
 $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		$(RESULTSDIR)/bench_p26_litmus_%.lfs2.nand.csv,$\
@@ -549,6 +559,7 @@ $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		bench_p26_litmus_$$*,$\
 		$(NAND_READ_SIZE),$\
 		$(NAND_PROG_SIZE),$\
+		$(NAND_ERASE_SIZE),$\
 		$(NAND_LFS2_BLOCK_SIZE)))
 
 # simulated/estimated results
@@ -904,9 +915,7 @@ plot-p26-litmus-random: \
 PLOT_P26_FLAGS += -W1500 -H700
 PLOT_P26_FLAGS += \
 		--subplot=" \
-				-DBLOCK_SIZE='$(EMMC_LFS3_BLOCK_SIZE)$(,)$\
-					$(EMMC_LFS3NB_BLOCK_SIZE)$(,)$\
-					$(EMMC_LFS2_BLOCK_SIZE)' \
+				-DERASE_SIZE='$(EMMC_ERASE_SIZE)' \
 				-Dm=$1 \
 				$(if $(filter amor,$2),--ylabel=raw) \
 				$(if $(filter per,$2),--ylabel=total) \
@@ -914,43 +923,33 @@ PLOT_P26_FLAGS += \
 				$(if $2,--add-xticklabel=,)" \
 			$(if $2, \
 			--subplot-below=" \
-				-DBLOCK_SIZE='$(EMMC_LFS3_BLOCK_SIZE)$(,)$\
-					$(EMMC_LFS3NB_BLOCK_SIZE)$(,)$\
-					$(EMMC_LFS2_BLOCK_SIZE)' \
+				-DERASE_SIZE='$(EMMC_ERASE_SIZE)' \
 				-Dm=$1+$2 \
 				$(if $(filter amor,$2),--ylabel=amortized) \
 				$(if $(filter per,$2),--ylabel=per) \
 				--ylim-stddev=3 \
 				-H0.5",) \
 		--subplot-right=" \
-				-DBLOCK_SIZE='$(NOR_LFS3_BLOCK_SIZE)$(,)$\
-					$(NOR_LFS3NB_BLOCK_SIZE)$(,)$\
-					$(NOR_LFS2_BLOCK_SIZE)' \
+				-DERASE_SIZE='$(NOR_ERASE_SIZE)' \
 				-Dm=$1 \
 				--title=nor \
 				$(if $2,--add-xticklabel=,) \
 				-W0.5 \
 			$(if $2, \
 			--subplot-below=\" \
-				-DBLOCK_SIZE='$(NOR_LFS3_BLOCK_SIZE)$(,)$\
-					$(NOR_LFS3NB_BLOCK_SIZE)$(,)$\
-					$(NOR_LFS2_BLOCK_SIZE)' \
+				-DERASE_SIZE='$(NOR_ERASE_SIZE)' \
 				-Dm=$1+$2 \
 				--ylim-stddev=3 \
 				-H0.5\",)" \
 		--subplot-right=" \
-				-DBLOCK_SIZE='$(NAND_LFS3_BLOCK_SIZE)$(,)$\
-					$(NAND_LFS3NB_BLOCK_SIZE)$(,)$\
-					$(NAND_LFS2_BLOCK_SIZE)' \
+				-DERASE_SIZE='$(NAND_ERASE_SIZE)' \
 				-Dm=$1 \
 				--title=nand \
 				$(if $2,--add-xticklabel=,) \
 				-W0.33 \
 			$(if $2, \
 			--subplot-below=\" \
-				-DBLOCK_SIZE='$(NAND_LFS3_BLOCK_SIZE)$(,)$\
-					$(NAND_LFS3NB_BLOCK_SIZE)$(,)$\
-					$(NAND_LFS2_BLOCK_SIZE)' \
+				-DERASE_SIZE='$(NAND_ERASE_SIZE)' \
 				-Dm=$1+$2 \
 				--ylim-stddev=3 \
 				-H0.5\",)"
