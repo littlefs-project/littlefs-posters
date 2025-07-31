@@ -11,9 +11,6 @@ export BENCHFLAGS += -DDISK_SIZE=67108864
 export BENCHFLAGS += -DSIZE=1048576
 export BENCHFLAGS += -DSTEP=64
 
-# littlefs2 scales terribly, so give ourself a cutoff
-export BENCHFLAGS += -DCUTOFF=100000000000
-
 
 # don't run rules in parallel at this level, it breaks things
 .NOTPARALLEL:
