@@ -16,6 +16,7 @@ defines.SEED = 42
 
 # cutoffs for runaway littlefs2 performance
 defines.LFS2_RANDOM_CUTOFF = 32768
+defines.LFS2_MANY_CUTOFF = 32768
 
 
 
@@ -90,10 +91,6 @@ static void bench_p26_find_usage(lfs2_t *lfs2, lfs3_size_t n) {
 
 
 
-
-
-#TODO [cases.bench_p26_many]
-
 [cases.bench_p26_litmus_linear]
 # 0 => benchmark writes
 # 1 => measure usage
@@ -109,6 +106,14 @@ code = '''
     lfs2_mount(&lfs2, (const struct lfs2_config*)CFG) => 0;
     #endif
     uint32_t prng = SEED;
+
+    // go ahead and make consistent to avoid lazy mount operations
+    // messing with the benchmark
+    #ifdef LFS3
+    lfs3_fs_mkconsistent(&lfs3) => 0;
+    #else
+    lfs2_fs_mkconsistent(&lfs2) => 0;
+    #endif
 
     // write our file
     if (MODE == 0) {
@@ -185,6 +190,14 @@ code = '''
     #endif
     uint32_t prng = SEED;
 
+    // go ahead and make consistent to avoid lazy mount operations
+    // messing with the benchmark
+    #ifdef LFS3
+    lfs3_fs_mkconsistent(&lfs3) => 0;
+    #else
+    lfs2_fs_mkconsistent(&lfs2) => 0;
+    #endif
+
     // write our file
     if (MODE == 0) {
         BENCH_START("write", 0*CHUNK+CHUNK);
@@ -259,6 +272,87 @@ code = '''
     #endif
 '''
 
+[cases.bench_p26_litmus_many]
+# 0 => benchmark writes
+# 1 => measure usage
+defines.MODE = [0, 1]
+code = '''
+    #ifdef LFS3
+    lfs3_t lfs3;
+    lfs3_format(&lfs3, LFS3_F_RDWR, CFG) => 0;
+    lfs3_mount(&lfs3, LFS3_M_RDWR, CFG) => 0;
+    #else
+    lfs2_t lfs2;
+    lfs2_format(&lfs2, (const struct lfs2_config*)CFG) => 0;
+    lfs2_mount(&lfs2, (const struct lfs2_config*)CFG) => 0;
+    #endif
+    uint32_t prng = SEED;
+
+    // TODO should we be including format in our measurements?
+    //
+    // go ahead and make consistent to avoid lazy mount operations
+    // messing with the benchmark
+    #ifdef LFS3
+    lfs3_fs_mkconsistent(&lfs3) => 0;
+    #else
+    lfs2_fs_mkconsistent(&lfs2) => 0;
+    #endif
+
+    // create a filesystem with many files
+    for (lfs3_size_t i = 0;
+            i < (SIZE+(CHUNK-1))/CHUNK
+                // cutoff littlefs2, at some point we stop caring about
+                // just how badly littlefs2 scales
+                && (V != 2 || i < (LFS2_MANY_CUTOFF+(CHUNK-1))/CHUNK);
+            i++) {
+        // choose a random filename
+        lfs3_off_t pos = BENCH_PRNG(&prng) % SIZE;
+        char name[256];
+        sprintf(name, "bench_%08x", pos);
+
+        // create the file
+        //
+        // note file == CHUNK here, the sum of all files should add up
+        // roughly to the benchmark SIZE
+        if (MODE == 0 && (i+1) % STEP == 0) {
+            BENCH_START("write", i*CHUNK+CHUNK);
+        }
+        uint8_t wbuf[CHUNK];
+        memset(wbuf, 'a'+(BENCH_PRNG(&prng) % 26), CHUNK);
+        #ifdef LFS3
+        lfs3_file_t file;
+        lfs3_file_open(&lfs3, &file, name,
+                LFS3_O_WRONLY | LFS3_O_CREAT | LFS3_O_TRUNC) => 0;
+        lfs3_file_write(&lfs3, &file, &wbuf, CHUNK) => CHUNK;
+        lfs3_file_close(&lfs3, &file) => 0;
+        #else
+        lfs2_file_t file;
+        lfs2_file_open(&lfs2, &file, name,
+                LFS2_O_WRONLY | LFS2_O_CREAT | LFS2_O_TRUNC) => 0;
+        lfs2_file_write(&lfs2, &file, &wbuf, CHUNK) => CHUNK;
+        lfs2_file_close(&lfs2, &file) => 0;
+        #endif
+        if (MODE == 0 && (i+1) % STEP == 0) {
+            BENCH_STOP("write");
+        }
+
+        if (MODE == 1 && (i+1) % STEP == 0) {
+            // measure disk usage
+            #ifdef LFS3
+            bench_p26_find_usage(&lfs3, i*CHUNK+CHUNK);
+            #else
+            bench_p26_find_usage(&lfs2, i*CHUNK+CHUNK);
+            #endif
+        }
+    }
+
+    #ifdef LFS3
+    lfs3_unmount(&lfs3) => 0;
+    #else
+    lfs2_unmount(&lfs2) => 0;
+    #endif
+'''
+
 [cases.bench_p26_litmus_logging]
 # 0 => benchmark writes
 # 1 => measure usage
@@ -275,6 +369,14 @@ code = '''
     lfs2_mount(&lfs2, (const struct lfs2_config*)CFG) => 0;
     #endif
     uint32_t prng = SEED;
+
+    // go ahead and make consistent to avoid lazy mount operations
+    // messing with the benchmark
+    #ifdef LFS3
+    lfs3_fs_mkconsistent(&lfs3) => 0;
+    #else
+    lfs2_fs_mkconsistent(&lfs2) => 0;
+    #endif
 
     // write our file
     if (MODE == 0) {

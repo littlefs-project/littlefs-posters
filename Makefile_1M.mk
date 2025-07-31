@@ -7,7 +7,7 @@ export PLOTSDIR ?= plots_1M
 
 
 # increase bench sizes to 1 MiB
-export BENCHFLAGS += -DDISK_SIZE=67108864
+export BENCHFLAGS += -DDISK_SIZE=134217728
 export BENCHFLAGS += -DSIZE=1048576
 export BENCHFLAGS += -DSTEP=64
 
