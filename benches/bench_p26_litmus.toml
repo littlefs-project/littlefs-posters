@@ -1,4 +1,4 @@
-# High-level research benchmarks
+# High-level litmus benchmarks
 
 
 # these are common and can be overridden suite-wide
@@ -112,7 +112,7 @@ code = '''
     lfs2_fs_mkconsistent(&lfs2) => 0;
     #endif
 
-    // write our file
+    // open a file
     if (MODE == 0) {
         BENCH_START("write", 0*CHUNK+CHUNK);
     }
@@ -195,7 +195,7 @@ code = '''
     lfs2_fs_mkconsistent(&lfs2) => 0;
     #endif
 
-    // write our file
+    // open a file
     if (MODE == 0) {
         BENCH_START("write", 0*CHUNK+CHUNK);
     }
@@ -375,7 +375,7 @@ code = '''
     lfs2_fs_mkconsistent(&lfs2) => 0;
     #endif
 
-    // write our file
+    // open a file
     if (MODE == 0) {
         BENCH_START("write", 0*CHUNK+CHUNK);
     }

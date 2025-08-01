@@ -7,8 +7,10 @@ CODEMAPSDIR ?= codemaps
 # overrideable plots dir, defaults ./plots
 PLOTSDIR ?= plots
 
-# how many samples to measure?
+# how many samples to measure for litmus testing?
 SAMPLES ?= 16
+# simulated time, in nanoseconds, for write-throughput testing?
+SIMTIME ?= 10000000000 # 10 seconds
 
 # configurations that simulate real-world storage
 #
@@ -438,7 +440,8 @@ bench bench-all: \
 ## Run p26 benchmarks
 .PHONY: bench-p26
 bench-p26: \
-		bench-p26-litmus
+		bench-p26-litmus \
+		bench-p26-wt
 
 ## Run p26 litmus benchmarks
 .PHONY: bench-p26-litmus
@@ -479,6 +482,19 @@ bench-p26-litmus-logging: \
 			$(RESULTSDIR)/bench_p26_litmus_logging.lfs3.$(SIM).csv \
 			$(RESULTSDIR)/bench_p26_litmus_logging.lfs3nb.$(SIM).csv \
 			$(RESULTSDIR)/bench_p26_litmus_logging.lfs2.$(SIM).csv)
+
+## Run p26 write-throughput benchmarks
+.PHONY: bench-p26-wt
+bench-p26-wt: \
+		bench-p26-wt-linear
+
+## Run p26 write-throughput linear benchmarks
+.PHONY: bench-p26-wt-linear
+bench-p26-wt-linear: \
+		$(foreach SIM, emmc nor nand, \
+			$(RESULTSDIR)/bench_p26_wt_linear.lfs3.$(SIM).csv \
+			$(RESULTSDIR)/bench_p26_wt_linear.lfs3nb.$(SIM).csv \
+			$(RESULTSDIR)/bench_p26_wt_linear.lfs2.$(SIM).csv)
 
 
 # p26 bench rules!
@@ -546,6 +562,71 @@ $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		LFS2,$\
 		NAND))
 
+
+# p26 write-throughput bench rule
+#
+# $1 - target
+# $2 - fs type/version
+# $3 - sim type
+#
+define BENCH_P26_WT_RULE
+$1: $$(BENCH_$2_RUNNER)
+	$$(strip ./scripts/bench.py -R$$< -B bench_p26_wt_$$* \
+		-DSIMTIME=$(SIMTIME) \
+		-DFS=$(if $(filter LFS3,$2),3,$\
+			$(if $(filter LFS3NB,$2),30,$\
+			$(if $(filter LFS2,$2),2))) \
+		-DREAD_SIZE=$$($3_READ_SIZE) \
+		-DPROG_SIZE=$$($3_PROG_SIZE) \
+		-DERASE_SIZE=$$($3_ERASE_SIZE) \
+		-DREAD_TIME=$$($3_READ_TIME) \
+		-DPROG_TIME=$$($3_PROG_TIME) \
+		-DERASE_TIME=$$($3_ERASE_TIME) \
+		-DBLOCK_SIZE=$$($3_$2_BLOCK_SIZE) \
+		$$(BENCHFLAGS) \
+		-o$$@)
+endef
+
+$(eval $(call BENCH_P26_WT_RULE,$\
+		$(RESULTSDIR)/bench_p26_wt_%.lfs3.emmc.csv,$\
+		LFS3,$\
+		EMMC))
+$(eval $(call BENCH_P26_WT_RULE,$\
+		$(RESULTSDIR)/bench_p26_wt_%.lfs3.nor.csv,$\
+		LFS3,$\
+		NOR))
+$(eval $(call BENCH_P26_WT_RULE,$\
+		$(RESULTSDIR)/bench_p26_wt_%.lfs3.nand.csv,$\
+		LFS3,$\
+		NAND))
+
+$(eval $(call BENCH_P26_WT_RULE,$\
+		$(RESULTSDIR)/bench_p26_wt_%.lfs3nb.emmc.csv,$\
+		LFS3NB,$\
+		EMMC))
+$(eval $(call BENCH_P26_WT_RULE,$\
+		$(RESULTSDIR)/bench_p26_wt_%.lfs3nb.nor.csv,$\
+		LFS3NB,$\
+		NOR))
+$(eval $(call BENCH_P26_WT_RULE,$\
+		$(RESULTSDIR)/bench_p26_wt_%.lfs3nb.nand.csv,$\
+		LFS3NB,$\
+		NAND))
+
+$(eval $(call BENCH_P26_WT_RULE,$\
+		$(RESULTSDIR)/bench_p26_wt_%.lfs2.emmc.csv,$\
+		LFS2,$\
+		EMMC))
+$(eval $(call BENCH_P26_WT_RULE,$\
+		$(RESULTSDIR)/bench_p26_wt_%.lfs2.nor.csv,$\
+		LFS2,$\
+		NOR))
+$(eval $(call BENCH_P26_WT_RULE,$\
+		$(RESULTSDIR)/bench_p26_wt_%.lfs2.nand.csv,$\
+		LFS2,$\
+		NAND))
+
+
 # simulated/estimated results
 $(RESULTSDIR)/bench_%.sim.csv: $(RESULTSDIR)/bench_%.csv
 	$(strip ./scripts/csv.py $^ \
@@ -564,6 +645,33 @@ $(RESULTSDIR)/bench_%.sim.csv: $(RESULTSDIR)/bench_%.csv
 				) / 1.0e9' \
 		-fbench_cproged=0 \
 		-fbench_cerased=0 \
+		-o$@)
+
+# simulated throughput results
+#
+# note we first sum n/readed/proged/erased
+$(RESULTSDIR)/bench_%.tsim.csv: $(RESULTSDIR)/bench_%.csv
+	$(strip ./scripts/csv.py \
+		<(./scripts/csv.py $^ \
+			-fn \
+			-fbench_readed \
+			-fbench_proged \
+			-fbench_erased \
+			-Dbench_creaded='*' \
+			-Dbench_cproged='*' \
+			-Dbench_cerased='*' \
+			-o-) \
+		-Bm='%(m)s+tsim' \
+		-fn \
+		-fbench_readed=' \
+			float(n) / max( \
+				(float(bench_readed)*float(READ_TIME) \
+					+ float(bench_proged)*float(PROG_TIME) \
+					+ float(bench_erased)*float(ERASE_TIME) \
+					) / 1.0e9, \
+				1.0e-9)' \
+		-fbench_proged=0 \
+		-fbench_erased=0 \
 		-o$@)
 
 # amortized results
@@ -833,7 +941,8 @@ plot plot-all: \
 ## Plot p26 benchmarks
 .PHONY: plot-p26
 plot-p26: \
-		plot-p26-litmus
+		plot-p26-litmus \
+		plot-p26-wt
 
 ## Plot p26 litmus benchmarks
 .PHONY: plot-p26-litmus
@@ -879,57 +988,18 @@ plot-p26-litmus-logging: \
 		$(PLOTSDIR)/bench_p26_litmus_logging_u.svg \
 		$(PLOTSDIR)/bench_p26_litmus_logging.svg
 
+## Plot p26 write-throughput benchmarks
+.PHONY: plot-p26-wt
+plot-p26-wt: \
+		plot-p26-wt-linear
+
+## Plot p26 write-throughput linear benchmarks
+.PHONY: plot-p26-wt-linear
+plot-p26-wt-linear: \
+		$(PLOTSDIR)/bench_p26_wt_linear.svg
 
 
 # p26 plot rules!
-
-# plot p26 config
-#
-# $1 - measurement
-# $2 - optional amor/per flag
-#
-PLOT_P26_FLAGS += -W1500 -H700
-PLOT_P26_FLAGS += \
-		--subplot=" \
-				-DERASE_SIZE='$(EMMC_ERASE_SIZE)' \
-				-Dm=$1 \
-				$(if $(filter amor,$2),--ylabel=raw) \
-				$(if $(filter per,$2),--ylabel=total) \
-				--title=sd/emmc \
-				$(if $2,--add-xticklabel=,)" \
-			$(if $2, \
-			--subplot-below=" \
-				-DERASE_SIZE='$(EMMC_ERASE_SIZE)' \
-				-Dm=$1+$2 \
-				$(if $(filter amor,$2),--ylabel=amortized) \
-				$(if $(filter per,$2),--ylabel=per) \
-				--ylim-stddev=3 \
-				-H0.5",) \
-		--subplot-right=" \
-				-DERASE_SIZE='$(NOR_ERASE_SIZE)' \
-				-Dm=$1 \
-				--title=nor \
-				$(if $2,--add-xticklabel=,) \
-				-W0.5 \
-			$(if $2, \
-			--subplot-below=\" \
-				-DERASE_SIZE='$(NOR_ERASE_SIZE)' \
-				-Dm=$1+$2 \
-				--ylim-stddev=3 \
-				-H0.5\",)" \
-		--subplot-right=" \
-				-DERASE_SIZE='$(NAND_ERASE_SIZE)' \
-				-Dm=$1 \
-				--title=nand \
-				$(if $2,--add-xticklabel=,) \
-				-W0.33 \
-			$(if $2, \
-			--subplot-below=\" \
-				-DERASE_SIZE='$(NAND_ERASE_SIZE)' \
-				-Dm=$1+$2 \
-				--ylim-stddev=3 \
-				-H0.5\",)"
-PLOT_P26_FLAGS += $(PLOT_COLORS_1BND)
 
 # p26 litmus plot rule
 #
@@ -952,10 +1022,50 @@ $1: $2
 			-D$4_avg='*' \
 			-f$4_bnd=$4_max \
 			-o-) \
+		-W1500 -H700 \
 		--title=$3 \
 		-bFS \
 		-xn \
 		-y$4_avg -y$4_bnd \
+		--subplot=" \
+				-DERASE_SIZE='$(EMMC_ERASE_SIZE)' \
+				-Dm=$5 \
+				$(if $(filter amor,$6),--ylabel=raw) \
+				$(if $(filter per,$6),--ylabel=total) \
+				--title=sd/emmc \
+				$(if $6,--add-xticklabel=,)" \
+			$(if $6, \
+			--subplot-below=" \
+				-DERASE_SIZE='$(EMMC_ERASE_SIZE)' \
+				-Dm=$5+$6 \
+				$(if $(filter amor,$6),--ylabel=amortized) \
+				$(if $(filter per,$6),--ylabel=per) \
+				--ylim-stddev=3 \
+				-H0.5",) \
+		--subplot-right=" \
+				-DERASE_SIZE='$(NOR_ERASE_SIZE)' \
+				-Dm=$5 \
+				--title=nor \
+				$(if $6,--add-xticklabel=,) \
+				-W0.5 \
+			$(if $6, \
+			--subplot-below=\" \
+				-DERASE_SIZE='$(NOR_ERASE_SIZE)' \
+				-Dm=$5+$6 \
+				--ylim-stddev=3 \
+				-H0.5\",)" \
+		--subplot-right=" \
+				-DERASE_SIZE='$(NAND_ERASE_SIZE)' \
+				-Dm=$5 \
+				--title=nand \
+				$(if $6,--add-xticklabel=,) \
+				-W0.33 \
+			$(if $6, \
+			--subplot-below=\" \
+				-DERASE_SIZE='$(NAND_ERASE_SIZE)' \
+				-Dm=$5+$6 \
+				--ylim-stddev=3 \
+				-H0.5\",)" \
 		--legend \
 		-L'3,$4_avg=lfs3%n$\
 			- bs=$(EMMC_LFS3_BLOCK_SIZE)%n$\
@@ -972,20 +1082,19 @@ $1: $2
 			- bs=$(NOR_LFS2_BLOCK_SIZE)%n$\
 			- bs=$(NAND_LFS2_BLOCK_SIZE)' \
 		-L'2,$4_bnd=' \
-		$$(call PLOT_P26_FLAGS,$5,$6) \
+		$(PLOT_COLORS_1BND) \
 		$7 \
 		$$(PLOTFLAGS) \
 		-o$$@)
 endef
 
-# lfs3 vs lfs3nb vs lfs2 - linear file writes
 $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		$(PLOTSDIR)/bench_p26_litmus_%_r.svg,$\
 		$(foreach FS,lfs3 lfs3nb lfs2,$\
 			$(foreach SIM,emmc nor nand,$\
 				$(RESULTSDIR)/bench_p26_litmus_%.$(FS).$(SIM).avg.csv $\
 				$(RESULTSDIR)/bench_p26_litmus_%.$(FS).$(SIM).amor.avg.csv)),$\
-		"lfs3 vs lfs3nb vs lfs2 - $$* file writes - reads",$\
+		"$$* file writes - reads",$\
 		bench_readed,$\
 		write,$\
 		amor,$\
@@ -996,7 +1105,7 @@ $(eval $(call PLOT_P26_LITMUS_RULE,$\
 			$(foreach SIM,emmc nor nand,$\
 				$(RESULTSDIR)/bench_p26_litmus_%.$(FS).$(SIM).avg.csv $\
 				$(RESULTSDIR)/bench_p26_litmus_%.$(FS).$(SIM).amor.avg.csv)),$\
-		"lfs3 vs lfs3nb vs lfs2 - $$* file writes - progs",$\
+		"$$* file writes - progs",$\
 		bench_proged,$\
 		write,$\
 		amor,$\
@@ -1007,7 +1116,7 @@ $(eval $(call PLOT_P26_LITMUS_RULE,$\
 			$(foreach SIM,emmc nor nand,$\
 				$(RESULTSDIR)/bench_p26_litmus_%.$(FS).$(SIM).avg.csv $\
 				$(RESULTSDIR)/bench_p26_litmus_%.$(FS).$(SIM).amor.avg.csv)),$\
-		"lfs3 vs lfs3nb vs lfs2 - $$* file writes - erases",$\
+		"$$* file writes - erases",$\
 		bench_erased,$\
 		write,$\
 		amor,$\
@@ -1018,7 +1127,7 @@ $(eval $(call PLOT_P26_LITMUS_RULE,$\
 			$(foreach SIM,emmc nor nand,$\
 				$(RESULTSDIR)/bench_p26_litmus_%.$(FS).$(SIM).avg.csv $\
 				$(RESULTSDIR)/bench_p26_litmus_%.$(FS).$(SIM).per.avg.csv)),$\
-		"lfs3 vs lfs3nb vs lfs2 - $$* file usage",$\
+		"$$* file usage",$\
 		bench_readed,$\
 		usage,$\
 		per,$\
@@ -1030,11 +1139,67 @@ $(eval $(call PLOT_P26_LITMUS_RULE,$\
 				$(RESULTSDIR)/bench_p26_litmus_%.$(FS).$(SIM).sim.avg.csv $\
 				$(RESULTSDIR)/bench_p26_litmus_%$\
 					.$(FS).$(SIM).sim.amor.avg.csv)),$\
-		"lfs3 vs lfs3nb vs lfs2 - $$* file writes - simulated runtime",$\
+		"$$* file writes - simulated runtime",$\
 		bench_readed,$\
 		write+sim,$\
 		amor,$\
 		-DMODE=0 --x2 --xunits=B --yunits=s))
+
+# p26 throughput plot rule
+#
+# $1 - target
+# $2 - sources
+# $3 - title
+# $4 - extra plotmpl.py flags
+#
+define PLOT_P26_T_RULE
+$1: $2
+	$$(strip ./scripts/plotmpl.py $$^ \
+		-W1500 -H350 \
+		--title=$3 \
+		-bFS \
+		-xSIZE \
+		-ybench_readed \
+		--subplot=" \
+			-DERASE_SIZE='$(EMMC_ERASE_SIZE)' \
+			--title=sd/emmc" \
+		--subplot-right=" \
+			-DERASE_SIZE='$(NOR_ERASE_SIZE)' \
+			--title=nor \
+			-W0.5" \
+		--subplot-right=" \
+			-DERASE_SIZE='$(NAND_ERASE_SIZE)' \
+			--title=nand \
+			-W0.33" \
+		--legend \
+		-L'3=lfs3%n$\
+			- bs=$(EMMC_LFS3_BLOCK_SIZE)%n$\
+			- bs=$(NOR_LFS3_BLOCK_SIZE)%n$\
+			- bs=$(NAND_LFS3_BLOCK_SIZE)' \
+		-L'30=lfs3nb%n$\
+			- bs=$(EMMC_LFS3NB_BLOCK_SIZE)%n$\
+			- bs=$(NOR_LFS3NB_BLOCK_SIZE)%n$\
+			- bs=$(NAND_LFS3NB_BLOCK_SIZE)' \
+		-L'2=lfs2%n$\
+			- bs=$(EMMC_LFS2_BLOCK_SIZE)%n$\
+			- bs=$(NOR_LFS2_BLOCK_SIZE)%n$\
+			- bs=$(NAND_LFS2_BLOCK_SIZE)' \
+		$(PLOT_COLORS_1) \
+		-Fo- -F^- -Fs- -FX- -FP- \
+		$4 \
+		$$(PLOTFLAGS) \
+		-o$$@)
+endef
+
+$(eval $(call PLOT_P26_T_RULE,$\
+		$(PLOTSDIR)/bench_p26_wt_%.svg,$\
+		$(foreach FS,lfs3 lfs3nb lfs2,$\
+			$(foreach SIM,emmc nor nand,$\
+				$(RESULTSDIR)/bench_p26_wt_%.$(FS).$(SIM).tsim.csv)),$\
+		"$$* file writes - simulated throughput",$\
+		--xlim-stddev=-0.95$(,)2.1 \
+			--xticks=8 --xlog --x2 --xunits=B \
+			--y2 --yunits=B/s))
 
 
 

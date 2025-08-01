@@ -1,0 +1,117 @@
+# High-level write-throughput benchmarks
+
+
+# these are common and can be overridden suite-wide
+#
+# note for bench_p26_litmus_many, CHUNK => file size, and SIZE = sum of
+# all files
+#
+defines.SIZE = [4096, 8192, 16384, 32768]
+defines.CHUNK = 32
+defines.SEED = 42
+
+# simulated time, in nanoseconds, to run the test
+defines.SIMTIME = '10000000000ULL' # 10 seconds
+
+
+code = '''
+// simulated time in nanoseconds since start of bench
+//
+// this is derived form the current read/prog/erase ops
+static uint64_t bench_p26_time(const struct lfs3_cfg *cfg) {
+    uint64_t time = 0;
+    time += lfs3_emubd_readed(cfg) * READ_TIME;
+    time += lfs3_emubd_proged(cfg) * PROG_TIME;
+    time += lfs3_emubd_erased(cfg) * ERASE_TIME;
+    return time;
+}
+
+// is the current bench out-of-time?
+static bool bench_p26_oot(const struct lfs3_cfg *cfg) {
+    return (bench_p26_time(cfg) >= (uint64_t)SIMTIME);
+}
+'''
+
+
+
+[cases.bench_p26_wt_linear]
+code = '''
+    #ifdef LFS3
+    lfs3_t lfs3;
+    lfs3_format(&lfs3, LFS3_F_RDWR, CFG) => 0;
+    lfs3_mount(&lfs3, LFS3_M_RDWR, CFG) => 0;
+    #else
+    lfs2_t lfs2;
+    lfs2_format(&lfs2, (const struct lfs2_config*)CFG) => 0;
+    lfs2_mount(&lfs2, (const struct lfs2_config*)CFG) => 0;
+    #endif
+    uint32_t prng = SEED;
+
+    // go ahead and make consistent to avoid lazy mount operations
+    // messing with the benchmark
+    #ifdef LFS3
+    lfs3_fs_mkconsistent(&lfs3) => 0;
+    #else
+    lfs2_fs_mkconsistent(&lfs2) => 0;
+    #endif
+
+    // open a file
+    BENCH_START("write", 0);
+    #ifdef LFS3
+    lfs3_file_t file;
+    lfs3_file_open(&lfs3, &file, "bench_linear",
+            LFS3_O_RDWR | LFS3_O_CREAT | LFS3_O_EXCL) => 0;
+    #else
+    lfs2_file_t file;
+    lfs2_file_open(&lfs2, &file, "bench_linear",
+            LFS2_O_RDWR | LFS2_O_CREAT | LFS2_O_EXCL) => 0;
+    #endif
+    lfs3_size_t size = 0;
+    uint64_t written = 0;
+    while (!bench_p26_oot(CFG)) {
+        // write to the file
+        uint8_t wbuf[CHUNK];
+        for (lfs3_size_t j = 0; j < CHUNK; j++) {
+            wbuf[j] = 'a' + (BENCH_PRNG(&prng) % 26);
+        }
+        #ifdef LFS3
+        lfs3_file_write(&lfs3, &file, wbuf, CHUNK) => CHUNK;
+        #else
+        lfs2_file_write(&lfs2, &file, wbuf, CHUNK) => CHUNK;
+        #endif
+        size += CHUNK;
+        written += CHUNK;
+
+        // arguably we should just rewind and continue writing to the
+        // front of the file when we hit the end, but this overly
+        // penalizes littlefs2, so instead we truncate
+        if (size >= SIZE) {
+            #ifdef LFS3
+            lfs3_file_rewind(&lfs3, &file) => 0;
+            lfs3_file_truncate(&lfs3, &file, 0) => 0;
+            #else
+            lfs2_file_rewind(&lfs2, &file) => 0;
+            lfs2_file_truncate(&lfs2, &file, 0) => 0;
+            #endif
+            size = 0;
+        }
+    }
+    #ifdef LFS3
+    lfs3_file_close(&lfs3, &file) => 0;
+    #else
+    lfs2_file_close(&lfs2, &file) => 0;
+    #endif
+    BENCH_STOP("write");
+
+    // it's a bit awkward, but this reports the amount written to
+    // result scripts
+    // TODO we should really move n to BENCH_STOP
+    BENCH_START("write", written);
+    BENCH_STOP("write");
+
+    #ifdef LFS3
+    lfs3_unmount(&lfs3) => 0;
+    #else
+    lfs2_unmount(&lfs2) => 0;
+    #endif
+'''
