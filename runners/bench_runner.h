@@ -135,6 +135,12 @@ void bench_permutation(size_t i, uint32_t *buffer, size_t size);
     BENCH_DEFINE(PROG_SIZE,          1                                      ) \
     /* ERASE_SIZE is just informative                                      */ \
     BENCH_DEFINE(ERASE_SIZE,         4096                                   ) \
+    /* simulated estimate timings in nanoseconds                           */ \
+    /* these are derived from the w25q64jv datasheet, but should probably  */ \
+    /* be overridden                                                       */ \
+    BENCH_DEFINE(READ_TIME,          40                                     ) \
+    BENCH_DEFINE(PROG_TIME,          1582                                   ) \
+    BENCH_DEFINE(ERASE_TIME,         10986                                  ) \
     BENCH_DEFINE(BLOCK_SIZE,         4096                                   ) \
     BENCH_DEFINE(BLOCK_COUNT,        DISK_SIZE/BLOCK_SIZE                   ) \
     /* NOTE we can drop this back to 1MiB, but we'd need to support        */ \
@@ -173,6 +179,12 @@ void bench_permutation(size_t i, uint32_t *buffer, size_t size);
     BENCH_DEFINE(PROG_SIZE,          1                                      ) \
     /* ERASE_SIZE is just informative                                      */ \
     BENCH_DEFINE(ERASE_SIZE,         4096                                   ) \
+    /* simulated estimate timings in nanoseconds                           */ \
+    /* these are derived from the w25q64jv datasheet, but should probably  */ \
+    /* be overridden                                                       */ \
+    BENCH_DEFINE(READ_TIME,          40                                     ) \
+    BENCH_DEFINE(PROG_TIME,          1582                                   ) \
+    BENCH_DEFINE(ERASE_TIME,         10986                                  ) \
     BENCH_DEFINE(BLOCK_SIZE,         4096                                   ) \
     BENCH_DEFINE(BLOCK_COUNT,        DISK_SIZE/BLOCK_SIZE                   ) \
     BENCH_DEFINE(DISK_SIZE,          4*1024*1024                            ) \

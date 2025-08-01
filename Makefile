@@ -499,6 +499,9 @@ $1: $$(BENCH_$2_RUNNER)
 		-DREAD_SIZE=$$($3_READ_SIZE) \
 		-DPROG_SIZE=$$($3_PROG_SIZE) \
 		-DERASE_SIZE=$$($3_ERASE_SIZE) \
+		-DREAD_TIME=$$($3_READ_TIME) \
+		-DPROG_TIME=$$($3_PROG_TIME) \
+		-DERASE_TIME=$$($3_ERASE_TIME) \
 		-DBLOCK_SIZE=$$($3_$2_BLOCK_SIZE) \
 		$$(BENCHFLAGS) \
 		-o$$@)
@@ -544,52 +547,24 @@ $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		NAND))
 
 # simulated/estimated results
-#
-# $1 - target
-# $2 - source
-# $3 - read time
-# $4 - prog time
-# $5 - erase time
-#
-define BENCH_P26_SIM_RULE
-$1: $2
-	$$(strip ./scripts/csv.py $$^ \
+$(RESULTSDIR)/bench_%.sim.csv: $(RESULTSDIR)/bench_%.csv
+	$(strip ./scripts/csv.py $^ \
 		-Bm='%(m)s+sim' \
 		-fbench_readed=' \
-			(float(bench_readed)*float($3) \
-				+ float(bench_proged)*float($4) \
-				+ float(bench_erased)*float($5) \
+			(float(bench_readed)*float(READ_TIME) \
+				+ float(bench_proged)*float(PROG_TIME) \
+				+ float(bench_erased)*float(ERASE_TIME) \
 				) / 1.0e9' \
 		-fbench_proged=0 \
 		-fbench_erased=0 \
 		-fbench_creaded=' \
-			(float(bench_creaded)*float($3) \
-				+ float(bench_cproged)*float($4) \
-				+ float(bench_cerased)*float($5) \
+			(float(bench_creaded)*float(READ_TIME) \
+				+ float(bench_cproged)*float(PROG_TIME) \
+				+ float(bench_cerased)*float(ERASE_TIME) \
 				) / 1.0e9' \
 		-fbench_cproged=0 \
 		-fbench_cerased=0 \
-		-o$$@)
-endef
-
-$(eval $(call BENCH_P26_SIM_RULE,$\
-		$(RESULTSDIR)/bench_%.emmc.sim.csv,$\
-		$(RESULTSDIR)/bench_%.emmc.csv,$\
-		$(EMMC_READ_TIME),$\
-		$(EMMC_PROG_TIME),$\
-		$(EMMC_ERASE_TIME)))
-$(eval $(call BENCH_P26_SIM_RULE,$\
-		$(RESULTSDIR)/bench_%.nor.sim.csv,$\
-		$(RESULTSDIR)/bench_%.nor.csv,$\
-		$(NOR_READ_TIME),$\
-		$(NOR_PROG_TIME),$\
-		$(NOR_ERASE_TIME)))
-$(eval $(call BENCH_P26_SIM_RULE,$\
-		$(RESULTSDIR)/bench_%.nand.sim.csv,$\
-		$(RESULTSDIR)/bench_%.nand.csv,$\
-		$(NAND_READ_TIME),$\
-		$(NAND_PROG_TIME),$\
-		$(NAND_ERASE_TIME)))
+		-o$@)
 
 # amortized results
 $(RESULTSDIR)/bench_%.amor.csv: $(RESULTSDIR)/bench_%.csv
