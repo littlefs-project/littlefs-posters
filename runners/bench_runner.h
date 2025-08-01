@@ -121,9 +121,16 @@ void bench_permutation(size_t i, uint32_t *buffer, size_t size);
 
 
 // a few preconfigured defines that control how benches run
+//
+// note FS indicates the built filesystem and version:
+// 3  => littlefs3 with bmap
+// 30 => littlefs3 no bmap
+// 2  => littlefs2
+//
 #ifdef LFS3
 #define BENCH_IMPLICIT_DEFINES \
     /*           name                value (overridable)                   */ \
+    BENCH_DEFINE(FS,                 LFS3_IFDEF_BMAP(3, 30)                 ) \
     BENCH_DEFINE(READ_SIZE,          1                                      ) \
     BENCH_DEFINE(PROG_SIZE,          1                                      ) \
     /* ERASE_SIZE is just informative                                      */ \
@@ -161,6 +168,7 @@ void bench_permutation(size_t i, uint32_t *buffer, size_t size);
 #else
 #define BENCH_IMPLICIT_DEFINES \
     /*           name                value (overridable)                   */ \
+    BENCH_DEFINE(FS,                 2                                      ) \
     BENCH_DEFINE(READ_SIZE,          1                                      ) \
     BENCH_DEFINE(PROG_SIZE,          1                                      ) \
     /* ERASE_SIZE is just informative                                      */ \

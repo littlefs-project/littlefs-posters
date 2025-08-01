@@ -486,99 +486,62 @@ bench-p26-litmus-logging: \
 # p26 litmus bench rule
 #
 # $1 - target
-# $2 - runner
-# $3 - bench case
-# $4 - read size
-# $5 - prog size
-# $6 - erase size
-# $7 - block size, which may be different from erase size
+# $2 - fs type/version
+# $3 - sim type
 #
 define BENCH_P26_LITMUS_RULE
-$1: $2
-	$$(strip ./scripts/bench.py -R$$< -B $3 \
+$1: $$(BENCH_$2_RUNNER)
+	$$(strip ./scripts/bench.py -R$$< -B bench_p26_litmus_$$* \
 		-DSEED="range($$(SAMPLES))" \
-		-DREAD_SIZE=$4 \
-		-DPROG_SIZE=$5 \
-		-DERASE_SIZE=$6 \
-		-DBLOCK_SIZE=$7 \
+		-DFS=$(if $(filter LFS3,$2),3,$\
+			$(if $(filter LFS3NB,$2),30,$\
+			$(if $(filter LFS2,$2),2))) \
+		-DREAD_SIZE=$$($3_READ_SIZE) \
+		-DPROG_SIZE=$$($3_PROG_SIZE) \
+		-DERASE_SIZE=$$($3_ERASE_SIZE) \
+		-DBLOCK_SIZE=$$($3_$2_BLOCK_SIZE) \
 		$$(BENCHFLAGS) \
 		-o$$@)
 endef
 
 $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		$(RESULTSDIR)/bench_p26_litmus_%.lfs3.emmc.csv,$\
-		$(BENCH_LFS3_RUNNER),$\
-		bench_p26_litmus_$$*,$\
-		$(EMMC_READ_SIZE),$\
-		$(EMMC_PROG_SIZE),$\
-		$(EMMC_ERASE_SIZE),$\
-		$(EMMC_LFS3_BLOCK_SIZE)))
+		LFS3,$\
+		EMMC))
 $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		$(RESULTSDIR)/bench_p26_litmus_%.lfs3.nor.csv,$\
-		$(BENCH_LFS3_RUNNER),$\
-		bench_p26_litmus_$$*,$\
-		$(NOR_READ_SIZE),$\
-		$(NOR_PROG_SIZE),$\
-		$(NOR_ERASE_SIZE),$\
-		$(NOR_LFS3_BLOCK_SIZE)))
+		LFS3,$\
+		NOR))
 $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		$(RESULTSDIR)/bench_p26_litmus_%.lfs3.nand.csv,$\
-		$(BENCH_LFS3_RUNNER),$\
-		bench_p26_litmus_$$*,$\
-		$(NAND_READ_SIZE),$\
-		$(NAND_PROG_SIZE),$\
-		$(NAND_ERASE_SIZE),$\
-		$(NAND_LFS3_BLOCK_SIZE)))
+		LFS3,$\
+		NAND))
 
 $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		$(RESULTSDIR)/bench_p26_litmus_%.lfs3nb.emmc.csv,$\
-		$(BENCH_LFS3NB_RUNNER),$\
-		bench_p26_litmus_$$*,$\
-		$(EMMC_READ_SIZE),$\
-		$(EMMC_PROG_SIZE),$\
-		$(EMMC_ERASE_SIZE),$\
-		$(EMMC_LFS3NB_BLOCK_SIZE)))
+		LFS3NB,$\
+		EMMC))
 $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		$(RESULTSDIR)/bench_p26_litmus_%.lfs3nb.nor.csv,$\
-		$(BENCH_LFS3NB_RUNNER),$\
-		bench_p26_litmus_$$*,$\
-		$(NOR_READ_SIZE),$\
-		$(NOR_PROG_SIZE),$\
-		$(NOR_ERASE_SIZE),$\
-		$(NOR_LFS3NB_BLOCK_SIZE)))
+		LFS3NB,$\
+		NOR))
 $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		$(RESULTSDIR)/bench_p26_litmus_%.lfs3nb.nand.csv,$\
-		$(BENCH_LFS3NB_RUNNER),$\
-		bench_p26_litmus_$$*,$\
-		$(NAND_READ_SIZE),$\
-		$(NAND_PROG_SIZE),$\
-		$(NAND_ERASE_SIZE),$\
-		$(NAND_LFS3NB_BLOCK_SIZE)))
+		LFS3NB,$\
+		NAND))
 
 $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		$(RESULTSDIR)/bench_p26_litmus_%.lfs2.emmc.csv,$\
-		$(BENCH_LFS2_RUNNER),$\
-		bench_p26_litmus_$$*,$\
-		$(EMMC_READ_SIZE),$\
-		$(EMMC_PROG_SIZE),$\
-		$(EMMC_ERASE_SIZE),$\
-		$(EMMC_LFS2_BLOCK_SIZE)))
+		LFS2,$\
+		EMMC))
 $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		$(RESULTSDIR)/bench_p26_litmus_%.lfs2.nor.csv,$\
-		$(BENCH_LFS2_RUNNER),$\
-		bench_p26_litmus_$$*,$\
-		$(NOR_READ_SIZE),$\
-		$(NOR_PROG_SIZE),$\
-		$(NOR_ERASE_SIZE),$\
-		$(NOR_LFS2_BLOCK_SIZE)))
+		LFS2,$\
+		NOR))
 $(eval $(call BENCH_P26_LITMUS_RULE,$\
 		$(RESULTSDIR)/bench_p26_litmus_%.lfs2.nand.csv,$\
-		$(BENCH_LFS2_RUNNER),$\
-		bench_p26_litmus_$$*,$\
-		$(NAND_READ_SIZE),$\
-		$(NAND_PROG_SIZE),$\
-		$(NAND_ERASE_SIZE),$\
-		$(NAND_LFS2_BLOCK_SIZE)))
+		LFS2,$\
+		NAND))
 
 # simulated/estimated results
 #
@@ -996,7 +959,7 @@ PLOT_P26_FLAGS += $(PLOT_COLORS_1BND)
 # p26 litmus plot rule
 #
 # $1 - target
-# $2 - sources, parameterized by $$(V) and $$(SIM)
+# $2 - sources
 # $3 - title
 # $4 - y field
 # $5 - measurement
@@ -1004,8 +967,7 @@ PLOT_P26_FLAGS += $(PLOT_COLORS_1BND)
 # $7 - extra plotmpl.py flags
 #
 define PLOT_P26_LITMUS_RULE
-$1: $$(foreach V, lfs3 lfs3nb lfs2, \
-		$$(foreach SIM, emmc nor nand, $2))
+$1: $2
 	$$(strip ./scripts/plotmpl.py \
 		<(./scripts/csv.py $$^ \
 			-f$4_avg \
@@ -1016,20 +978,20 @@ $1: $$(foreach V, lfs3 lfs3nb lfs2, \
 			-f$4_bnd=$4_max \
 			-o-) \
 		--title=$3 \
-		-bV \
+		-bFS \
 		-xn \
 		-y$4_avg -y$4_bnd \
 		--legend \
-		-L'32,$4_avg=lfs3%n$\
+		-L'3,$4_avg=lfs3%n$\
 			- bs=$(EMMC_LFS3_BLOCK_SIZE)%n$\
 			- bs=$(NOR_LFS3_BLOCK_SIZE)%n$\
 			- bs=$(NAND_LFS3_BLOCK_SIZE)' \
-		-L'32,$4_bnd=' \
-		-L'3,$4_avg=lfs3nb%n$\
+		-L'3,$4_bnd=' \
+		-L'30,$4_avg=lfs3nb%n$\
 			- bs=$(EMMC_LFS3NB_BLOCK_SIZE)%n$\
 			- bs=$(NOR_LFS3NB_BLOCK_SIZE)%n$\
 			- bs=$(NAND_LFS3NB_BLOCK_SIZE)' \
-		-L'3,$4_bnd=' \
+		-L'30,$4_bnd=' \
 		-L'2,$4_avg=lfs2%n$\
 			- bs=$(EMMC_LFS2_BLOCK_SIZE)%n$\
 			- bs=$(NOR_LFS2_BLOCK_SIZE)%n$\
@@ -1044,8 +1006,10 @@ endef
 # lfs3 vs lfs3nb vs lfs2 - linear file writes
 $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		$(PLOTSDIR)/bench_p26_litmus_%_r.svg,$\
-		$(RESULTSDIR)/bench_p26_litmus_%.$$(V).$$(SIM).avg.csv $\
-			$(RESULTSDIR)/bench_p26_litmus_%.$$(V).$$(SIM).amor.avg.csv,$\
+		$(foreach FS,lfs3 lfs3nb lfs2,$\
+			$(foreach SIM,emmc nor nand,$\
+				$(RESULTSDIR)/bench_p26_litmus_%.$(FS).$(SIM).avg.csv $\
+				$(RESULTSDIR)/bench_p26_litmus_%.$(FS).$(SIM).amor.avg.csv)),$\
 		"lfs3 vs lfs3nb vs lfs2 - $$* file writes - reads",$\
 		bench_readed,$\
 		write,$\
@@ -1053,8 +1017,10 @@ $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		-DMODE=0 --x2 --xunits=B --y2 --yunits=B))
 $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		$(PLOTSDIR)/bench_p26_litmus_%_p.svg,$\
-		$(RESULTSDIR)/bench_p26_litmus_%.$$(V).$$(SIM).avg.csv $\
-			$(RESULTSDIR)/bench_p26_litmus_%.$$(V).$$(SIM).amor.avg.csv,$\
+		$(foreach FS,lfs3 lfs3nb lfs2,$\
+			$(foreach SIM,emmc nor nand,$\
+				$(RESULTSDIR)/bench_p26_litmus_%.$(FS).$(SIM).avg.csv $\
+				$(RESULTSDIR)/bench_p26_litmus_%.$(FS).$(SIM).amor.avg.csv)),$\
 		"lfs3 vs lfs3nb vs lfs2 - $$* file writes - progs",$\
 		bench_proged,$\
 		write,$\
@@ -1062,8 +1028,10 @@ $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		-DMODE=0 --x2 --xunits=B --y2 --yunits=B))
 $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		$(PLOTSDIR)/bench_p26_litmus_%_e.svg,$\
-		$(RESULTSDIR)/bench_p26_litmus_%.$$(V).$$(SIM).avg.csv $\
-			$(RESULTSDIR)/bench_p26_litmus_%.$$(V).$$(SIM).amor.avg.csv,$\
+		$(foreach FS,lfs3 lfs3nb lfs2,$\
+			$(foreach SIM,emmc nor nand,$\
+				$(RESULTSDIR)/bench_p26_litmus_%.$(FS).$(SIM).avg.csv $\
+				$(RESULTSDIR)/bench_p26_litmus_%.$(FS).$(SIM).amor.avg.csv)),$\
 		"lfs3 vs lfs3nb vs lfs2 - $$* file writes - erases",$\
 		bench_erased,$\
 		write,$\
@@ -1071,8 +1039,10 @@ $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		-DMODE=0 --x2 --xunits=B --y2 --yunits=B))
 $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		$(PLOTSDIR)/bench_p26_litmus_%_u.svg,$\
-		$(RESULTSDIR)/bench_p26_litmus_%.$$(V).$$(SIM).avg.csv $\
-			$(RESULTSDIR)/bench_p26_litmus_%.$$(V).$$(SIM).per.avg.csv,$\
+		$(foreach FS,lfs3 lfs3nb lfs2,$\
+			$(foreach SIM,emmc nor nand,$\
+				$(RESULTSDIR)/bench_p26_litmus_%.$(FS).$(SIM).avg.csv $\
+				$(RESULTSDIR)/bench_p26_litmus_%.$(FS).$(SIM).per.avg.csv)),$\
 		"lfs3 vs lfs3nb vs lfs2 - $$* file usage",$\
 		bench_readed,$\
 		usage,$\
@@ -1080,8 +1050,11 @@ $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		-DMODE=1 --x2 --xunits=B --y2 --yunits=B))
 $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		$(PLOTSDIR)/bench_p26_litmus_%.svg,$\
-		$(RESULTSDIR)/bench_p26_litmus_%.$$(V).$$(SIM).sim.avg.csv $\
-			$(RESULTSDIR)/bench_p26_litmus_%.$$(V).$$(SIM).sim.amor.avg.csv,$\
+		$(foreach FS,lfs3 lfs3nb lfs2,$\
+			$(foreach SIM,emmc nor nand,$\
+				$(RESULTSDIR)/bench_p26_litmus_%.$(FS).$(SIM).sim.avg.csv $\
+				$(RESULTSDIR)/bench_p26_litmus_%$\
+					.$(FS).$(SIM).sim.amor.avg.csv)),$\
 		"lfs3 vs lfs3nb vs lfs2 - $$* file writes - simulated runtime",$\
 		bench_readed,$\
 		write+sim,$\

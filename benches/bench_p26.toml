@@ -1,9 +1,6 @@
 # High-level research benchmarks
 
 
-# keep track of version in results
-defines.V = 'BENCH_IFDEF_LFS3(LFS3_IFDEF_BMAP(32, 3), 2)'
-
 # these are common and can be overridden suite-wide
 #
 # note for bench_p26_litmus_many, CHUNK => file size, and SIZE = sum of
@@ -215,7 +212,7 @@ code = '''
             i < (SIZE+(CHUNK-1))/CHUNK
                 // cutoff littlefs2, at some point we stop caring about
                 // just how badly littlefs2 scales
-                && (V != 2 || i < (LFS2_RANDOM_CUTOFF+(CHUNK-1))/CHUNK);
+                && (FS != 2 || i < (LFS2_RANDOM_CUTOFF+(CHUNK-1))/CHUNK);
             i++) {
         // seek to a random location, but limit it to the related linear
         // file size, this shows interesting trends without too much
@@ -303,7 +300,7 @@ code = '''
             i < (SIZE+(CHUNK-1))/CHUNK
                 // cutoff littlefs2, at some point we stop caring about
                 // just how badly littlefs2 scales
-                && (V != 2 || i < (LFS2_MANY_CUTOFF+(CHUNK-1))/CHUNK);
+                && (FS != 2 || i < (LFS2_MANY_CUTOFF+(CHUNK-1))/CHUNK);
             i++) {
         // choose a random filename
         lfs3_off_t pos = BENCH_PRNG(&prng) % SIZE;
