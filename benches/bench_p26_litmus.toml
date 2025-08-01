@@ -408,6 +408,9 @@ code = '''
         #endif
 
         // for v3, fruncate, for v2, rotate if full
+        //
+        // note we use LOG_SIZE < SIZE here, for interesting results,
+        // otherwise we'd never truncate the log!
         #ifdef LFS3
         lfs3_soff_t size = lfs3_file_size(&lfs3, &file);
         assert(size >= 0);

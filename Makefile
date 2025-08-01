@@ -486,7 +486,10 @@ bench-p26-litmus-logging: \
 ## Run p26 write-throughput benchmarks
 .PHONY: bench-p26-wt
 bench-p26-wt: \
-		bench-p26-wt-linear
+		bench-p26-wt-linear \
+		bench-p26-wt-random \
+		bench-p26-wt-many \
+		bench-p26-wt-logging
 
 ## Run p26 write-throughput linear benchmarks
 .PHONY: bench-p26-wt-linear
@@ -495,6 +498,30 @@ bench-p26-wt-linear: \
 			$(RESULTSDIR)/bench_p26_wt_linear.lfs3.$(SIM).csv \
 			$(RESULTSDIR)/bench_p26_wt_linear.lfs3nb.$(SIM).csv \
 			$(RESULTSDIR)/bench_p26_wt_linear.lfs2.$(SIM).csv)
+
+## Run p26 write-throughput random benchmarks
+.PHONY: bench-p26-wt-random
+bench-p26-wt-random: \
+		$(foreach SIM, emmc nor nand, \
+			$(RESULTSDIR)/bench_p26_wt_random.lfs3.$(SIM).csv \
+			$(RESULTSDIR)/bench_p26_wt_random.lfs3nb.$(SIM).csv \
+			$(RESULTSDIR)/bench_p26_wt_random.lfs2.$(SIM).csv)
+
+## Run p26 write-throughput many benchmarks
+.PHONY: bench-p26-wt-many
+bench-p26-wt-many: \
+		$(foreach SIM, emmc nor nand, \
+			$(RESULTSDIR)/bench_p26_wt_many.lfs3.$(SIM).csv \
+			$(RESULTSDIR)/bench_p26_wt_many.lfs3nb.$(SIM).csv \
+			$(RESULTSDIR)/bench_p26_wt_many.lfs2.$(SIM).csv)
+
+## Run p26 write-throughput logging benchmarks
+.PHONY: bench-p26-wt-logging
+bench-p26-wt-logging: \
+		$(foreach SIM, emmc nor nand, \
+			$(RESULTSDIR)/bench_p26_wt_logging.lfs3.$(SIM).csv \
+			$(RESULTSDIR)/bench_p26_wt_logging.lfs3nb.$(SIM).csv \
+			$(RESULTSDIR)/bench_p26_wt_logging.lfs2.$(SIM).csv)
 
 
 # p26 bench rules!
@@ -991,12 +1018,30 @@ plot-p26-litmus-logging: \
 ## Plot p26 write-throughput benchmarks
 .PHONY: plot-p26-wt
 plot-p26-wt: \
-		plot-p26-wt-linear
+		plot-p26-wt-linear \
+		plot-p26-wt-random \
+		plot-p26-wt-many \
+		plot-p26-wt-logging
 
 ## Plot p26 write-throughput linear benchmarks
 .PHONY: plot-p26-wt-linear
 plot-p26-wt-linear: \
 		$(PLOTSDIR)/bench_p26_wt_linear.svg
+
+## Plot p26 write-throughput random benchmarks
+.PHONY: plot-p26-wt-random
+plot-p26-wt-random: \
+		$(PLOTSDIR)/bench_p26_wt_random.svg
+
+## Plot p26 write-throughput many benchmarks
+.PHONY: plot-p26-wt-many
+plot-p26-wt-many: \
+		$(PLOTSDIR)/bench_p26_wt_many.svg
+
+## Plot p26 write-throughput logging benchmarks
+.PHONY: plot-p26-wt-logging
+plot-p26-wt-logging: \
+		$(PLOTSDIR)/bench_p26_wt_logging.svg
 
 
 # p26 plot rules!
