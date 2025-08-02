@@ -9,7 +9,7 @@ PLOTSDIR ?= plots
 
 
 # overall disk size?
-DISK_SIZE ?= 4194304
+DISK_SIZE ?= 8388608
 
 # size to test for litmus testing?
 P26_LITMUS_SIZE ?= 32768
@@ -47,8 +47,8 @@ EMMC_READ_SIZE  ?= 512
 EMMC_PROG_SIZE  ?= 512
 EMMC_ERASE_SIZE ?= 512
 # TODO does it make sense to shrink the non-bmap's block size?
-EMMC_LFS3_BLOCK_SIZE ?= 2048 # v3 performs better with larger block sizes
-EMMC_LFS3NB_BLOCK_SIZE ?= 2048
+EMMC_LFS3_BLOCK_SIZE ?= 1024 # v3 performs better with larger block sizes
+EMMC_LFS3NB_BLOCK_SIZE ?= 1024
 EMMC_LFS2_BLOCK_SIZE ?= 512  # but no reason to penalize v2
 EMMC_READ_TIME  ?= 31   # taken from w25n01gv, read time
 EMMC_PROG_TIME  ?= 156  # taken from w25n01gv, prog time + erase time
