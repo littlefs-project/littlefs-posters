@@ -620,6 +620,15 @@ bench-p26-wt-bs-logging: \
 			$(RESULTSDIR)/bench_p26_wt_bs_logging.lfs2.$(SIM).csv)
 
 
+# some lfs3 -> LFS3 convenience mappings
+UFS = $(if $(filter lfs3,$1),LFS3,$\
+		$(if $(filter lfs3nb,$1),LFS3NB,$\
+		$(if $(filter lfs2,$1),LFS2)))
+
+USIM = $(if $(filter emmc,$1),EMMC,$\
+		$(if $(filter nor,$1),NOR,$\
+		$(if $(filter nand,$1),NAND)))
+
 # p26 bench rules!
 
 # p26 litmus bench rule
@@ -630,73 +639,33 @@ bench-p26-wt-bs-logging: \
 # $4 - sim type
 #
 define BENCH_P26_LITMUS_RULE
-$1: $$(BENCH_$3_RUNNER)
+$1: $$(BENCH_$(call UFS,$3)_RUNNER)
 	$$(strip ./scripts/bench.py -R$$< -B $2 \
 		-DSIZE=$(P26_LITMUS_SIZE) \
 		-DCHUNK=$(P26_LITMUS_CHUNK) \
 		-DSTEP=$(P26_LITMUS_STEP) \
 		-DSEED="range($(P26_LITMUS_SAMPLES))" \
-		-DFS=$(if $(filter LFS3,$3),3,$\
-			$(if $(filter LFS3NB,$3),30,$\
-			$(if $(filter LFS2,$3),2))) \
-		-DREAD_SIZE=$$($4_READ_SIZE) \
-		-DPROG_SIZE=$$($4_PROG_SIZE) \
-		-DERASE_SIZE=$$($4_ERASE_SIZE) \
-		-DREAD_TIME=$$($4_READ_TIME) \
-		-DPROG_TIME=$$($4_PROG_TIME) \
-		-DERASE_TIME=$$($4_ERASE_TIME) \
-		-DBLOCK_SIZE=$$($4_$3_BLOCK_SIZE) \
+		-DFS=$(if $(filter lfs3,$3),3,$\
+			$(if $(filter lfs3nb,$3),30,$\
+			$(if $(filter lfs2,$3),2))) \
+		-DREAD_SIZE=$$($(call USIM,$4)_READ_SIZE) \
+		-DPROG_SIZE=$$($(call USIM,$4)_PROG_SIZE) \
+		-DERASE_SIZE=$$($(call USIM,$4)_ERASE_SIZE) \
+		-DREAD_TIME=$$($(call USIM,$4)_READ_TIME) \
+		-DPROG_TIME=$$($(call USIM,$4)_PROG_TIME) \
+		-DERASE_TIME=$$($(call USIM,$4)_ERASE_TIME) \
+		-DBLOCK_SIZE=$$($(call USIM,$4)_$(call UFS,$3)_BLOCK_SIZE) \
 		$$(BENCHFLAGS) \
 		-o$$@)
 endef
 
-$(eval $(call BENCH_P26_LITMUS_RULE,$\
-		$(RESULTSDIR)/bench_p26_litmus_%.lfs3.emmc.csv,$\
-		bench_p26_litmus_$$*,$\
-		LFS3,$\
-		EMMC))
-$(eval $(call BENCH_P26_LITMUS_RULE,$\
-		$(RESULTSDIR)/bench_p26_litmus_%.lfs3.nor.csv,$\
-		bench_p26_litmus_$$*,$\
-		LFS3,$\
-		NOR))
-$(eval $(call BENCH_P26_LITMUS_RULE,$\
-		$(RESULTSDIR)/bench_p26_litmus_%.lfs3.nand.csv,$\
-		bench_p26_litmus_$$*,$\
-		LFS3,$\
-		NAND))
-
-$(eval $(call BENCH_P26_LITMUS_RULE,$\
-		$(RESULTSDIR)/bench_p26_litmus_%.lfs3nb.emmc.csv,$\
-		bench_p26_litmus_$$*,$\
-		LFS3NB,$\
-		EMMC))
-$(eval $(call BENCH_P26_LITMUS_RULE,$\
-		$(RESULTSDIR)/bench_p26_litmus_%.lfs3nb.nor.csv,$\
-		bench_p26_litmus_$$*,$\
-		LFS3NB,$\
-		NOR))
-$(eval $(call BENCH_P26_LITMUS_RULE,$\
-		$(RESULTSDIR)/bench_p26_litmus_%.lfs3nb.nand.csv,$\
-		bench_p26_litmus_$$*,$\
-		LFS3NB,$\
-		NAND))
-
-$(eval $(call BENCH_P26_LITMUS_RULE,$\
-		$(RESULTSDIR)/bench_p26_litmus_%.lfs2.emmc.csv,$\
-		bench_p26_litmus_$$*,$\
-		LFS2,$\
-		EMMC))
-$(eval $(call BENCH_P26_LITMUS_RULE,$\
-		$(RESULTSDIR)/bench_p26_litmus_%.lfs2.nor.csv,$\
-		bench_p26_litmus_$$*,$\
-		LFS2,$\
-		NOR))
-$(eval $(call BENCH_P26_LITMUS_RULE,$\
-		$(RESULTSDIR)/bench_p26_litmus_%.lfs2.nand.csv,$\
-		bench_p26_litmus_$$*,$\
-		LFS2,$\
-		NAND))
+$(foreach FS,lfs3 lfs3nb lfs2,$\
+	$(foreach SIM,emmc nor nand,$\
+		$(eval $(call BENCH_P26_LITMUS_RULE,$\
+				$(RESULTSDIR)/bench_p26_litmus_%.$(FS).$(SIM).csv,$\
+				bench_p26_litmus_$$*,$\
+				$(FS),$\
+				$(SIM)))))
 
 
 # p26 read/write-throughput bench rule
@@ -707,191 +676,71 @@ $(eval $(call BENCH_P26_LITMUS_RULE,$\
 # $4 - sim type
 #
 define BENCH_P26_T_RULE
-$1: $$(BENCH_$3_RUNNER)
+$1: $$(BENCH_$(call UFS,$3)_RUNNER)
 	$$(strip ./scripts/bench.py -R$$< -B $2 \
 		-DSIZE=$(P26_T_SIZES) \
 		-DCHUNK=$(P26_T_CHUNK) \
 		-DSIMTIME=$(P26_T_SIMTIME) \
-		-DFS=$(if $(filter LFS3,$3),3,$\
-			$(if $(filter LFS3NB,$3),30,$\
-			$(if $(filter LFS2,$3),2))) \
-		-DREAD_SIZE=$$($4_READ_SIZE) \
-		-DPROG_SIZE=$$($4_PROG_SIZE) \
-		-DERASE_SIZE=$$($4_ERASE_SIZE) \
-		-DREAD_TIME=$$($4_READ_TIME) \
-		-DPROG_TIME=$$($4_PROG_TIME) \
-		-DERASE_TIME=$$($4_ERASE_TIME) \
-		-DBLOCK_SIZE=$$($4_$3_BLOCK_SIZE) \
+		-DFS=$(if $(filter lfs3,$3),3,$\
+			$(if $(filter lfs3nb,$3),30,$\
+			$(if $(filter lfs2,$3),2))) \
+		-DREAD_SIZE=$$($(call USIM,$4)_READ_SIZE) \
+		-DPROG_SIZE=$$($(call USIM,$4)_PROG_SIZE) \
+		-DERASE_SIZE=$$($(call USIM,$4)_ERASE_SIZE) \
+		-DREAD_TIME=$$($(call USIM,$4)_READ_TIME) \
+		-DPROG_TIME=$$($(call USIM,$4)_PROG_TIME) \
+		-DERASE_TIME=$$($(call USIM,$4)_ERASE_TIME) \
+		-DBLOCK_SIZE=$$($(call USIM,$4)_$(call UFS,$3)_BLOCK_SIZE) \
 		$$(BENCHFLAGS) \
 		-o$$@)
 endef
 
 # p26 write-throughput bench rules
-$(eval $(call BENCH_P26_T_RULE,$\
-		$(RESULTSDIR)/bench_p26_wt_%.lfs3.emmc.csv,$\
-		bench_p26_wt_$$*,$\
-		LFS3,$\
-		EMMC))
-$(eval $(call BENCH_P26_T_RULE,$\
-		$(RESULTSDIR)/bench_p26_wt_%.lfs3.nor.csv,$\
-		bench_p26_wt_$$*,$\
-		LFS3,$\
-		NOR))
-$(eval $(call BENCH_P26_T_RULE,$\
-		$(RESULTSDIR)/bench_p26_wt_%.lfs3.nand.csv,$\
-		bench_p26_wt_$$*,$\
-		LFS3,$\
-		NAND))
-
-$(eval $(call BENCH_P26_T_RULE,$\
-		$(RESULTSDIR)/bench_p26_wt_%.lfs3nb.emmc.csv,$\
-		bench_p26_wt_$$*,$\
-		LFS3NB,$\
-		EMMC))
-$(eval $(call BENCH_P26_T_RULE,$\
-		$(RESULTSDIR)/bench_p26_wt_%.lfs3nb.nor.csv,$\
-		bench_p26_wt_$$*,$\
-		LFS3NB,$\
-		NOR))
-$(eval $(call BENCH_P26_T_RULE,$\
-		$(RESULTSDIR)/bench_p26_wt_%.lfs3nb.nand.csv,$\
-		bench_p26_wt_$$*,$\
-		LFS3NB,$\
-		NAND))
-
-$(eval $(call BENCH_P26_T_RULE,$\
-		$(RESULTSDIR)/bench_p26_wt_%.lfs2.emmc.csv,$\
-		bench_p26_wt_$$*,$\
-		LFS2,$\
-		EMMC))
-$(eval $(call BENCH_P26_T_RULE,$\
-		$(RESULTSDIR)/bench_p26_wt_%.lfs2.nor.csv,$\
-		bench_p26_wt_$$*,$\
-		LFS2,$\
-		NOR))
-$(eval $(call BENCH_P26_T_RULE,$\
-		$(RESULTSDIR)/bench_p26_wt_%.lfs2.nand.csv,$\
-		bench_p26_wt_$$*,$\
-		LFS2,$\
-		NAND))
+$(foreach FS,lfs3 lfs3nb lfs2,$\
+	$(foreach SIM,emmc nor nand,$\
+		$(eval $(call BENCH_P26_T_RULE,$\
+				$(RESULTSDIR)/bench_p26_wt_%.$(FS).$(SIM).csv,$\
+				bench_p26_wt_$$*,$\
+				$(FS),$\
+				$(SIM)))))
 
 # p26 read-throughput bench rules
-$(eval $(call BENCH_P26_T_RULE,$\
-		$(RESULTSDIR)/bench_p26_rt_%.lfs3.emmc.csv,$\
-		bench_p26_rt_$$*,$\
-		LFS3,$\
-		EMMC))
-$(eval $(call BENCH_P26_T_RULE,$\
-		$(RESULTSDIR)/bench_p26_rt_%.lfs3.nor.csv,$\
-		bench_p26_rt_$$*,$\
-		LFS3,$\
-		NOR))
-$(eval $(call BENCH_P26_T_RULE,$\
-		$(RESULTSDIR)/bench_p26_rt_%.lfs3.nand.csv,$\
-		bench_p26_rt_$$*,$\
-		LFS3,$\
-		NAND))
-
-$(eval $(call BENCH_P26_T_RULE,$\
-		$(RESULTSDIR)/bench_p26_rt_%.lfs3nb.emmc.csv,$\
-		bench_p26_rt_$$*,$\
-		LFS3NB,$\
-		EMMC))
-$(eval $(call BENCH_P26_T_RULE,$\
-		$(RESULTSDIR)/bench_p26_rt_%.lfs3nb.nor.csv,$\
-		bench_p26_rt_$$*,$\
-		LFS3NB,$\
-		NOR))
-$(eval $(call BENCH_P26_T_RULE,$\
-		$(RESULTSDIR)/bench_p26_rt_%.lfs3nb.nand.csv,$\
-		bench_p26_rt_$$*,$\
-		LFS3NB,$\
-		NAND))
-
-$(eval $(call BENCH_P26_T_RULE,$\
-		$(RESULTSDIR)/bench_p26_rt_%.lfs2.emmc.csv,$\
-		bench_p26_rt_$$*,$\
-		LFS2,$\
-		EMMC))
-$(eval $(call BENCH_P26_T_RULE,$\
-		$(RESULTSDIR)/bench_p26_rt_%.lfs2.nor.csv,$\
-		bench_p26_rt_$$*,$\
-		LFS2,$\
-		NOR))
-$(eval $(call BENCH_P26_T_RULE,$\
-		$(RESULTSDIR)/bench_p26_rt_%.lfs2.nand.csv,$\
-		bench_p26_rt_$$*,$\
-		LFS2,$\
-		NAND))
+$(foreach FS,lfs3 lfs3nb lfs2,$\
+	$(foreach SIM,emmc nor nand,$\
+		$(eval $(call BENCH_P26_T_RULE,$\
+				$(RESULTSDIR)/bench_p26_rt_%.$(FS).$(SIM).csv,$\
+				bench_p26_rt_$$*,$\
+				$(FS),$\
+				$(SIM)))))
 
 define BENCH_P26_T_BS_RULE
-$1: $$(BENCH_$3_RUNNER)
+$1: $$(BENCH_$(call UFS,$3)_RUNNER)
 	$$(strip ./scripts/bench.py -R$$< -B $2 \
 		-DSIZE=$(P26_T_SIZE) \
 		-DCHUNK=$(P26_T_CHUNK) \
 		-DSIMTIME=$(P26_T_SIMTIME) \
-		-DFS=$(if $(filter LFS3,$3),3,$\
-			$(if $(filter LFS3NB,$3),30,$\
-			$(if $(filter LFS2,$3),2))) \
-		-DREAD_SIZE=$$($4_READ_SIZE) \
-		-DPROG_SIZE=$$($4_PROG_SIZE) \
-		-DERASE_SIZE=$$($4_ERASE_SIZE) \
-		-DREAD_TIME=$$($4_READ_TIME) \
-		-DPROG_TIME=$$($4_PROG_TIME) \
-		-DERASE_TIME=$$($4_ERASE_TIME) \
+		-DFS=$(if $(filter lfs3,$3),3,$\
+			$(if $(filter lfs3nb,$3),30,$\
+			$(if $(filter lfs2,$3),2))) \
+		-DREAD_SIZE=$$($(call USIM,$4)_READ_SIZE) \
+		-DPROG_SIZE=$$($(call USIM,$4)_PROG_SIZE) \
+		-DERASE_SIZE=$$($(call USIM,$4)_ERASE_SIZE) \
+		-DREAD_TIME=$$($(call USIM,$4)_READ_TIME) \
+		-DPROG_TIME=$$($(call USIM,$4)_PROG_TIME) \
+		-DERASE_TIME=$$($(call USIM,$4)_ERASE_TIME) \
 		-DBLOCK_SIZE=$(P26_T_BLOCK_SIZES) \
 		$$(BENCHFLAGS) \
 		-o$$@)
 endef
 
 # p26 write-throughput block size bench rules
-$(eval $(call BENCH_P26_T_BS_RULE,$\
-		$(RESULTSDIR)/bench_p26_wt_bs_%.lfs3.emmc.csv,$\
-		bench_p26_wt_$$*,$\
-		LFS3,$\
-		EMMC))
-$(eval $(call BENCH_P26_T_BS_RULE,$\
-		$(RESULTSDIR)/bench_p26_wt_bs_%.lfs3.nor.csv,$\
-		bench_p26_wt_$$*,$\
-		LFS3,$\
-		NOR))
-$(eval $(call BENCH_P26_T_BS_RULE,$\
-		$(RESULTSDIR)/bench_p26_wt_bs_%.lfs3.nand.csv,$\
-		bench_p26_wt_$$*,$\
-		LFS3,$\
-		NAND))
-
-$(eval $(call BENCH_P26_T_BS_RULE,$\
-		$(RESULTSDIR)/bench_p26_wt_bs_%.lfs3nb.emmc.csv,$\
-		bench_p26_wt_$$*,$\
-		LFS3NB,$\
-		EMMC))
-$(eval $(call BENCH_P26_T_BS_RULE,$\
-		$(RESULTSDIR)/bench_p26_wt_bs_%.lfs3nb.nor.csv,$\
-		bench_p26_wt_$$*,$\
-		LFS3NB,$\
-		NOR))
-$(eval $(call BENCH_P26_T_BS_RULE,$\
-		$(RESULTSDIR)/bench_p26_wt_bs_%.lfs3nb.nand.csv,$\
-		bench_p26_wt_$$*,$\
-		LFS3NB,$\
-		NAND))
-
-$(eval $(call BENCH_P26_T_BS_RULE,$\
-		$(RESULTSDIR)/bench_p26_wt_bs_%.lfs2.emmc.csv,$\
-		bench_p26_wt_$$*,$\
-		LFS2,$\
-		EMMC))
-$(eval $(call BENCH_P26_T_BS_RULE,$\
-		$(RESULTSDIR)/bench_p26_wt_bs_%.lfs2.nor.csv,$\
-		bench_p26_wt_$$*,$\
-		LFS2,$\
-		NOR))
-$(eval $(call BENCH_P26_T_BS_RULE,$\
-		$(RESULTSDIR)/bench_p26_wt_bs_%.lfs2.nand.csv,$\
-		bench_p26_wt_$$*,$\
-		LFS2,$\
-		NAND))
+$(foreach FS,lfs3 lfs3nb lfs2,$\
+	$(foreach SIM,emmc nor nand,$\
+		$(eval $(call BENCH_P26_T_BS_RULE,$\
+				$(RESULTSDIR)/bench_p26_wt_bs_%.$(FS).$(SIM).csv,$\
+				bench_p26_wt_$$*,$\
+				$(FS),$\
+				$(SIM)))))
 
 
 # simulated/estimated results
