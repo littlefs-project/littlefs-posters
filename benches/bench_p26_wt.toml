@@ -14,6 +14,7 @@ defines.SEED = 42
 defines.SIMTIME = '60000000000ULL' # 1 minute
 
 
+
 code = '''
 // simulated time in nanoseconds since start of bench
 //
@@ -230,6 +231,9 @@ code = '''
     // open a file
     BENCH_START("write", 0);
     uint64_t written = 0;
+    #ifdef LFS2
+    int err;
+    #endif
     while (!bench_p26_oot(CFG)) {
         // choose a random filename
         lfs3_off_t pos = BENCH_PRNG(&prng) % ((SIZE+(CHUNK-1))/CHUNK);
@@ -250,16 +254,19 @@ code = '''
         lfs3_file_close(&lfs3, &file) => 0;
         #else
         lfs2_file_t file;
-        lfs2_file_open(&lfs2, &file, name,
-                LFS2_O_WRONLY | LFS2_O_CREAT | LFS2_O_TRUNC) => 0;
-        lfs2_file_write(&lfs2, &file, wbuf, CHUNK) => CHUNK;
-        int err = lfs2_file_close(&lfs2, &file); // => 0; TODO ??
-        assert(!err || err == LFS3_ERR_NOENT);
+        err = lfs2_file_open(&lfs2, &file, name,
+                LFS2_O_WRONLY | LFS2_O_CREAT | LFS2_O_TRUNC);
+        // TODO littlefs2 bug?
+        assert(!err || err == LFS2_ERR_NOENT);
         if (err) {
-            // just log this error and mark the test as bad for now
-            printf("error: lfs2 close failure: %d\n", err);
-            lfs2_unmount(&lfs2) => 0;
-            return;
+            goto failed;
+        }
+        lfs2_file_write(&lfs2, &file, wbuf, CHUNK) => CHUNK;
+        err = lfs2_file_close(&lfs2, &file);
+        // TODO littlefs2 bug?
+        assert(!err || err == LFS2_ERR_NOENT);
+        if (err) {
+            goto failed;
         }
         #endif
 
@@ -277,6 +284,16 @@ code = '''
     lfs3_unmount(&lfs3) => 0;
     #else
     lfs2_unmount(&lfs2) => 0;
+    #endif
+    return;
+
+    #ifdef LFS2
+failed:;
+    // apparently littlefs2 is very fragile with many files,
+    // just log this error and mark the test as bad for now
+    printf("error: lfs2 close failure: %d\n", err);
+    lfs2_unmount(&lfs2) => 0;
+    return;
     #endif
 '''
 

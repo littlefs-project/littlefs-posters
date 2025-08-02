@@ -132,7 +132,8 @@ void bench_permutation(size_t i, uint32_t *buffer, size_t size);
     /*           name                value (overridable)                   */ \
     BENCH_DEFINE(FS,                 LFS3_IFDEF_BMAP(3, 30)                 ) \
     BENCH_DEFINE(READ_SIZE,          1                                      ) \
-    BENCH_DEFINE(PROG_SIZE,          1                                      ) \
+    BENCH_DEFINE(PROG_SIZE,          (PROG_SIZE_INHERIT) ? READ_SIZE : 1    ) \
+    BENCH_DEFINE(PROG_SIZE_INHERIT,  0                                      ) \
     /* ERASE_SIZE is just informative                                      */ \
     BENCH_DEFINE(ERASE_SIZE,         4096                                   ) \
     /* simulated estimate timings in nanoseconds                           */ \
@@ -176,7 +177,8 @@ void bench_permutation(size_t i, uint32_t *buffer, size_t size);
     /*           name                value (overridable)                   */ \
     BENCH_DEFINE(FS,                 2                                      ) \
     BENCH_DEFINE(READ_SIZE,          1                                      ) \
-    BENCH_DEFINE(PROG_SIZE,          1                                      ) \
+    BENCH_DEFINE(PROG_SIZE,          (PROG_SIZE_INHERIT) ? READ_SIZE : 1    ) \
+    BENCH_DEFINE(PROG_SIZE_INHERIT,  0                                      ) \
     /* ERASE_SIZE is just informative                                      */ \
     BENCH_DEFINE(ERASE_SIZE,         4096                                   ) \
     /* simulated estimate timings in nanoseconds                           */ \
