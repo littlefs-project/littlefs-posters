@@ -7,7 +7,7 @@ export PLOTSDIR ?= plots_1M
 
 
 # and give us more space for activities
-export DISK_SIZE ?= 134217728
+export DISK_SIZE ?= 268435456
 
 # increase bench sizes to 1 MiB
 export P26_LITMUS_SIZE ?= 1048576

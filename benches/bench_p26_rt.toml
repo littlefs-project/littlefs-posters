@@ -1,4 +1,4 @@
-# High-level write-throughput benchmarks
+# High-level read-throughput benchmarks
 
 
 # these are common and can be overridden suite-wide
@@ -41,7 +41,7 @@ static bool bench_p26_oot(const struct lfs3_cfg *cfg) {
 
 
 
-[cases.bench_p26_wt_linear]
+[cases.bench_p26_rt_linear]
 code = '''
     #ifdef LFS3
     lfs3_t lfs3;
@@ -62,46 +62,62 @@ code = '''
     lfs2_fs_mkconsistent(&lfs2) => 0;
     #endif
 
-    // reset our timer
-    bench_p26_reset(CFG);
-
-    // open a file
-    BENCH_START("write", 0);
+    // create a file to read
     #ifdef LFS3
     lfs3_file_t file;
     lfs3_file_open(&lfs3, &file, "bench_linear",
             LFS3_O_RDWR | LFS3_O_CREAT | LFS3_O_EXCL) => 0;
-    #else
-    lfs2_file_t file;
-    lfs2_file_open(&lfs2, &file, "bench_linear",
-            LFS2_O_RDWR | LFS2_O_CREAT | LFS2_O_EXCL) => 0;
-    #endif
-    lfs3_off_t size = 0;
-    uint64_t written = 0;
-    while (!bench_p26_oot(CFG)) {
-        // write to the file
+    for (lfs3_size_t i = 0; i < (SIZE+(CHUNK-1))/CHUNK; i++) {
         uint8_t wbuf[CHUNK];
         for (lfs3_size_t j = 0; j < CHUNK; j++) {
             wbuf[j] = 'a' + (BENCH_PRNG(&prng) % 26);
         }
-        #ifdef LFS3
         lfs3_file_write(&lfs3, &file, wbuf, CHUNK) => CHUNK;
-        #else
+    }
+    lfs3_file_close(&lfs3, &file) => 0;
+    #else
+    lfs2_file_t file;
+    lfs2_file_open(&lfs2, &file, "bench_linear",
+            LFS2_O_RDWR | LFS2_O_CREAT | LFS2_O_EXCL) => 0;
+    for (lfs3_size_t i = 0; i < (SIZE+(CHUNK-1))/CHUNK; i++) {
+        uint8_t wbuf[CHUNK];
+        for (lfs3_size_t j = 0; j < CHUNK; j++) {
+            wbuf[j] = 'a' + (BENCH_PRNG(&prng) % 26);
+        }
         lfs2_file_write(&lfs2, &file, wbuf, CHUNK) => CHUNK;
+    }
+    lfs2_file_close(&lfs2, &file) => 0;
+    #endif
+
+    // reset our timer
+    bench_p26_reset(CFG);
+
+    // open the file
+    BENCH_START("read", 0);
+    #ifdef LFS3
+    lfs3_file_open(&lfs3, &file, "bench_linear", LFS3_O_RDONLY) => 0;
+    #else
+    lfs2_file_open(&lfs2, &file, "bench_linear", LFS2_O_RDONLY) => 0;
+    #endif
+    lfs3_off_t size = 0;
+    uint64_t readed = 0;
+    while (!bench_p26_oot(CFG)) {
+        // read from the file
+        uint8_t rbuf[CHUNK];
+        #ifdef LFS3
+        lfs3_file_read(&lfs3, &file, rbuf, CHUNK) => CHUNK;
+        #else
+        lfs2_file_read(&lfs2, &file, rbuf, CHUNK) => CHUNK;
         #endif
         size += CHUNK;
-        written += CHUNK;
+        readed += CHUNK;
 
-        // arguably we should just rewind and continue writing to the
-        // front of the file when we hit the end, but this overly
-        // penalizes littlefs2, so instead we truncate
+        // rewind if we reach the end
         if (size >= SIZE) {
             #ifdef LFS3
             lfs3_file_rewind(&lfs3, &file) => 0;
-            lfs3_file_truncate(&lfs3, &file, 0) => 0;
             #else
             lfs2_file_rewind(&lfs2, &file) => 0;
-            lfs2_file_truncate(&lfs2, &file, 0) => 0;
             #endif
             size = 0;
         }
@@ -111,13 +127,13 @@ code = '''
     #else
     lfs2_file_close(&lfs2, &file) => 0;
     #endif
-    BENCH_STOP("write");
+    BENCH_STOP("read");
 
-    // it's a bit awkward, but this reports the amount written to
+    // it's a bit awkward, but this reports the amount read to
     // result scripts
     // TODO we should really move n to BENCH_STOP
-    BENCH_START("write", written);
-    BENCH_STOP("write");
+    BENCH_START("read", readed);
+    BENCH_STOP("read");
 
     #ifdef LFS3
     lfs3_unmount(&lfs3) => 0;
@@ -126,7 +142,7 @@ code = '''
     #endif
 '''
 
-[cases.bench_p26_wt_random]
+[cases.bench_p26_rt_random]
 code = '''
     #ifdef LFS3
     lfs3_t lfs3;
@@ -147,21 +163,44 @@ code = '''
     lfs2_fs_mkconsistent(&lfs2) => 0;
     #endif
 
-    // reset our timer
-    bench_p26_reset(CFG);
-
-    // open a file
-    BENCH_START("write", 0);
+    // create a file to read
     #ifdef LFS3
     lfs3_file_t file;
     lfs3_file_open(&lfs3, &file, "bench_random",
             LFS3_O_RDWR | LFS3_O_CREAT | LFS3_O_EXCL) => 0;
+    for (lfs3_size_t i = 0; i < (SIZE+(CHUNK-1))/CHUNK; i++) {
+        uint8_t wbuf[CHUNK];
+        for (lfs3_size_t j = 0; j < CHUNK; j++) {
+            wbuf[j] = 'a' + (BENCH_PRNG(&prng) % 26);
+        }
+        lfs3_file_write(&lfs3, &file, wbuf, CHUNK) => CHUNK;
+    }
+    lfs3_file_close(&lfs3, &file) => 0;
     #else
     lfs2_file_t file;
     lfs2_file_open(&lfs2, &file, "bench_random",
             LFS2_O_RDWR | LFS2_O_CREAT | LFS2_O_EXCL) => 0;
+    for (lfs3_size_t i = 0; i < (SIZE+(CHUNK-1))/CHUNK; i++) {
+        uint8_t wbuf[CHUNK];
+        for (lfs3_size_t j = 0; j < CHUNK; j++) {
+            wbuf[j] = 'a' + (BENCH_PRNG(&prng) % 26);
+        }
+        lfs2_file_write(&lfs2, &file, wbuf, CHUNK) => CHUNK;
+    }
+    lfs2_file_close(&lfs2, &file) => 0;
     #endif
-    uint64_t written = 0;
+
+    // reset our timer
+    bench_p26_reset(CFG);
+
+    // open the file
+    BENCH_START("read", 0);
+    #ifdef LFS3
+    lfs3_file_open(&lfs3, &file, "bench_random", LFS3_O_RDONLY) => 0;
+    #else
+    lfs2_file_open(&lfs2, &file, "bench_random", LFS2_O_RDONLY) => 0;
+    #endif
+    uint64_t readed = 0;
     while (!bench_p26_oot(CFG)) {
         // seek to a random location
         lfs3_off_t pos = BENCH_PRNG(&prng) % SIZE;
@@ -171,30 +210,29 @@ code = '''
         lfs2_file_seek(&lfs2, &file, pos, LFS2_SEEK_SET) => pos;
         #endif
 
-        // write to the file
-        uint8_t wbuf[CHUNK];
-        for (lfs3_size_t j = 0; j < CHUNK; j++) {
-            wbuf[j] = 'a' + (BENCH_PRNG(&prng) % 26);
-        }
+        // read from the file
+        uint8_t rbuf[CHUNK];
         #ifdef LFS3
-        lfs3_file_write(&lfs3, &file, wbuf, CHUNK) => CHUNK;
+        lfs3_ssize_t d = lfs3_file_read(&lfs3, &file, rbuf, CHUNK);
+        assert(d <= CHUNK);
         #else
-        lfs2_file_write(&lfs2, &file, wbuf, CHUNK) => CHUNK;
+        lfs2_ssize_t d = lfs2_file_read(&lfs2, &file, rbuf, CHUNK);
+        assert(d <= CHUNK);
         #endif
-        written += CHUNK;
+        readed += CHUNK;
     }
     #ifdef LFS3
     lfs3_file_close(&lfs3, &file) => 0;
     #else
     lfs2_file_close(&lfs2, &file) => 0;
     #endif
-    BENCH_STOP("write");
+    BENCH_STOP("read");
 
-    // it's a bit awkward, but this reports the amount written to
+    // it's a bit awkward, but this reports the amount read to
     // result scripts
     // TODO we should really move n to BENCH_STOP
-    BENCH_START("write", written);
-    BENCH_STOP("write");
+    BENCH_START("read", readed);
+    BENCH_STOP("read");
 
     #ifdef LFS3
     lfs3_unmount(&lfs3) => 0;
@@ -203,7 +241,7 @@ code = '''
     #endif
 '''
 
-[cases.bench_p26_wt_many]
+[cases.bench_p26_rt_many]
 code = '''
     #ifdef LFS3
     lfs3_t lfs3;
@@ -224,147 +262,75 @@ code = '''
     lfs2_fs_mkconsistent(&lfs2) => 0;
     #endif
 
+    // create files to read
+    #ifdef LFS3
+    for (lfs3_size_t i = 0; i < (SIZE+(CHUNK-1))/CHUNK; i++) {
+        char name[256];
+        sprintf(name, "bench_%08x", i);
+        lfs3_file_t file;
+        lfs3_file_open(&lfs3, &file, name,
+                LFS3_O_RDWR | LFS3_O_CREAT | LFS3_O_EXCL) => 0;
+        uint8_t wbuf[CHUNK];
+        for (lfs3_size_t j = 0; j < CHUNK; j++) {
+            wbuf[j] = 'a' + (BENCH_PRNG(&prng) % 26);
+        }
+        lfs3_file_write(&lfs3, &file, wbuf, CHUNK) => CHUNK;
+        lfs3_file_close(&lfs3, &file) => 0;
+    }
+    #else
+    for (lfs3_size_t i = 0; i < (SIZE+(CHUNK-1))/CHUNK; i++) {
+        char name[256];
+        sprintf(name, "bench_%08x", i);
+        lfs2_file_t file;
+        lfs2_file_open(&lfs2, &file, name,
+                LFS2_O_RDWR | LFS2_O_CREAT | LFS2_O_EXCL) => 0;
+        uint8_t wbuf[CHUNK];
+        for (lfs3_size_t j = 0; j < CHUNK; j++) {
+            wbuf[j] = 'a' + (BENCH_PRNG(&prng) % 26);
+        }
+        lfs2_file_write(&lfs2, &file, wbuf, CHUNK) => CHUNK;
+        lfs2_file_close(&lfs2, &file) => 0;
+    }
+    #endif
+
     // reset our timer
     bench_p26_reset(CFG);
 
-    // open a file
-    BENCH_START("write", 0);
-    uint64_t written = 0;
+    // open the files
+    BENCH_START("read", 0);
+    uint64_t readed = 0;
     while (!bench_p26_oot(CFG)) {
         // choose a random filename
         lfs3_off_t pos = BENCH_PRNG(&prng) % ((SIZE+(CHUNK-1))/CHUNK);
         char name[256];
         sprintf(name, "bench_%08x", pos);
 
-        // create the file
+        // read the file
         //
         // note file == CHUNK here, the sum of all files should add up
         // roughly to the benchmark SIZE
-        uint8_t wbuf[CHUNK];
-        memset(wbuf, 'a'+(BENCH_PRNG(&prng) % 26), CHUNK);
+        uint8_t rbuf[CHUNK];
         #ifdef LFS3
         lfs3_file_t file;
-        lfs3_file_open(&lfs3, &file, name,
-                LFS3_O_WRONLY | LFS3_O_CREAT | LFS3_O_TRUNC) => 0;
-        lfs3_file_write(&lfs3, &file, wbuf, CHUNK) => CHUNK;
+        lfs3_file_open(&lfs3, &file, name, LFS3_O_RDONLY) => 0;
+        lfs3_file_read(&lfs3, &file, rbuf, CHUNK) => CHUNK;
         lfs3_file_close(&lfs3, &file) => 0;
         #else
         lfs2_file_t file;
-        lfs2_file_open(&lfs2, &file, name,
-                LFS2_O_WRONLY | LFS2_O_CREAT | LFS2_O_TRUNC) => 0;
-        lfs2_file_write(&lfs2, &file, wbuf, CHUNK) => CHUNK;
+        lfs2_file_open(&lfs2, &file, name, LFS2_O_RDONLY) => 0;
+        lfs2_file_read(&lfs2, &file, rbuf, CHUNK) => CHUNK;
         lfs2_file_close(&lfs2, &file) => 0;
         #endif
 
-        written += CHUNK;
+        readed += CHUNK;
     }
-    BENCH_STOP("write");
+    BENCH_STOP("read");
 
-    // it's a bit awkward, but this reports the amount written to
+    // it's a bit awkward, but this reports the amount read to
     // result scripts
     // TODO we should really move n to BENCH_STOP
-    BENCH_START("write", written);
-    BENCH_STOP("write");
-
-    #ifdef LFS3
-    lfs3_unmount(&lfs3) => 0;
-    #else
-    lfs2_unmount(&lfs2) => 0;
-    #endif
-'''
-
-[cases.bench_p26_wt_logging]
-code = '''
-    #ifdef LFS3
-    lfs3_t lfs3;
-    lfs3_format(&lfs3, LFS3_F_RDWR, CFG) => 0;
-    lfs3_mount(&lfs3, LFS3_M_RDWR, CFG) => 0;
-    #else
-    lfs2_t lfs2;
-    lfs2_format(&lfs2, (const struct lfs2_config*)CFG) => 0;
-    lfs2_mount(&lfs2, (const struct lfs2_config*)CFG) => 0;
-    #endif
-    uint32_t prng = SEED;
-
-    // go ahead and make consistent to avoid lazy mount operations
-    // messing with the benchmark
-    #ifdef LFS3
-    lfs3_fs_mkconsistent(&lfs3) => 0;
-    #else
-    lfs2_fs_mkconsistent(&lfs2) => 0;
-    #endif
-
-    // reset our timer
-    bench_p26_reset(CFG);
-
-    // open a file
-    BENCH_START("write", 0);
-    #ifdef LFS3
-    lfs3_file_t file;
-    lfs3_file_open(&lfs3, &file, "bench_log",
-            LFS3_O_RDWR | LFS3_O_CREAT | LFS3_O_EXCL | LFS3_O_APPEND) => 0;
-    #else
-    lfs2_file_t file;
-    lfs2_file_open(&lfs2, &file, "bench_log",
-            LFS2_O_RDWR | LFS2_O_CREAT | LFS2_O_EXCL | LFS2_O_APPEND) => 0;
-    #endif
-    uint64_t written = 0;
-    while (!bench_p26_oot(CFG)) {
-        // append to log
-        uint8_t wbuf[CHUNK];
-        for (lfs3_size_t j = 0; j < CHUNK; j++) {
-            wbuf[j] = 'a' + (BENCH_PRNG(&prng) % 26);
-        }
-        #ifdef LFS3
-        lfs3_file_write(&lfs3, &file, wbuf, CHUNK) => CHUNK;
-        #else
-        lfs2_file_write(&lfs2, &file, wbuf, CHUNK) => CHUNK;
-        #endif
-
-        // sync
-        #ifdef LFS3
-        lfs3_file_sync(&lfs3, &file) => 0;
-        #else
-        lfs2_file_sync(&lfs2, &file) => 0;
-        #endif
-
-        // for v3, fruncate, for v2, rotate if full
-        //
-        // unlike litmus benchmarks we just use SIZE here
-        #ifdef LFS3
-        lfs3_soff_t size = lfs3_file_size(&lfs3, &file);
-        assert(size >= 0);
-        if (size > SIZE) {
-            lfs3_file_fruncate(&lfs3, &file, SIZE) => 0;
-        }
-        #else
-        lfs3_soff_t size = lfs2_file_size(&lfs2, &file);
-        assert(size >= 0);
-        if (size >= SIZE) {
-            lfs2_file_close(&lfs2, &file) => 0;
-            lfs2_rename(&lfs2, "bench_log", "bench_log.1") => 0;
-            lfs2_file_open(&lfs2, &file, "bench_log",
-                    LFS2_O_RDWR
-                        | LFS2_O_CREAT
-                        | LFS2_O_EXCL
-                        | LFS2_O_APPEND) => 0;
-        }
-        #endif
-
-        written += CHUNK;
-    }
-    #ifdef LFS3
-    lfs3_file_close(&lfs3, &file) => 0;
-    #else
-    lfs2_file_close(&lfs2, &file) => 0;
-    #endif
-    BENCH_STOP("write");
-
-    // it's a bit awkward, but this reports the amount written to
-    // result scripts
-    // TODO we should really move n to BENCH_STOP
-    BENCH_START("write", written);
-    BENCH_STOP("write");
+    BENCH_START("read", readed);
+    BENCH_STOP("read");
 
     #ifdef LFS3
     lfs3_unmount(&lfs3) => 0;
