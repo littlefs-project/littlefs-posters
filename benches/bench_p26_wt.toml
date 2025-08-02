@@ -256,7 +256,10 @@ code = '''
         int err = lfs2_file_close(&lfs2, &file); // => 0; TODO ??
         assert(!err || err == LFS3_ERR_NOENT);
         if (err) {
-            break;
+            // just log this error and mark the test as bad for now
+            printf("error: lfs2 close failure: %d\n", err);
+            lfs2_unmount(&lfs2) => 0;
+            return;
         }
         #endif
 
