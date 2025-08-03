@@ -1606,8 +1606,8 @@ $1: $2
 		-Fo- -F^- -Fs- -FX- -FP- \
 		--xlog \
 		--xticks=4 \
-		-X"$$(shell python -c 'a=min([$5]); print(a-a//4)'),$\
-			$$(shell python -c 'b=max([$5]); print(b+b//4)')" \
+		-X"$$(shell python -c 'a=min([$5]); print(a-a/4)'),$\
+			$$(shell python -c 'b=max([$5]); print(b+b/4)')" \
 		--x2 --xunits=B \
 		--y2 --yunits=B/s \
 		$$(shell python -c '$\
