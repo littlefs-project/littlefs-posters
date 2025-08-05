@@ -842,6 +842,9 @@ $(foreach FS,lfs3 lfs3nb lfs2,$\
 # $3 - fs type/version
 # $4 - sim type
 #
+# note we set CACHE_SIZE = max(PAGE_SIZE) to prevent PAGE_SIZE-dependent
+# caches from messing with the results
+#
 define BENCH_P26_T_PS_RULE
 $1: $$(BENCH_$(call UFS,$3)_RUNNER)
 	$$(strip ./scripts/bench.py -R$$< -B $2 \
@@ -857,6 +860,7 @@ $1: $$(BENCH_$(call UFS,$3)_RUNNER)
 		-DPROG_TIME=$$($(call USIM,$4)_PROG_TIME) \
 		-DERASE_TIME=$$($(call USIM,$4)_ERASE_TIME) \
 		-DBLOCK_SIZE=$$($(call USIM,$4)_$(call UFS,$3)_BLOCK_SIZE) \
+		-DCACHE_SIZE=$$(shell python -c 'print(max([$(P26_T_PAGE_SIZES)]))') \
 		$$(BENCHFLAGS) \
 		-o$$@)
 endef
