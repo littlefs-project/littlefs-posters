@@ -98,39 +98,42 @@ NAND_PROG_TIME  ?= 141    # tPP=250 us, p=2048, s=512 (250 us / 2048 + bus)
 NAND_ERASE_TIME ?= 15     # tBE=2 ms, block=131072 (2 ms / 131072)
 
 
-# some lfs3 -> LFS3 convenience mappings
-FS = $(if $(filter lfs3,$1),LFS3,$\
-		$(if $(filter lfs3nb,$1),LFS3NB,$\
-		$(if $(filter lfs2,$1),LFS2,$\
-		$(if $(filter lfs1,$1),LFS1,$\
-		$(if $(filter spiffs,$1),SPIFFS)))))
-
-FS_N = $(if $(filter lfs3,$1),3,$\
-		$(if $(filter lfs3nb,$1),30,$\
-		$(if $(filter lfs2,$1),2,$\
-		$(if $(filter lfs1,$1),1,$\
-		$(if $(filter spiffs,$1),4)))))
-
-FS_I = $(if $(filter lfs3,$1),0,$\
-		$(if $(filter lfs3nb,$1),1,$\
-		$(if $(filter lfs2,$1),2,$\
-		$(if $(filter lfs1,$1),3,$\
-		$(if $(filter spiffs,$1),4)))))
-
-SIM = $(if $(filter emmc,$1),EMMC,$\
-		$(if $(filter nor,$1),NOR,$\
-		$(if $(filter nand,$1),NAND)))
-
-FSS = lfs3 lfs3nb lfs2 # spiffs
-SIMS = emmc nor nand
+# filesystems/sims to benchmark
+BENCH_FSS = lfs3 lfs3nb lfs2 # spiffs
+BENCH_SIMS = emmc nor nand
 
 CODEMAP_FSS = lfs3 lfs3nb lfs2 lfs1 spiffs
 CODEMAP_RDONLY_FSS = lfs3 lfs3nb lfs2 spiffs
+
+# poor man's uppercase
+U_lfs3   = LFS3
+U_lfs3nb = LFS3NB
+U_lfs2   = LFS2
+U_lfs1   = LFS1
+U_spiffs = SPIFFS
+
+U_emmc = EMMC
+U_nor  = NOR
+U_nand = NAND
+
+# some other aliases
+N_lfs3   = 3
+N_lfs3nb = 30
+N_lfs2   = 2
+N_lfs1   = 1
+N_spiffs = 4
+
+I_lfs3   = 0
+I_lfs3nb = 1
+I_lfs2   = 2
+I_lfs1   = 3
+I_spiffs = 4
 
 
 # find source files
 
 # littlefs v3 sources
+CODEMAP_LFS3_CFLAGS += -DLFS3 -DLFS3_YES_BMAP=1
 CODEMAP_LFS3_SRC ?= $(filter-out %.t.c %.b.c %.a.c,$(wildcard littlefs3/*.c))
 CODEMAP_LFS3_OBJ := $(CODEMAP_LFS3_SRC:%.c=$(BUILDDIR)/thumb/%.lfs3.o)
 CODEMAP_LFS3_DEP := $(CODEMAP_LFS3_SRC:%.c=$(BUILDDIR)/thumb/%.lfs3.d)
@@ -138,36 +141,44 @@ CODEMAP_LFS3_ASM := $(CODEMAP_LFS3_SRC:%.c=$(BUILDDIR)/thumb/%.lfs3.s)
 CODEMAP_LFS3_CI  := $(CODEMAP_LFS3_SRC:%.c=$(BUILDDIR)/thumb/%.lfs3.ci)
 
 # littlefs v3 no-bmap sources (well, really just object targets)
+CODEMAP_LFS3NB_CFLAGS += -DLFS3=1
 CODEMAP_LFS3NB_OBJ := $(CODEMAP_LFS3_SRC:%.c=$(BUILDDIR)/thumb/%.lfs3nb.o)
 CODEMAP_LFS3NB_DEP := $(CODEMAP_LFS3_SRC:%.c=$(BUILDDIR)/thumb/%.lfs3nb.d)
 CODEMAP_LFS3NB_ASM := $(CODEMAP_LFS3_SRC:%.c=$(BUILDDIR)/thumb/%.lfs3nb.s)
 CODEMAP_LFS3NB_CI  := $(CODEMAP_LFS3_SRC:%.c=$(BUILDDIR)/thumb/%.lfs3nb.ci)
 
 # littlefs v2 sources
+CODEMAP_LFS2_CFLAGS += -DLFS2=1
 CODEMAP_LFS2_SRC ?= $(filter-out %.t.c %.b.c %.a.c,$(wildcard littlefs2/*.c))
-CODEMAP_LFS2_OBJ := $(CODEMAP_LFS2_SRC:%.c=$(BUILDDIR)/thumb/%.o)
-CODEMAP_LFS2_DEP := $(CODEMAP_LFS2_SRC:%.c=$(BUILDDIR)/thumb/%.d)
-CODEMAP_LFS2_ASM := $(CODEMAP_LFS2_SRC:%.c=$(BUILDDIR)/thumb/%.s)
-CODEMAP_LFS2_CI  := $(CODEMAP_LFS2_SRC:%.c=$(BUILDDIR)/thumb/%.ci)
+CODEMAP_LFS2_OBJ := $(CODEMAP_LFS2_SRC:%.c=$(BUILDDIR)/thumb/%.lfs2.o)
+CODEMAP_LFS2_DEP := $(CODEMAP_LFS2_SRC:%.c=$(BUILDDIR)/thumb/%.lfs2.d)
+CODEMAP_LFS2_ASM := $(CODEMAP_LFS2_SRC:%.c=$(BUILDDIR)/thumb/%.lfs2.s)
+CODEMAP_LFS2_CI  := $(CODEMAP_LFS2_SRC:%.c=$(BUILDDIR)/thumb/%.lfs2.ci)
 
 # littlefs v1 sources
+CODEMAP_LFS1_CFLAGS += -DLFS1=1
 CODEMAP_LFS1_SRC ?= $(filter-out %.t.c %.b.c %.a.c,$(wildcard littlefs1/*.c))
-CODEMAP_LFS1_OBJ := $(CODEMAP_LFS1_SRC:%.c=$(BUILDDIR)/thumb/%.o)
-CODEMAP_LFS1_DEP := $(CODEMAP_LFS1_SRC:%.c=$(BUILDDIR)/thumb/%.d)
-CODEMAP_LFS1_ASM := $(CODEMAP_LFS1_SRC:%.c=$(BUILDDIR)/thumb/%.s)
-CODEMAP_LFS1_CI  := $(CODEMAP_LFS1_SRC:%.c=$(BUILDDIR)/thumb/%.ci)
+CODEMAP_LFS1_OBJ := $(CODEMAP_LFS1_SRC:%.c=$(BUILDDIR)/thumb/%.lfs1.o)
+CODEMAP_LFS1_DEP := $(CODEMAP_LFS1_SRC:%.c=$(BUILDDIR)/thumb/%.lfs1.d)
+CODEMAP_LFS1_ASM := $(CODEMAP_LFS1_SRC:%.c=$(BUILDDIR)/thumb/%.lfs1.s)
+CODEMAP_LFS1_CI  := $(CODEMAP_LFS1_SRC:%.c=$(BUILDDIR)/thumb/%.lfs1.ci)
 
 # spiffs sources
+CODEMAP_SPIFFS_CFLAGS += -DSPIFFS=1
 CODEMAP_SPIFFS_SRC ?= \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard spiffs/src/*.c))
-CODEMAP_SPIFFS_OBJ := $(CODEMAP_SPIFFS_SRC:%.c=$(BUILDDIR)/thumb/%.o)
-CODEMAP_SPIFFS_DEP := $(CODEMAP_SPIFFS_SRC:%.c=$(BUILDDIR)/thumb/%.d)
-CODEMAP_SPIFFS_ASM := $(CODEMAP_SPIFFS_SRC:%.c=$(BUILDDIR)/thumb/%.s)
-CODEMAP_SPIFFS_CI  := $(CODEMAP_SPIFFS_SRC:%.c=$(BUILDDIR)/thumb/%.ci)
+CODEMAP_SPIFFS_OBJ := $(CODEMAP_SPIFFS_SRC:%.c=$(BUILDDIR)/thumb/%.spiffs.o)
+CODEMAP_SPIFFS_DEP := $(CODEMAP_SPIFFS_SRC:%.c=$(BUILDDIR)/thumb/%.spiffs.d)
+CODEMAP_SPIFFS_ASM := $(CODEMAP_SPIFFS_SRC:%.c=$(BUILDDIR)/thumb/%.spiffs.s)
+CODEMAP_SPIFFS_CI  := $(CODEMAP_SPIFFS_SRC:%.c=$(BUILDDIR)/thumb/%.spiffs.ci)
+
+
+# common benches
+BENCHES ?= $(wildcard benches/*.toml)
 
 # littlefs3 bench-runner (the default)
-BENCHES ?= $(wildcard benches/*.toml)
 BENCH_LFS3_RUNNER ?= $(BUILDDIR)/bench_lfs3_runner
+BENCH_LFS3_CFLAGS += -DLFS3=1 -DLFS3_YES_BMAP=1
 BENCH_LFS3_SRC ?= \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard littlefs3/*.c)) \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard bd/*.c)) \
@@ -182,12 +193,14 @@ BENCH_LFS3_CI    := $(BENCH_LFS3_A:%.b.a.c=%.lfs3.b.a.ci)
 
 # littlefs3 no-bmap bench-runner
 BENCH_LFS3NB_RUNNER ?= $(BUILDDIR)/bench_lfs3nb_runner
+BENCH_LFS3NB_CFLAGS += -DLFS3=1
 BENCH_LFS3NB_OBJ   := $(BENCH_LFS3_A:%.b.a.c=%.lfs3nb.b.a.o)
 BENCH_LFS3NB_DEP   := $(BENCH_LFS3_A:%.b.a.c=%.lfs3nb.b.a.d)
 BENCH_LFS3NB_CI    := $(BENCH_LFS3_A:%.b.a.c=%.lfs3nb.b.a.ci)
 
 # littlefs2 bench-runner
 BENCH_LFS2_RUNNER ?= $(BUILDDIR)/bench_lfs2_runner
+BENCH_LFS2_CFLAGS += -DLFS2=1
 BENCH_LFS2_SRC ?= \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard littlefs2/*.c)) \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard bd/*.c)) \
@@ -202,6 +215,7 @@ BENCH_LFS2_CI    := $(BENCH_LFS2_A:%.b.a.c=%.lfs2.b.a.ci)
 
 # spiffs bench-runner
 BENCH_SPIFFS_RUNNER ?= $(BUILDDIR)/bench_spiffs_runner
+BENCH_SPIFFS_CFLAGS += -DSPIFFS=1
 BENCH_SPIFFS_SRC ?= \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard spiffs/src/*.c)) \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard bd/*.c)) \
@@ -257,7 +271,6 @@ CFLAGS += $(foreach d,$(filter LFS3_%,$(.VARIABLES)),-D$d=$($d))
 
 # cross-compile codemap, we don't really care about x86 code size
 CODEMAP_CC ?= arm-linux-gnueabi-gcc -mthumb --static -Wno-stringop-overflow
-CODEMAP_CFLAGS += $(CFLAGS)
 CODEMAP_CFLAGS += $(foreach fs,LFS LFS1 LFS2 LFS3,-D$(fs)_NO_LOG)
 CODEMAP_CFLAGS += $(foreach fs,LFS LFS1 LFS2 LFS3,-D$(fs)_NO_DEBUG)
 CODEMAP_CFLAGS += $(foreach fs,LFS LFS1 LFS2 LFS3,-D$(fs)_NO_INFO)
@@ -266,7 +279,6 @@ CODEMAP_CFLAGS += $(foreach fs,LFS LFS1 LFS2 LFS3,-D$(fs)_NO_ERROR)
 CODEMAP_CFLAGS += $(foreach fs,LFS LFS1 LFS2 LFS3,-D$(fs)_NO_ASSERT)
 
 # extra rdonly c flags
-CODEMAP_RDONLY_CFLAGS += $(CODEMAP_CFLAGS)
 CODEMAP_RDONLY_CFLAGS += -DLFS3_RDONLY
 CODEMAP_RDONLY_CFLAGS += -DLFS2_READONLY
 CODEMAP_RDONLY_CFLAGS += -DSPIFFS_READ_ONLY
@@ -287,16 +299,16 @@ $(if $(findstring n,$(MAKEFLAGS)),, $(shell mkdir -p \
 	$(PLOTSDIR) \
     $(addprefix $(BUILDDIR)/,$(dir \
 		$(BENCHES) \
-		$(foreach fs, $(FSS), \
-			$(BENCH_$(call FS,$(fs))_SRC)) \
+		$(foreach fs, $(BENCH_FSS), \
+			$(BENCH_$(U_$(fs))_SRC)) \
 		$(foreach fs, $(CODEMAP_FSS), \
-			$(CODEMAP_$(call FS,$(fs))_SRC)))) \
+			$(CODEMAP_$(U_$(fs))_SRC)))) \
     $(addprefix $(BUILDDIR)/thumb/,$(dir \
 		$(BENCHES) \
-		$(foreach fs, $(FSS), \
-			$(BENCH_$(call FS,$(fs))_SRC)) \
+		$(foreach fs, $(BENCH_FSS), \
+			$(BENCH_$(U_$(fs))_SRC)) \
 		$(foreach fs, $(CODEMAP_FSS), \
-			$(CODEMAP_$(call FS,$(fs))_SRC))))))
+			$(CODEMAP_$(U_$(fs))_SRC))))))
 endif
 
 # just use bash for everything, process substitution my beloved!
@@ -311,8 +323,8 @@ build bench-runner build-benches: CFLAGS+=$(BENCH_CFLAGS)
 # note we remove some binary dependent files during compilation,
 # otherwise it's way to easy to end up with outdated results
 build bench-runner build-benches: \
-		$(foreach fs, $(FSS), \
-			$(BENCH_$(call FS,$(fs))_RUNNER))
+		$(foreach fs, $(BENCH_FSS), \
+			$(BENCH_$(U_$(fs))_RUNNER))
 
 ## Find total section sizes
 .PHONY: size
@@ -354,94 +366,112 @@ all: \
 
 
 # low-level rules
-$(foreach fs, $(FSS), \
-	$(eval -include $(BENCH_$(call FS,$(fs))_DEP)))
+$(foreach fs, $(BENCH_FSS), \
+	$(eval -include $(BENCH_$(U_$(fs))_DEP)))
 $(foreach fs, $(CODEMAP_FSS), \
-	$(eval -include $(CODEMAP_$(call FS,$(fs))_DEP)))
+	$(eval -include $(CODEMAP_$(U_$(fs))_DEP)))
 .SUFFIXES:
 .SECONDARY:
 , := ,
 
-$(BENCH_LFS3_RUNNER): $(BENCH_LFS3_OBJ)
-	$(CC) $(CFLAGS) $^ $(LFLAGS) -o$@
 
-$(BENCH_LFS3NB_RUNNER): $(BENCH_LFS3NB_OBJ)
-	$(CC) $(CFLAGS) $^ $(LFLAGS) -o$@
+# bench runner rule
+#
+# $1 - target
+# $2 - fs type/version
+#
+define BENCH_RUNNER_RULE
+$1: $(BENCH_$(U_$2)_OBJ)
+	$(CC) $(CFLAGS) $(BENCH_$(U_$1)_CFLAGS) $$^ $(LFLAGS) -o$$@
+endef
 
-$(BENCH_LFS2_RUNNER): $(BENCH_LFS2_OBJ)
-	$(CC) $(CFLAGS) $^ $(LFLAGS) -o$@
-
-$(BENCH_SPIFFS_RUNNER): $(BENCH_SPIFFS_OBJ)
-	$(CC) $(CFLAGS) $^ $(LFLAGS) -o$@
+$(foreach fs, $(BENCH_FSS), \
+	$(eval $(call BENCH_RUNNER_RULE,$\
+		$(BENCH_$(U_$(fs))_RUNNER),$\
+		$(fs))))
 
 # our main build rule generates .o, .d, and .ci files, the latter
 # used for stack analysis
 
+# bench .o rule
+#
+# $1 - targets
+# $2 - prerequisite
+# $2 - fs type/version
+#
+define BENCH_O_RULE
+$1: $2
+	$(CC) -c -MMD $(CFLAGS) $(BENCH_$(U_$3)_CFLAGS) $$< -o$$(firstword $$@)
+endef
+
+$(foreach fs, $(BENCH_FSS), \
+	$(eval $(call BENCH_O_RULE,$\
+		$(BUILDDIR)/%.$(fs).b.a.o $(BUILDDIR)/%.$(fs).b.a.ci,$\
+		%.b.a.c,$\
+		$(fs))))
+
+$(foreach fs, $(BENCH_FSS), \
+	$(eval $(call BENCH_O_RULE,$\
+		$(BUILDDIR)/%.$(fs).b.a.o $(BUILDDIR)/%.$(fs).b.a.ci,$\
+		$(BUILDDIR)/%.b.a.c,$\
+		$(fs))))
+
 # cross-compile for codemap
-$(BUILDDIR)/thumb/%.o $(BUILDDIR)/thumb/%.ci: %.c
-	$(strip $(CODEMAP_CC) -c -MMD \
-		$(CODEMAP_CFLAGS) $< \
-		-o $(BUILDDIR)/thumb/$*.o)
 
-# .lfs3 files need -DLFS3_YES_BMAP=1
-$(BUILDDIR)/thumb/%.lfs3.o $(BUILDDIR)/thumb/%.lfs3.ci: %.c
-	$(strip $(CODEMAP_CC) -c -MMD -DLFS3_YES_BMAP=1 \
-		$(CODEMAP_CFLAGS) $< \
-		-o $(BUILDDIR)/thumb/$*.lfs3.o)
+# codemap .o rule
+#
+# $1 - targets
+# $2 - prerequisites
+# $2 - fs type/version
+#
+define CODEMAP_O_RULE
+$1: $2
+	$$(strip $(CODEMAP_CC) -c -MMD \
+		$(CFLAGS) $(CODEMAP_CFLAGS) $(CODEMAP_$(U_$3)_CFLAGS) \
+		$$< -o$$(firstword $$@))
+endef
 
-# .lfs3nb files don't
-$(BUILDDIR)/thumb/%.lfs3nb.o $(BUILDDIR)/thumb/%.lfs3nb.ci: %.c
-	$(strip $(CODEMAP_CC) -c -MMD \
-		$(CODEMAP_CFLAGS) $< \
-		-o $(BUILDDIR)/thumb/$*.lfs3nb.o)
+$(foreach fs, $(CODEMAP_FSS), \
+	$(eval $(call CODEMAP_O_RULE,$\
+		$(BUILDDIR)/thumb/%.$(fs).o $(BUILDDIR)/thumb/%.$(fs).ci,$\
+		%.c,$\
+		$(fs))))
 
-# rdonly codemap builds
-$(BUILDDIR)/thumb/%.rdonly.o $(BUILDDIR)/thumb/%.rdonly.ci: %.c
-	$(strip $(CODEMAP_CC) -c -MMD \
-		$(CODEMAP_RDONLY_CFLAGS) $< \
-		-o $(BUILDDIR)/thumb/$*.rdonly.o)
+$(foreach fs, $(CODEMAP_FSS), \
+	$(eval $(call CODEMAP_O_RULE,$\
+		$(BUILDDIR)/thumb/%.$(fs).o $(BUILDDIR)/thumb/%.$(fs).ci,$\
+		$(BUILDDIR)/%.c,$\
+		$(fs))))
 
-# .lfs3 files need -DLFS3_YES_BMAP=1
-$(BUILDDIR)/thumb/%.lfs3.rdonly.o $(BUILDDIR)/thumb/%.lfs3.rdonly.ci: %.c
-	$(strip $(CODEMAP_CC) -c -MMD -DLFS3_YES_BMAP=1 \
-		$(CODEMAP_RDONLY_CFLAGS) $< \
-		-o $(BUILDDIR)/thumb/$*.lfs3.rdonly.o)
+# rdonly codemap .o rule
+#
+# $1 - targets
+# $2 - prerequisites
+# $2 - fs type/version
+#
+define CODEMAP_RDONLY_O_RULE
+$1: $2
+	$$(strip $(CODEMAP_CC) -c -MMD \
+		$(CFLAGS) \
+		$(CODEMAP_CFLAGS) \
+		$(CODEMAP_RDONLY_CFLAGS) \
+		$(CODEMAP_$(U_$3)_CFLAGS) \
+		$$< -o$$(firstword $$@))
+endef
 
-# .lfs3nb files don't
-$(BUILDDIR)/thumb/%.lfs3nb.rdonly.o $(BUILDDIR)/thumb/%.lfs3nb.rdonly.ci: %.c
-	$(strip $(CODEMAP_CC) -c -MMD \
-		$(CODEMAP_RDONLY_CFLAGS) $< \
-		-o $(BUILDDIR)/thumb/$*.lfs3nb.rdonly.o)
+$(foreach fs, $(CODEMAP_RDONLY_FSS), \
+	$(eval $(call CODEMAP_RDONLY_O_RULE,$\
+		$(BUILDDIR)/thumb/%.$(fs).rdonly.o $\
+			$(BUILDDIR)/thumb/%.$(fs).rdonly.ci,$\
+		%.c,$\
+		$(fs))))
 
-# .lfs3 files need -DLFS3=1 -DLFS3_YES_BMAP=1
-$(BUILDDIR)/%.lfs3.b.a.o $(BUILDDIR)/%.lfs3.b.a.ci: %.b.a.c
-	$(strip $(CC) -c -MMD -DLFS3=1 -DLFS3_YES_BMAP=1 \
-		$(CFLAGS) $< -o $(BUILDDIR)/$*.lfs3.b.a.o)
-
-$(BUILDDIR)/%.lfs3.b.a.o $(BUILDDIR)/%.lfs3.b.a.ci: $(BUILDDIR)/%.b.a.c
-	$(strip $(CC) -c -MMD -DLFS3=1 -DLFS3_YES_BMAP=1 \
-		$(CFLAGS) $< -o $(BUILDDIR)/$*.lfs3.b.a.o)
-
-# .lfs3nb files need -DLFS3=1
-$(BUILDDIR)/%.lfs3nb.b.a.o $(BUILDDIR)/%.lfs3nb.b.a.ci: %.b.a.c
-	$(CC) -c -MMD -DLFS3=1 $(CFLAGS) $< -o $(BUILDDIR)/$*.lfs3nb.b.a.o
-
-$(BUILDDIR)/%.lfs3nb.b.a.o $(BUILDDIR)/%.lfs3nb.b.a.ci: $(BUILDDIR)/%.b.a.c
-	$(CC) -c -MMD -DLFS3=1 $(CFLAGS) $< -o $(BUILDDIR)/$*.lfs3nb.b.a.o
-
-# .lfs2 files need -DLFS2=1
-$(BUILDDIR)/%.lfs2.b.a.o $(BUILDDIR)/%.lfs2.b.a.ci: %.b.a.c
-	$(CC) -c -MMD -DLFS2=1 $(CFLAGS) $< -o $(BUILDDIR)/$*.lfs2.b.a.o
-
-$(BUILDDIR)/%.lfs2.b.a.o $(BUILDDIR)/%.lfs2.b.a.ci: $(BUILDDIR)/%.b.a.c
-	$(CC) -c -MMD -DLFS2=1 $(CFLAGS) $< -o $(BUILDDIR)/$*.lfs2.b.a.o
-
-# .spiffs files need -DSPIFFS=1
-$(BUILDDIR)/%.spiffs.b.a.o $(BUILDDIR)/%.spiffs.b.a.ci: %.b.a.c
-	$(CC) -c -MMD -DSPIFFS=1 $(CFLAGS) $< -o $(BUILDDIR)/$*.spiffs.b.a.o
-
-$(BUILDDIR)/%.spiffs.b.a.o $(BUILDDIR)/%.spiffs.b.a.ci: $(BUILDDIR)/%.b.a.c
-	$(CC) -c -MMD -DSPIFFS=1 $(CFLAGS) $< -o $(BUILDDIR)/$*.spiffs.b.a.o
+$(foreach fs, $(CODEMAP_RDONLY_FSS), \
+	$(eval $(call CODEMAP_RDONLY_O_RULE,$\
+		$(BUILDDIR)/thumb/%.$(fs).rdonly.o $\
+			$(BUILDDIR)/thumb/%.$(fs).rdonly.ci,$\
+		$(BUILDDIR)/%.c,$\
+		$(fs))))
 
 $(BUILDDIR)/%.s: %.c
 	$(CC) -S $(CFLAGS) $< -o$@
@@ -525,7 +555,7 @@ bench-p26-litmus: \
 ## Run p26 litmus linear benchmarks
 .PHONY: bench-p26-litmus-linear
 bench-p26-litmus-linear: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_litmus_linear.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_litmus_linear.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_litmus_linear.lfs2.$(sim).csv)
@@ -533,7 +563,7 @@ bench-p26-litmus-linear: \
 ## Run p26 litmus random benchmarks
 .PHONY: bench-p26-litmus-random
 bench-p26-litmus-random: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_litmus_random.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_litmus_random.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_litmus_random.lfs2.$(sim).csv)
@@ -541,7 +571,7 @@ bench-p26-litmus-random: \
 ## Run p26 litmus many benchmarks
 .PHONY: bench-p26-litmus-many
 bench-p26-litmus-many: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_litmus_many.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_litmus_many.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_litmus_many.lfs2.$(sim).csv)
@@ -549,7 +579,7 @@ bench-p26-litmus-many: \
 ## Run p26 litmus logging benchmarks
 .PHONY: bench-p26-litmus-logging
 bench-p26-litmus-logging: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_litmus_logging.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_litmus_logging.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_litmus_logging.lfs2.$(sim).csv)
@@ -565,7 +595,7 @@ bench-p26-wt: \
 ## Run p26 write-throughput linear benchmarks
 .PHONY: bench-p26-wt-linear
 bench-p26-wt-linear: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_wt_linear.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_linear.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_linear.lfs2.$(sim).csv)
@@ -573,7 +603,7 @@ bench-p26-wt-linear: \
 ## Run p26 write-throughput random benchmarks
 .PHONY: bench-p26-wt-random
 bench-p26-wt-random: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_wt_random.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_random.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_random.lfs2.$(sim).csv)
@@ -581,7 +611,7 @@ bench-p26-wt-random: \
 ## Run p26 write-throughput many benchmarks
 .PHONY: bench-p26-wt-many
 bench-p26-wt-many: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_wt_many.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_many.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_many.lfs2.$(sim).csv)
@@ -589,7 +619,7 @@ bench-p26-wt-many: \
 ## Run p26 write-throughput logging benchmarks
 .PHONY: bench-p26-wt-logging
 bench-p26-wt-logging: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_wt_logging.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_logging.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_logging.lfs2.$(sim).csv)
@@ -604,7 +634,7 @@ bench-p26-rt: \
 ## Run p26 read-throughput linear benchmarks
 .PHONY: bench-p26-rt-linear
 bench-p26-rt-linear: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_rt_linear.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_rt_linear.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_rt_linear.lfs2.$(sim).csv)
@@ -612,7 +642,7 @@ bench-p26-rt-linear: \
 ## Run p26 read-throughput random benchmarks
 .PHONY: bench-p26-rt-random
 bench-p26-rt-random: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_rt_random.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_rt_random.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_rt_random.lfs2.$(sim).csv)
@@ -620,7 +650,7 @@ bench-p26-rt-random: \
 ## Run p26 read-throughput many benchmarks
 .PHONY: bench-p26-rt-many
 bench-p26-rt-many: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_rt_many.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_rt_many.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_rt_many.lfs2.$(sim).csv)
@@ -636,7 +666,7 @@ bench-p26-wt-bs: \
 ## Run p26 write-throughput block size linear benchmarks
 .PHONY: bench-p26-wt-bs-linear
 bench-p26-wt-bs-linear: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_wt_bs_linear.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_bs_linear.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_bs_linear.lfs2.$(sim).csv)
@@ -644,7 +674,7 @@ bench-p26-wt-bs-linear: \
 ## Run p26 write-throughput block size random benchmarks
 .PHONY: bench-p26-wt-bs-random
 bench-p26-wt-bs-random: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_wt_bs_random.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_bs_random.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_bs_random.lfs2.$(sim).csv)
@@ -652,7 +682,7 @@ bench-p26-wt-bs-random: \
 ## Run p26 write-throughput block size many benchmarks
 .PHONY: bench-p26-wt-bs-many
 bench-p26-wt-bs-many: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_wt_bs_many.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_bs_many.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_bs_many.lfs2.$(sim).csv)
@@ -660,7 +690,7 @@ bench-p26-wt-bs-many: \
 ## Run p26 write-throughput block size logging benchmarks
 .PHONY: bench-p26-wt-bs-logging
 bench-p26-wt-bs-logging: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_wt_bs_logging.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_bs_logging.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_bs_logging.lfs2.$(sim).csv)
@@ -676,7 +706,7 @@ bench-p26-wt-ps: \
 ## Run p26 write-throughput read/prog size linear benchmarks
 .PHONY: bench-p26-wt-ps-linear
 bench-p26-wt-ps-linear: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_wt_ps_linear.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_ps_linear.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_ps_linear.lfs2.$(sim).csv)
@@ -684,7 +714,7 @@ bench-p26-wt-ps-linear: \
 ## Run p26 write-throughput read/prog size random benchmarks
 .PHONY: bench-p26-wt-ps-random
 bench-p26-wt-ps-random: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_wt_ps_random.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_ps_random.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_ps_random.lfs2.$(sim).csv)
@@ -692,7 +722,7 @@ bench-p26-wt-ps-random: \
 ## Run p26 write-throughput read/prog size many benchmarks
 .PHONY: bench-p26-wt-ps-many
 bench-p26-wt-ps-many: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_wt_ps_many.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_ps_many.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_ps_many.lfs2.$(sim).csv)
@@ -700,7 +730,7 @@ bench-p26-wt-ps-many: \
 ## Run p26 write-throughput read/prog size logging benchmarks
 .PHONY: bench-p26-wt-ps-logging
 bench-p26-wt-ps-logging: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_wt_ps_logging.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_ps_logging.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_ps_logging.lfs2.$(sim).csv)
@@ -716,7 +746,7 @@ bench-p26-wt-cs: \
 ## Run p26 write-throughput cache size linear benchmarks
 .PHONY: bench-p26-wt-cs-linear
 bench-p26-wt-cs-linear: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_wt_cs_linear.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_cs_linear.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_cs_linear.lfs2.$(sim).csv)
@@ -724,7 +754,7 @@ bench-p26-wt-cs-linear: \
 ## Run p26 write-throughput cache size random benchmarks
 .PHONY: bench-p26-wt-cs-random
 bench-p26-wt-cs-random: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_wt_cs_random.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_cs_random.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_cs_random.lfs2.$(sim).csv)
@@ -732,7 +762,7 @@ bench-p26-wt-cs-random: \
 ## Run p26 write-throughput cache size many benchmarks
 .PHONY: bench-p26-wt-cs-many
 bench-p26-wt-cs-many: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_wt_cs_many.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_cs_many.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_cs_many.lfs2.$(sim).csv)
@@ -740,7 +770,7 @@ bench-p26-wt-cs-many: \
 ## Run p26 write-throughput cache size logging benchmarks
 .PHONY: bench-p26-wt-cs-logging
 bench-p26-wt-cs-logging: \
-		$(foreach sim, emmc nor nand, \
+		$(foreach sim, $(BENCH_SIMS), \
 			$(RESULTSDIR)/bench_p26_wt_cs_logging.lfs3.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_cs_logging.lfs3nb.$(sim).csv \
 			$(RESULTSDIR)/bench_p26_wt_cs_logging.lfs2.$(sim).csv)
@@ -756,26 +786,26 @@ bench-p26-wt-cs-logging: \
 # $4 - sim type
 #
 define BENCH_P26_LITMUS_RULE
-$1: $$(BENCH_$(call FS,$3)_RUNNER)
+$1: $$(BENCH_$(U_$3)_RUNNER)
 	$$(strip ./scripts/bench.py -R$$< -B $2 \
 		-DSIZE=$(P26_LITMUS_SIZE) \
 		-DCHUNK=$(P26_LITMUS_CHUNK) \
 		-DSTEP=$(P26_LITMUS_STEP) \
 		-DSEED="range($(P26_LITMUS_SAMPLES))" \
-		-DFS=$(call FS_N,$3) \
-		-DREAD_SIZE=$$($(call SIM,$4)_READ_SIZE) \
-		-DPROG_SIZE=$$($(call SIM,$4)_PROG_SIZE) \
-		-DERASE_SIZE=$$($(call SIM,$4)_ERASE_SIZE) \
-		-DREAD_TIME=$$($(call SIM,$4)_READ_TIME) \
-		-DPROG_TIME=$$($(call SIM,$4)_PROG_TIME) \
-		-DERASE_TIME=$$($(call SIM,$4)_ERASE_TIME) \
-		-DBLOCK_SIZE=$$($(call SIM,$4)_$(call FS,$3)_BLOCK_SIZE) \
+		-DFS=$(N_$3) \
+		-DREAD_SIZE=$$($(U_$4)_READ_SIZE) \
+		-DPROG_SIZE=$$($(U_$4)_PROG_SIZE) \
+		-DERASE_SIZE=$$($(U_$4)_ERASE_SIZE) \
+		-DREAD_TIME=$$($(U_$4)_READ_TIME) \
+		-DPROG_TIME=$$($(U_$4)_PROG_TIME) \
+		-DERASE_TIME=$$($(U_$4)_ERASE_TIME) \
+		-DBLOCK_SIZE=$$($(U_$4)_$(U_$3)_BLOCK_SIZE) \
 		$$(BENCHFLAGS) \
 		-o$$@)
 endef
 
-$(foreach fs, lfs3 lfs3nb lfs2,$\
-	$(foreach sim, emmc nor nand,$\
+$(foreach fs, $(BENCH_FSS),$\
+	$(foreach sim, $(BENCH_SIMS),$\
 		$(eval $(call BENCH_P26_LITMUS_RULE,$\
 				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).csv,$\
 				bench_p26_litmus_$$*,$\
@@ -791,26 +821,26 @@ $(foreach fs, lfs3 lfs3nb lfs2,$\
 # $4 - sim type
 #
 define BENCH_P26_T_RULE
-$1: $$(BENCH_$(call FS,$3)_RUNNER)
+$1: $$(BENCH_$(U_$3)_RUNNER)
 	$$(strip ./scripts/bench.py -R$$< -B $2 \
 		-DSIZE=$(P26_T_SIZES) \
 		-DCHUNK=$(P26_T_CHUNK) \
 		-DSIMTIME=$(P26_T_SIMTIME) \
-		-DFS=$(call FS_N,$3) \
-		-DREAD_SIZE=$$($(call SIM,$4)_READ_SIZE) \
-		-DPROG_SIZE=$$($(call SIM,$4)_PROG_SIZE) \
-		-DERASE_SIZE=$$($(call SIM,$4)_ERASE_SIZE) \
-		-DREAD_TIME=$$($(call SIM,$4)_READ_TIME) \
-		-DPROG_TIME=$$($(call SIM,$4)_PROG_TIME) \
-		-DERASE_TIME=$$($(call SIM,$4)_ERASE_TIME) \
-		-DBLOCK_SIZE=$$($(call SIM,$4)_$(call FS,$3)_BLOCK_SIZE) \
+		-DFS=$(N_$3) \
+		-DREAD_SIZE=$$($(U_$4)_READ_SIZE) \
+		-DPROG_SIZE=$$($(U_$4)_PROG_SIZE) \
+		-DERASE_SIZE=$$($(U_$4)_ERASE_SIZE) \
+		-DREAD_TIME=$$($(U_$4)_READ_TIME) \
+		-DPROG_TIME=$$($(U_$4)_PROG_TIME) \
+		-DERASE_TIME=$$($(U_$4)_ERASE_TIME) \
+		-DBLOCK_SIZE=$$($(U_$4)_$(U_$3)_BLOCK_SIZE) \
 		$$(BENCHFLAGS) \
 		-o$$@)
 endef
 
 # p26 write-throughput bench rules
-$(foreach fs, lfs3 lfs3nb lfs2,$\
-	$(foreach sim, emmc nor nand,$\
+$(foreach fs, $(BENCH_FSS),$\
+	$(foreach sim, $(BENCH_SIMS),$\
 		$(eval $(call BENCH_P26_T_RULE,$\
 				$(RESULTSDIR)/bench_p26_wt_%.$(fs).$(sim).csv,$\
 				bench_p26_wt_$$*,$\
@@ -818,8 +848,8 @@ $(foreach fs, lfs3 lfs3nb lfs2,$\
 				$(sim)))))
 
 # p26 read-throughput bench rules
-$(foreach fs, lfs3 lfs3nb lfs2,$\
-	$(foreach sim, emmc nor nand,$\
+$(foreach fs, $(BENCH_FSS),$\
+	$(foreach sim, $(BENCH_SIMS),$\
 		$(eval $(call BENCH_P26_T_RULE,$\
 				$(RESULTSDIR)/bench_p26_rt_%.$(fs).$(sim).csv,$\
 				bench_p26_rt_$$*,$\
@@ -834,26 +864,26 @@ $(foreach fs, lfs3 lfs3nb lfs2,$\
 # $4 - sim type
 #
 define BENCH_P26_T_BS_RULE
-$1: $$(BENCH_$(call FS,$3)_RUNNER)
+$1: $$(BENCH_$(U_$3)_RUNNER)
 	$$(strip ./scripts/bench.py -R$$< -B $2 \
 		-DSIZE=$(P26_T_SIZE) \
 		-DCHUNK=$(P26_T_CHUNK) \
 		-DSIMTIME=$(P26_T_SIMTIME) \
-		-DFS=$(call FS_N,$3) \
-		-DREAD_SIZE=$$($(call SIM,$4)_READ_SIZE) \
-		-DPROG_SIZE=$$($(call SIM,$4)_PROG_SIZE) \
-		-DERASE_SIZE=$$($(call SIM,$4)_ERASE_SIZE) \
-		-DREAD_TIME=$$($(call SIM,$4)_READ_TIME) \
-		-DPROG_TIME=$$($(call SIM,$4)_PROG_TIME) \
-		-DERASE_TIME=$$($(call SIM,$4)_ERASE_TIME) \
+		-DFS=$(N_$3) \
+		-DREAD_SIZE=$$($(U_$4)_READ_SIZE) \
+		-DPROG_SIZE=$$($(U_$4)_PROG_SIZE) \
+		-DERASE_SIZE=$$($(U_$4)_ERASE_SIZE) \
+		-DREAD_TIME=$$($(U_$4)_READ_TIME) \
+		-DPROG_TIME=$$($(U_$4)_PROG_TIME) \
+		-DERASE_TIME=$$($(U_$4)_ERASE_TIME) \
 		-DBLOCK_SIZE=$(P26_T_BLOCK_SIZES) \
 		$$(BENCHFLAGS) \
 		-o$$@)
 endef
 
 # p26 write-throughput block size bench rules
-$(foreach fs, lfs3 lfs3nb lfs2,$\
-	$(foreach sim, emmc nor nand,$\
+$(foreach fs, $(BENCH_FSS),$\
+	$(foreach sim, $(BENCH_SIMS),$\
 		$(eval $(call BENCH_P26_T_BS_RULE,$\
 				$(RESULTSDIR)/bench_p26_wt_bs_%.$(fs).$(sim).csv,$\
 				bench_p26_wt_$$*,$\
@@ -871,26 +901,26 @@ $(foreach fs, lfs3 lfs3nb lfs2,$\
 # caches from messing with the results
 #
 define BENCH_P26_T_PS_RULE
-$1: $$(BENCH_$(call FS,$3)_RUNNER)
+$1: $$(BENCH_$(U_$3)_RUNNER)
 	$$(strip ./scripts/bench.py -R$$< -B $2 \
 		-DSIZE=$(P26_T_SIZE) \
 		-DCHUNK=$(P26_T_CHUNK) \
 		-DSIMTIME=$(P26_T_SIMTIME) \
-		-DFS=$(call FS_N,$3) \
+		-DFS=$(N_$3) \
 		-DPAGE_SIZE=$(P26_T_PAGE_SIZES) \
-		-DERASE_SIZE=$$($(call SIM,$4)_ERASE_SIZE) \
-		-DREAD_TIME=$$($(call SIM,$4)_READ_TIME) \
-		-DPROG_TIME=$$($(call SIM,$4)_PROG_TIME) \
-		-DERASE_TIME=$$($(call SIM,$4)_ERASE_TIME) \
-		-DBLOCK_SIZE=$$($(call SIM,$4)_$(call FS,$3)_BLOCK_SIZE) \
+		-DERASE_SIZE=$$($(U_$4)_ERASE_SIZE) \
+		-DREAD_TIME=$$($(U_$4)_READ_TIME) \
+		-DPROG_TIME=$$($(U_$4)_PROG_TIME) \
+		-DERASE_TIME=$$($(U_$4)_ERASE_TIME) \
+		-DBLOCK_SIZE=$$($(U_$4)_$(U_$3)_BLOCK_SIZE) \
 		-DCACHE_SIZE=$$(shell python -c 'print(max([$(P26_T_PAGE_SIZES)]))') \
 		$$(BENCHFLAGS) \
 		-o$$@)
 endef
 
 # p26 write-throughput read/prog size bench rules
-$(foreach fs, lfs3 lfs3nb lfs2,$\
-	$(foreach sim, emmc nor nand,$\
+$(foreach fs, $(BENCH_FSS),$\
+	$(foreach sim, $(BENCH_SIMS),$\
 		$(eval $(call BENCH_P26_T_PS_RULE,$\
 				$(RESULTSDIR)/bench_p26_wt_ps_%.$(fs).$(sim).csv,$\
 				bench_p26_wt_$$*,$\
@@ -905,24 +935,24 @@ $(foreach fs, lfs3 lfs3nb lfs2,$\
 # $4 - sim type
 #
 define BENCH_P26_T_CS_RULE
-$1: $$(BENCH_$(call FS,$3)_RUNNER)
+$1: $$(BENCH_$(U_$3)_RUNNER)
 	$$(strip ./scripts/bench.py -R$$< -B $2 \
 		-DSIZE=$(P26_T_SIZE) \
 		-DCHUNK=$(P26_T_CHUNK) \
 		-DSIMTIME=$(P26_T_SIMTIME) \
-		-DFS=$(call FS_N,$3) \
-		-DREAD_SIZE=$$($(call SIM,$4)_READ_SIZE) \
-		-DPROG_SIZE=$$($(call SIM,$4)_PROG_SIZE) \
-		-DERASE_SIZE=$$($(call SIM,$4)_ERASE_SIZE) \
-		-DREAD_TIME=$$($(call SIM,$4)_READ_TIME) \
-		-DPROG_TIME=$$($(call SIM,$4)_PROG_TIME) \
-		-DERASE_TIME=$$($(call SIM,$4)_ERASE_TIME) \
-		-DBLOCK_SIZE=$$($(call SIM,$4)_$(call FS,$3)_BLOCK_SIZE) \
+		-DFS=$(N_$3) \
+		-DREAD_SIZE=$$($(U_$4)_READ_SIZE) \
+		-DPROG_SIZE=$$($(U_$4)_PROG_SIZE) \
+		-DERASE_SIZE=$$($(U_$4)_ERASE_SIZE) \
+		-DREAD_TIME=$$($(U_$4)_READ_TIME) \
+		-DPROG_TIME=$$($(U_$4)_PROG_TIME) \
+		-DERASE_TIME=$$($(U_$4)_ERASE_TIME) \
+		-DBLOCK_SIZE=$$($(U_$4)_$(U_$3)_BLOCK_SIZE) \
 		-DCACHE_SIZE=$$(shell python -c '$\
 			print(",".join(str(n) for n in [$(P26_T_CACHE_SIZES)] $\
-				if n >= $$($(call SIM,$4)_READ_SIZE) $\
-				and n >= $$($(call SIM,$4)_PROG_SIZE) $\
-				and n <= $$($(call SIM,$4)_$(call FS,$3)_BLOCK_SIZE) $\
+				if n >= $$($(U_$4)_READ_SIZE) $\
+				and n >= $$($(U_$4)_PROG_SIZE) $\
+				and n <= $$($(U_$4)_$(U_$3)_BLOCK_SIZE) $\
 				and ("$$*" not in {"linear", "random"} $\
 					or n < $(P26_T_SIZE))))') \
 		$$(BENCHFLAGS) \
@@ -930,8 +960,8 @@ $1: $$(BENCH_$(call FS,$3)_RUNNER)
 endef
 
 # p26 write-throughput cache size bench rules
-$(foreach fs, lfs3 lfs3nb lfs2,$\
-	$(foreach sim, emmc nor nand,$\
+$(foreach fs, $(BENCH_FSS),$\
+	$(foreach sim, $(BENCH_SIMS),$\
 		$(eval $(call BENCH_P26_T_CS_RULE,$\
 				$(RESULTSDIR)/bench_p26_wt_cs_%.$(fs).$(sim).csv,$\
 				bench_p26_wt_$$*,$\
@@ -1374,8 +1404,8 @@ endef
 
 $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		$(PLOTSDIR)/bench_p26_litmus_%_r.svg,$\
-		$(foreach fs, lfs3 lfs3nb lfs2,$\
-			$(foreach sim, emmc nor nand,$\
+		$(foreach fs, $(BENCH_FSS),$\
+			$(foreach sim, $(BENCH_SIMS),$\
 				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).avg.csv $\
 				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).amor.avg.csv)),$\
 		"$$* file writes - reads",$\
@@ -1385,8 +1415,8 @@ $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		-DMODE=0 --x2 --xunits=B --y2 --yunits=B))
 $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		$(PLOTSDIR)/bench_p26_litmus_%_p.svg,$\
-		$(foreach fs, lfs3 lfs3nb lfs2,$\
-			$(foreach sim, emmc nor nand,$\
+		$(foreach fs, $(BENCH_FSS),$\
+			$(foreach sim, $(BENCH_SIMS),$\
 				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).avg.csv $\
 				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).amor.avg.csv)),$\
 		"$$* file writes - progs",$\
@@ -1396,8 +1426,8 @@ $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		-DMODE=0 --x2 --xunits=B --y2 --yunits=B))
 $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		$(PLOTSDIR)/bench_p26_litmus_%_e.svg,$\
-		$(foreach fs, lfs3 lfs3nb lfs2,$\
-			$(foreach sim, emmc nor nand,$\
+		$(foreach fs, $(BENCH_FSS),$\
+			$(foreach sim, $(BENCH_SIMS),$\
 				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).avg.csv $\
 				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).amor.avg.csv)),$\
 		"$$* file writes - erases",$\
@@ -1407,8 +1437,8 @@ $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		-DMODE=0 --x2 --xunits=B --y2 --yunits=B))
 $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		$(PLOTSDIR)/bench_p26_litmus_%_u.svg,$\
-		$(foreach fs, lfs3 lfs3nb lfs2,$\
-			$(foreach sim, emmc nor nand,$\
+		$(foreach fs, $(BENCH_FSS),$\
+			$(foreach sim, $(BENCH_SIMS),$\
 				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).avg.csv $\
 				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).per.avg.csv)),$\
 		"$$* file usage",$\
@@ -1418,8 +1448,8 @@ $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		-DMODE=1 --x2 --xunits=B --y2 --yunits=B))
 $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		$(PLOTSDIR)/bench_p26_litmus_%.svg,$\
-		$(foreach fs, lfs3 lfs3nb lfs2,$\
-			$(foreach sim, emmc nor nand,$\
+		$(foreach fs, $(BENCH_FSS),$\
+			$(foreach sim, $(BENCH_SIMS),$\
 				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).sim.avg.csv $\
 				$(RESULTSDIR)/bench_p26_litmus_%$\
 					.$(fs).$(sim).sim.amor.avg.csv)),$\
@@ -1488,8 +1518,8 @@ endef
 
 $(eval $(call PLOT_P26_T_RULE,$\
 		$(PLOTSDIR)/bench_p26_wt_%.svg,$\
-		$(foreach fs, lfs3 lfs3nb lfs2,$\
-			$(foreach sim, emmc nor nand,$\
+		$(foreach fs, $(BENCH_FSS),$\
+			$(foreach sim, $(BENCH_SIMS),$\
 				$(RESULTSDIR)/bench_p26_wt_%.$(fs).$(sim).tsim.csv)),$\
 		"$$* file writes - simulated throughput",$\
 		SIZE,$\
@@ -1497,8 +1527,8 @@ $(eval $(call PLOT_P26_T_RULE,$\
 
 $(eval $(call PLOT_P26_T_RULE,$\
 		$(PLOTSDIR)/bench_p26_rt_%.svg,$\
-		$(foreach fs, lfs3 lfs3nb lfs2,$\
-			$(foreach sim, emmc nor nand,$\
+		$(foreach fs, $(BENCH_FSS),$\
+			$(foreach sim, $(BENCH_SIMS),$\
 				$(RESULTSDIR)/bench_p26_rt_%.$(fs).$(sim).tsim.csv)),$\
 		"$$* file reads - simulated throughput",$\
 		SIZE,$\
@@ -1506,8 +1536,8 @@ $(eval $(call PLOT_P26_T_RULE,$\
 
 $(eval $(call PLOT_P26_T_RULE,$\
 		$(PLOTSDIR)/bench_p26_wt_bs_%.svg,$\
-		$(foreach fs, lfs3 lfs3nb lfs2,$\
-			$(foreach sim, emmc nor nand,$\
+		$(foreach fs, $(BENCH_FSS),$\
+			$(foreach sim, $(BENCH_SIMS),$\
 				$(RESULTSDIR)/bench_p26_wt_bs_%.$(fs).$(sim).tsim.csv)),$\
 		"$$* file writes - block sizes - simulated throughput",$\
 		BLOCK_SIZE,$\
@@ -1516,8 +1546,8 @@ $(eval $(call PLOT_P26_T_RULE,$\
 
 $(eval $(call PLOT_P26_T_RULE,$\
 		$(PLOTSDIR)/bench_p26_wt_ps_%.svg,$\
-		$(foreach fs, lfs3 lfs3nb lfs2,$\
-			$(foreach sim, emmc nor nand,$\
+		$(foreach fs, $(BENCH_FSS),$\
+			$(foreach sim, $(BENCH_SIMS),$\
 				$(RESULTSDIR)/bench_p26_wt_ps_%.$(fs).$(sim).tsim.csv)),$\
 		"$$* file writes - read/prog sizes - simulated throughput",$\
 		PAGE_SIZE,$\
@@ -1526,8 +1556,8 @@ $(eval $(call PLOT_P26_T_RULE,$\
 
 $(eval $(call PLOT_P26_T_RULE,$\
 		$(PLOTSDIR)/bench_p26_wt_cs_%.svg,$\
-		$(foreach fs, lfs3 lfs3nb lfs2,$\
-			$(foreach sim, emmc nor nand,$\
+		$(foreach fs, $(BENCH_FSS),$\
+			$(foreach sim, $(BENCH_SIMS),$\
 				$(RESULTSDIR)/bench_p26_wt_cs_%.$(fs).$(sim).tsim.csv)),$\
 		"$$* file writes - cache sizes - simulated throughput",$\
 		CACHE_SIZE,$\
@@ -1587,25 +1617,25 @@ endif
 ## Show compile-time sizes
 .PHONY: sizes
 sizes: $(foreach fs, $(CODEMAP_FSS), \
-		$(CODEMAP_$(call FS,$(fs))_OBJ) \
-		$(CODEMAP_$(call FS,$(fs))_CI))
+		$(CODEMAP_$(U_$(fs))_OBJ) \
+		$(CODEMAP_$(U_$(fs))_CI))
 	$(strip ./scripts/csv.py \
 		$(foreach fs, $(CODEMAP_FSS), \
 			<(./scripts/csv.py \
-				<(./scripts/code.py $(CODEMAP_$(call FS,$(fs))_OBJ) -o-) \
-				-bi=$(call FS_I,$(fs)) -bfs=$(fs) \
+				<(./scripts/code.py $(CODEMAP_$(U_$(fs))_OBJ) -o-) \
+				-bi=$(I_$(fs)) -bfs=$(fs) \
 				-fcode=code_size -o-) \
 			<(./scripts/csv.py \
-				<(./scripts/data.py $(CODEMAP_$(call FS,$(fs))_OBJ) -o-) \
-				-bi=$(call FS_I,$(fs)) -bfs=$(fs) \
+				<(./scripts/data.py $(CODEMAP_$(U_$(fs))_OBJ) -o-) \
+				-bi=$(I_$(fs)) -bfs=$(fs) \
 				-fdata=data_size -o-) \
 			<(./scripts/csv.py \
-				<(./scripts/stack.py $(CODEMAP_$(call FS,$(fs))_CI) -o-) \
-				-bi=$(call FS_I,$(fs)) -bfs=$(fs) \
+				<(./scripts/stack.py $(CODEMAP_$(U_$(fs))_CI) -o-) \
+				-bi=$(I_$(fs)) -bfs=$(fs) \
 				-fstack='max(stack_limit)' -o-) \
 			<(./scripts/csv.py \
-				<(./scripts/ctx.py $(CODEMAP_$(call FS,$(fs))_OBJ) -o-) \
-				-bi=$(call FS_I,$(fs)) -bfs=$(fs) \
+				<(./scripts/ctx.py $(CODEMAP_$(U_$(fs))_OBJ) -o-) \
+				-bi=$(I_$(fs)) -bfs=$(fs) \
 				-fctx='max(ctx_size)' -o-)) \
 		-Bi -bfs -fcode -fdata -fstack='max(stack)' -fctx='max(ctx)' \
 		--no-total)
@@ -1613,29 +1643,29 @@ sizes: $(foreach fs, $(CODEMAP_FSS), \
 ## Show rdonly compile-time sizes
 .PHONY: sizes-rdonly
 sizes-rdonly: $(foreach fs, $(CODEMAP_RDONLY_FSS), \
-		$(CODEMAP_$(call FS,$(fs))_OBJ:.o=.rdonly.o) \
-		$(CODEMAP_$(call FS,$(fs))_CI:.ci=.rdonly.ci))
+		$(CODEMAP_$(U_$(fs))_OBJ:.o=.rdonly.o) \
+		$(CODEMAP_$(U_$(fs))_CI:.ci=.rdonly.ci))
 	$(strip ./scripts/csv.py \
 		$(foreach fs, $(CODEMAP_RDONLY_FSS), \
 			<(./scripts/csv.py \
 				<(./scripts/code.py \
-					$(CODEMAP_$(call FS,$(fs))_OBJ:.o=.rdonly.o) -o-) \
-				-bi=$(call FS_I,$(fs)) -bfs=$(fs) \
+					$(CODEMAP_$(U_$(fs))_OBJ:.o=.rdonly.o) -o-) \
+				-bi=$(I_$(fs)) -bfs=$(fs) \
 				-fcode=code_size -o-) \
 			<(./scripts/csv.py \
 				<(./scripts/data.py \
-					$(CODEMAP_$(call FS,$(fs))_OBJ:.o=.rdonly.o) -o-) \
-				-bi=$(call FS_I,$(fs)) -bfs=$(fs) \
+					$(CODEMAP_$(U_$(fs))_OBJ:.o=.rdonly.o) -o-) \
+				-bi=$(I_$(fs)) -bfs=$(fs) \
 				-fdata=data_size -o-) \
 			<(./scripts/csv.py \
 				<(./scripts/stack.py \
-					$(CODEMAP_$(call FS,$(fs))_CI:.ci=.rdonly.ci) -o-) \
-				-bi=$(call FS_I,$(fs)) -bfs=$(fs) \
+					$(CODEMAP_$(U_$(fs))_CI:.ci=.rdonly.ci) -o-) \
+				-bi=$(I_$(fs)) -bfs=$(fs) \
 				-fstack='max(stack_limit)' -o-) \
 			<(./scripts/csv.py \
 				<(./scripts/ctx.py \
-					$(CODEMAP_$(call FS,$(fs))_OBJ:.o=.rdonly.o) -o-) \
-				-bi=$(call FS_I,$(fs)) -bfs=$(fs) \
+					$(CODEMAP_$(U_$(fs))_OBJ:.o=.rdonly.o) -o-) \
+				-bi=$(I_$(fs)) -bfs=$(fs) \
 				-fctx='max(ctx_size)' -o-)) \
 		-Bi -bfs -fcode -fdata -fstack='max(stack)' -fctx='max(ctx)' \
 		--no-total)
@@ -1700,31 +1730,31 @@ endef
 $(foreach fs, $(CODEMAP_FSS),$\
 	$(eval $(call CODEMAP_RULE,$\
 			$(CODEMAPSDIR)/codemap_$(fs).svg,$\
-			$(CODEMAP_$(call FS,$(fs))_OBJ) $\
-				$(CODEMAP_$(call FS,$(fs))_CI),$\
+			$(CODEMAP_$(U_$(fs))_OBJ) $\
+				$(CODEMAP_$(U_$(fs))_CI),$\
 			$(fs))))
 
 # tiny default codemap rules
 $(foreach fs, $(CODEMAP_FSS),$\
 	$(eval $(call CODEMAP_TINY_RULE,$\
 			$(CODEMAPSDIR)/codemap_$(fs)_tiny.svg,$\
-			$(CODEMAP_$(call FS,$(fs))_OBJ) $\
-				$(CODEMAP_$(call FS,$(fs))_CI))))
+			$(CODEMAP_$(U_$(fs))_OBJ) $\
+				$(CODEMAP_$(U_$(fs))_CI))))
 
 # rdonly codemap rules
 $(foreach fs, $(CODEMAP_RDONLY_FSS),$\
 	$(eval $(call CODEMAP_RULE,$\
 			$(CODEMAPSDIR)/codemap_$(fs)_rdonly.svg,$\
-			$(CODEMAP_$(call FS,$(fs))_OBJ:.o=.rdonly.o) $\
-				$(CODEMAP_$(call FS,$(fs))_CI:.ci=.rdonly.ci),$\
+			$(CODEMAP_$(U_$(fs))_OBJ:.o=.rdonly.o) $\
+				$(CODEMAP_$(U_$(fs))_CI:.ci=.rdonly.ci),$\
 			$(fs))))
 
 # tiny rdonly codemap rules
 $(foreach fs, $(CODEMAP_RDONLY_FSS),$\
 	$(eval $(call CODEMAP_TINY_RULE,$\
 			$(CODEMAPSDIR)/codemap_$(fs)_rdonly_tiny.svg,$\
-			$(CODEMAP_$(call FS,$(fs))_OBJ:.o=.rdonly.o) $\
-				$(CODEMAP_$(call FS,$(fs))_CI:.ci=.rdonly.ci))))
+			$(CODEMAP_$(U_$(fs))_OBJ:.o=.rdonly.o) $\
+				$(CODEMAP_$(U_$(fs))_CI:.ci=.rdonly.ci))))
 
 
 
