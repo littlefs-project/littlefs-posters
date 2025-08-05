@@ -110,11 +110,17 @@ void bench_permutation(size_t i, uint32_t *buffer, size_t size);
 
 // ifdef macros for filesystem version
 #if defined(LFS3)
-#define BENCH_IFDEF_LFS3(a, b) (a)
-#define BENCH_IFDEF_LFS2(a, b) (b)
+#define BENCH_IFDEF_LFS3(a, b)   (a)
+#define BENCH_IFDEF_LFS2(a, b)   (b)
+#define BENCH_IFDEF_SPIFFS(a, b) (b)
 #elif defined(LFS2)
-#define BENCH_IFDEF_LFS3(a, b) (b)
-#define BENCH_IFDEF_LFS2(a, b) (a)
+#define BENCH_IFDEF_LFS3(a, b)   (b)
+#define BENCH_IFDEF_LFS2(a, b)   (a)
+#define BENCH_IFDEF_SPIFFS(a, b) (b)
+#elif defined(SPIFFS)
+#define BENCH_IFDEF_LFS3(a, b)   (b)
+#define BENCH_IFDEF_LFS2(a, b)   (b)
+#define BENCH_IFDEF_SPIFFS(a, b) (a)
 #else
 #error "No filesystem version defined?"
 #endif

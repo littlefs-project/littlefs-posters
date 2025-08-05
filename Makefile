@@ -121,6 +121,9 @@ SIM = $(if $(filter emmc,$1),EMMC,$\
 		$(if $(filter nor,$1),NOR,$\
 		$(if $(filter nand,$1),NAND)))
 
+FSS = lfs3 lfs3nb lfs2 # spiffs
+SIMS = emmc nor nand
+
 CODEMAP_FSS = lfs3 lfs3nb lfs2 lfs1 spiffs
 CODEMAP_RDONLY_FSS = lfs3 lfs3nb lfs2 spiffs
 
@@ -162,56 +165,55 @@ CODEMAP_SPIFFS_DEP := $(CODEMAP_SPIFFS_SRC:%.c=$(BUILDDIR)/thumb/%.d)
 CODEMAP_SPIFFS_ASM := $(CODEMAP_SPIFFS_SRC:%.c=$(BUILDDIR)/thumb/%.s)
 CODEMAP_SPIFFS_CI  := $(CODEMAP_SPIFFS_SRC:%.c=$(BUILDDIR)/thumb/%.ci)
 
-# littlefs v3 bench-runner (the default)
-BENCHES_LFS3 ?= $(wildcard benches/*.toml)
+# littlefs3 bench-runner (the default)
+BENCHES ?= $(wildcard benches/*.toml)
 BENCH_LFS3_RUNNER ?= $(BUILDDIR)/bench_lfs3_runner
 BENCH_LFS3_SRC ?= \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard littlefs3/*.c)) \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard bd/*.c)) \
 		runners/bench_runner.c
 BENCH_LFS3_C     := \
-		$(BENCHES_LFS3:%.toml=$(BUILDDIR)/%.lfs3.b.c) \
-		$(BENCH_LFS3_SRC:%.c=$(BUILDDIR)/%.lfs3.b.c)
-BENCH_LFS3_A     := $(BENCH_LFS3_C:%.lfs3.b.c=%.lfs3.b.a.c)
-BENCH_LFS3_OBJ   := $(BENCH_LFS3_A:%.lfs3.b.a.c=%.lfs3.b.a.o)
-BENCH_LFS3_DEP   := $(BENCH_LFS3_A:%.lfs3.b.a.c=%.lfs3.b.a.d)
-BENCH_LFS3_CI    := $(BENCH_LFS3_A:%.lfs3.b.a.c=%.lfs3.b.a.ci)
-BENCH_LFS3_GCNO  := $(BENCH_LFS3_A:%.lfs3.b.a.c=%.lfs3.b.a.gcno) \
-BENCH_LFS3_GCDA  := $(BENCH_LFS3_A:%.lfs3.b.a.c=%.lfs3.b.a.gcda) \
-BENCH_LFS3_PERF  := $(BENCH_LFS3_RUNNER:%=%.perf)
-BENCH_LFS3_TRACE := $(BENCH_LFS3_RUNNER:%=%.trace)
-BENCH_LFS3_CSV   := $(BENCH_LFS3_RUNNER:%=%.csv)
+		$(BENCHES:%.toml=$(BUILDDIR)/%.b.c) \
+		$(BENCH_LFS3_SRC:%.c=$(BUILDDIR)/%.b.c)
+BENCH_LFS3_A     := $(BENCH_LFS3_C:%.b.c=%.b.a.c)
+BENCH_LFS3_OBJ   := $(BENCH_LFS3_A:%.b.a.c=%.lfs3.b.a.o)
+BENCH_LFS3_DEP   := $(BENCH_LFS3_A:%.b.a.c=%.lfs3.b.a.d)
+BENCH_LFS3_CI    := $(BENCH_LFS3_A:%.b.a.c=%.lfs3.b.a.ci)
 
-# littlefs v3 no-bmap bench-runner
+# littlefs3 no-bmap bench-runner
 BENCH_LFS3NB_RUNNER ?= $(BUILDDIR)/bench_lfs3nb_runner
-BENCH_LFS3NB_OBJ   := $(BENCH_LFS3_A:%.lfs3.b.a.c=%.lfs3nb.b.a.o)
-BENCH_LFS3NB_DEP   := $(BENCH_LFS3_A:%.lfs3.b.a.c=%.lfs3nb.b.a.d)
-BENCH_LFS3NB_CI    := $(BENCH_LFS3_A:%.lfs3.b.a.c=%.lfs3nb.b.a.ci)
-BENCH_LFS3NB_GCNO  := $(BENCH_LFS3_A:%.lfs3.b.a.c=%.lfs3nb.b.a.gcno) \
-BENCH_LFS3NB_GCDA  := $(BENCH_LFS3_A:%.lfs3.b.a.c=%.lfs3nb.b.a.gcda) \
-BENCH_LFS3NB_PERF  := $(BENCH_LFS3NB_RUNNER:%=%.perf)
-BENCH_LFS3NB_TRACE := $(BENCH_LFS3NB_RUNNER:%=%.trace)
-BENCH_LFS3NB_CSV   := $(BENCH_LFS3NB_RUNNER:%=%.csv)
+BENCH_LFS3NB_OBJ   := $(BENCH_LFS3_A:%.b.a.c=%.lfs3nb.b.a.o)
+BENCH_LFS3NB_DEP   := $(BENCH_LFS3_A:%.b.a.c=%.lfs3nb.b.a.d)
+BENCH_LFS3NB_CI    := $(BENCH_LFS3_A:%.b.a.c=%.lfs3nb.b.a.ci)
 
-# littlefs v2 bench-runner
-BENCHES_LFS2 ?= $(wildcard benches/*.toml)
+# littlefs2 bench-runner
 BENCH_LFS2_RUNNER ?= $(BUILDDIR)/bench_lfs2_runner
 BENCH_LFS2_SRC ?= \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard littlefs2/*.c)) \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard bd/*.c)) \
 		runners/bench_runner.c
 BENCH_LFS2_C     := \
-		$(BENCHES_LFS2:%.toml=$(BUILDDIR)/%.lfs2.b.c) \
-		$(BENCH_LFS2_SRC:%.c=$(BUILDDIR)/%.lfs2.b.c)
-BENCH_LFS2_A     := $(BENCH_LFS2_C:%.lfs2.b.c=%.lfs2.b.a.c)
-BENCH_LFS2_OBJ   := $(BENCH_LFS2_A:%.lfs2.b.a.c=%.lfs2.b.a.o)
-BENCH_LFS2_DEP   := $(BENCH_LFS2_A:%.lfs2.b.a.c=%.lfs2.b.a.d)
-BENCH_LFS2_CI    := $(BENCH_LFS2_A:%.lfs2.b.a.c=%.lfs2.b.a.ci)
-BENCH_LFS2_GCNO  := $(BENCH_LFS2_A:%.lfs2.b.a.c=%.lfs2.b.a.gcno) \
-BENCH_LFS2_GCDA  := $(BENCH_LFS2_A:%.lfs2.b.a.c=%.lfs2.b.a.gcda) \
-BENCH_LFS2_PERF  := $(BENCH_LFS2_RUNNER:%=%.perf)
-BENCH_LFS2_TRACE := $(BENCH_LFS2_RUNNER:%=%.trace)
-BENCH_LFS2_CSV   := $(BENCH_LFS2_RUNNER:%=%.csv)
+		$(BENCHES:%.toml=$(BUILDDIR)/%.b.c) \
+		$(BENCH_LFS2_SRC:%.c=$(BUILDDIR)/%.b.c)
+BENCH_LFS2_A     := $(BENCH_LFS2_C:%.b.c=%.b.a.c)
+BENCH_LFS2_OBJ   := $(BENCH_LFS2_A:%.b.a.c=%.lfs2.b.a.o)
+BENCH_LFS2_DEP   := $(BENCH_LFS2_A:%.b.a.c=%.lfs2.b.a.d)
+BENCH_LFS2_CI    := $(BENCH_LFS2_A:%.b.a.c=%.lfs2.b.a.ci)
+
+# spiffs bench-runner
+BENCH_SPIFFS_RUNNER ?= $(BUILDDIR)/bench_spiffs_runner
+BENCH_SPIFFS_SRC ?= \
+		$(filter-out %.t.c %.b.c %.a.c,$(wildcard spiffs/src/*.c)) \
+		$(filter-out %.t.c %.b.c %.a.c,$(wildcard bd/*.c)) \
+		runners/bench_runner.c
+BENCH_SPIFFS_C     := \
+		$(BENCHES:%.toml=$(BUILDDIR)/%.spiffs.b.c) \
+		$(BENCH_SPIFFS_SRC:%.c=$(BUILDDIR)/%.spiffs.b.c)
+BENCH_SPIFFS_A     := $(BENCH_SPIFFS_C:%.spiffs.b.c=%.spiffs.b.a.c)
+BENCH_SPIFFS_OBJ   := $(BENCH_SPIFFS_A:%.spiffs.b.a.c=%.spiffs.b.a.o)
+BENCH_SPIFFS_DEP   := $(BENCH_SPIFFS_A:%.spiffs.b.a.c=%.spiffs.b.a.d)
+BENCH_SPIFFS_CI    := $(BENCH_SPIFFS_A:%.spiffs.b.a.c=%.spiffs.b.a.ci)
+
 
 
 # overridable tools/flags
@@ -245,15 +247,6 @@ CFLAGS += -Os
 endif
 ifdef TRACE
 CFLAGS += $(foreach fs,LFS LFS1 LFS2 LFS3,-D$(fs)_YES_TRACE)
-endif
-ifdef COVGEN
-CFLAGS += --coverage
-endif
-ifdef PERFGEN
-CFLAGS += -fno-omit-frame-pointer
-endif
-ifdef PERFBDGEN
-CFLAGS += -fno-omit-frame-pointer
 endif
 
 # also forward all LFS_*, LFS2_*, and LFS3*_ environment variables
@@ -293,21 +286,17 @@ $(if $(findstring n,$(MAKEFLAGS)),, $(shell mkdir -p \
 	$(CODEMAPSDIR) \
 	$(PLOTSDIR) \
     $(addprefix $(BUILDDIR)/,$(dir \
-		$(CODEMAP_LFS3_SRC) \
-		$(CODEMAP_LFS2_SRC) \
-		$(CODEMAP_LFS1_SRC) \
-		$(CODEMAP_SPIFFS_SRC) \
-        $(BENCHES_LFS3) \
-        $(BENCH_LFS3_SRC) \
-        $(BENCH_LFS2_SRC))) \
+		$(BENCHES) \
+		$(foreach fs, $(FSS), \
+			$(BENCH_$(call FS,$(fs))_SRC)) \
+		$(foreach fs, $(CODEMAP_FSS), \
+			$(CODEMAP_$(call FS,$(fs))_SRC)))) \
     $(addprefix $(BUILDDIR)/thumb/,$(dir \
-		$(CODEMAP_LFS3_SRC) \
-		$(CODEMAP_LFS2_SRC) \
-		$(CODEMAP_LFS1_SRC) \
-		$(CODEMAP_SPIFFS_SRC) \
-        $(BENCHES_LFS3) \
-        $(BENCH_LFS3_SRC) \
-        $(BENCH_LFS2_SRC)))))
+		$(BENCHES) \
+		$(foreach fs, $(FSS), \
+			$(BENCH_$(call FS,$(fs))_SRC)) \
+		$(foreach fs, $(CODEMAP_FSS), \
+			$(CODEMAP_$(call FS,$(fs))_SRC))))))
 endif
 
 # just use bash for everything, process substitution my beloved!
@@ -322,24 +311,8 @@ build bench-runner build-benches: CFLAGS+=$(BENCH_CFLAGS)
 # note we remove some binary dependent files during compilation,
 # otherwise it's way to easy to end up with outdated results
 build bench-runner build-benches: \
-		$(BENCH_LFS3_RUNNER) \
-		$(BENCH_LFS3NB_RUNNER) \
-		$(BENCH_LFS2_RUNNER)
-ifdef COVGEN
-	rm -f $(BENCH_LFS3_GCDA)
-	rm -f $(BENCH_LFS3NB_GCDA)
-	rm -f $(BENCH_LFS2_GCDA)
-endif
-ifdef PERFGEN
-	rm -f $(BENCH_LFS3_PERF)
-	rm -f $(BENCH_LFS3NB_PERF)
-	rm -f $(BENCH_LFS2_PERF)
-endif
-ifdef PERFBDGEN
-	rm -f $(BENCH_LFS3_TRACE)
-	rm -f $(BENCH_LFS3NB_TRACE)
-	rm -f $(BENCH_LFS2_TRACE)
-endif
+		$(foreach fs, $(FSS), \
+			$(BENCH_$(call FS,$(fs))_RUNNER))
 
 ## Find total section sizes
 .PHONY: size
@@ -381,14 +354,10 @@ all: \
 
 
 # low-level rules
--include $(BENCH_LFS3_DEP)
--include $(BENCH_LFS3NB_DEP)
--include $(BENCH_LFS2_DEP)
--include $(CODEMAP_LFS3_DEP)
--include $(CODEMAP_LFS3NB_DEP)
--include $(CODEMAP_LFS2_DEP)
--include $(CODEMAP_LFS1_DEP)
--include $(CODEMAP_SPIFFS_DEP)
+$(foreach fs, $(FSS), \
+	$(eval -include $(BENCH_$(call FS,$(fs))_DEP)))
+$(foreach fs, $(CODEMAP_FSS), \
+	$(eval -include $(CODEMAP_$(call FS,$(fs))_DEP)))
 .SUFFIXES:
 .SECONDARY:
 , := ,
@@ -402,6 +371,9 @@ $(BENCH_LFS3NB_RUNNER): $(BENCH_LFS3NB_OBJ)
 $(BENCH_LFS2_RUNNER): $(BENCH_LFS2_OBJ)
 	$(CC) $(CFLAGS) $^ $(LFLAGS) -o$@
 
+$(BENCH_SPIFFS_RUNNER): $(BENCH_SPIFFS_OBJ)
+	$(CC) $(CFLAGS) $^ $(LFLAGS) -o$@
+
 # our main build rule generates .o, .d, and .ci files, the latter
 # used for stack analysis
 
@@ -411,12 +383,13 @@ $(BUILDDIR)/thumb/%.o $(BUILDDIR)/thumb/%.ci: %.c
 		$(CODEMAP_CFLAGS) $< \
 		-o $(BUILDDIR)/thumb/$*.o)
 
-# .lfs3 files need -DLFS3_YES_BMAP=1, .lfs3nb files don't
+# .lfs3 files need -DLFS3_YES_BMAP=1
 $(BUILDDIR)/thumb/%.lfs3.o $(BUILDDIR)/thumb/%.lfs3.ci: %.c
 	$(strip $(CODEMAP_CC) -c -MMD -DLFS3_YES_BMAP=1 \
 		$(CODEMAP_CFLAGS) $< \
 		-o $(BUILDDIR)/thumb/$*.lfs3.o)
 
+# .lfs3nb files don't
 $(BUILDDIR)/thumb/%.lfs3nb.o $(BUILDDIR)/thumb/%.lfs3nb.ci: %.c
 	$(strip $(CODEMAP_CC) -c -MMD \
 		$(CODEMAP_CFLAGS) $< \
@@ -428,39 +401,47 @@ $(BUILDDIR)/thumb/%.rdonly.o $(BUILDDIR)/thumb/%.rdonly.ci: %.c
 		$(CODEMAP_RDONLY_CFLAGS) $< \
 		-o $(BUILDDIR)/thumb/$*.rdonly.o)
 
-# .lfs3 files need -DLFS3_YES_BMAP=1, .lfs3nb files don't
+# .lfs3 files need -DLFS3_YES_BMAP=1
 $(BUILDDIR)/thumb/%.lfs3.rdonly.o $(BUILDDIR)/thumb/%.lfs3.rdonly.ci: %.c
 	$(strip $(CODEMAP_CC) -c -MMD -DLFS3_YES_BMAP=1 \
 		$(CODEMAP_RDONLY_CFLAGS) $< \
 		-o $(BUILDDIR)/thumb/$*.lfs3.rdonly.o)
 
+# .lfs3nb files don't
 $(BUILDDIR)/thumb/%.lfs3nb.rdonly.o $(BUILDDIR)/thumb/%.lfs3nb.rdonly.ci: %.c
 	$(strip $(CODEMAP_CC) -c -MMD \
 		$(CODEMAP_RDONLY_CFLAGS) $< \
 		-o $(BUILDDIR)/thumb/$*.lfs3nb.rdonly.o)
 
 # .lfs3 files need -DLFS3=1 -DLFS3_YES_BMAP=1
-$(BUILDDIR)/%.lfs3.b.a.o $(BUILDDIR)/%.lfs3.b.a.ci: %.lfs3.b.a.c
+$(BUILDDIR)/%.lfs3.b.a.o $(BUILDDIR)/%.lfs3.b.a.ci: %.b.a.c
 	$(strip $(CC) -c -MMD -DLFS3=1 -DLFS3_YES_BMAP=1 \
 		$(CFLAGS) $< -o $(BUILDDIR)/$*.lfs3.b.a.o)
 
-$(BUILDDIR)/%.lfs3.b.a.o $(BUILDDIR)/%.lfs3.b.a.ci: $(BUILDDIR)/%.lfs3.b.a.c
+$(BUILDDIR)/%.lfs3.b.a.o $(BUILDDIR)/%.lfs3.b.a.ci: $(BUILDDIR)/%.b.a.c
 	$(strip $(CC) -c -MMD -DLFS3=1 -DLFS3_YES_BMAP=1 \
 		$(CFLAGS) $< -o $(BUILDDIR)/$*.lfs3.b.a.o)
 
 # .lfs3nb files need -DLFS3=1
-$(BUILDDIR)/%.lfs3nb.b.a.o $(BUILDDIR)/%.lfs3nb.b.a.ci: %.lfs3.b.a.c
+$(BUILDDIR)/%.lfs3nb.b.a.o $(BUILDDIR)/%.lfs3nb.b.a.ci: %.b.a.c
 	$(CC) -c -MMD -DLFS3=1 $(CFLAGS) $< -o $(BUILDDIR)/$*.lfs3nb.b.a.o
 
-$(BUILDDIR)/%.lfs3nb.b.a.o $(BUILDDIR)/%.lfs3nb.b.a.ci: $(BUILDDIR)/%.lfs3.b.a.c
+$(BUILDDIR)/%.lfs3nb.b.a.o $(BUILDDIR)/%.lfs3nb.b.a.ci: $(BUILDDIR)/%.b.a.c
 	$(CC) -c -MMD -DLFS3=1 $(CFLAGS) $< -o $(BUILDDIR)/$*.lfs3nb.b.a.o
 
 # .lfs2 files need -DLFS2=1
-$(BUILDDIR)/%.lfs2.b.a.o $(BUILDDIR)/%.lfs2.b.a.ci: %.lfs2.b.a.c
+$(BUILDDIR)/%.lfs2.b.a.o $(BUILDDIR)/%.lfs2.b.a.ci: %.b.a.c
 	$(CC) -c -MMD -DLFS2=1 $(CFLAGS) $< -o $(BUILDDIR)/$*.lfs2.b.a.o
 
-$(BUILDDIR)/%.lfs2.b.a.o $(BUILDDIR)/%.lfs2.b.a.ci: $(BUILDDIR)/%.lfs2.b.a.c
+$(BUILDDIR)/%.lfs2.b.a.o $(BUILDDIR)/%.lfs2.b.a.ci: $(BUILDDIR)/%.b.a.c
 	$(CC) -c -MMD -DLFS2=1 $(CFLAGS) $< -o $(BUILDDIR)/$*.lfs2.b.a.o
+
+# .spiffs files need -DSPIFFS=1
+$(BUILDDIR)/%.spiffs.b.a.o $(BUILDDIR)/%.spiffs.b.a.ci: %.b.a.c
+	$(CC) -c -MMD -DSPIFFS=1 $(CFLAGS) $< -o $(BUILDDIR)/$*.spiffs.b.a.o
+
+$(BUILDDIR)/%.spiffs.b.a.o $(BUILDDIR)/%.spiffs.b.a.ci: $(BUILDDIR)/%.b.a.c
+	$(CC) -c -MMD -DSPIFFS=1 $(CFLAGS) $< -o $(BUILDDIR)/$*.spiffs.b.a.o
 
 $(BUILDDIR)/%.s: %.c
 	$(CC) -S $(CFLAGS) $< -o$@
@@ -474,19 +455,11 @@ $(BUILDDIR)/%.a.c: %.c
 $(BUILDDIR)/%.a.c: $(BUILDDIR)/%.c
 	$(PRETTYASSERTS) -Plfs_ -Plfs1_ -Plfs2_ -Plfs3_ $< -o$@
 
-# limit .lfs3 files to lfs3 benches
-$(BUILDDIR)/%.lfs3.b.c: %.toml
+$(BUILDDIR)/%.b.c: %.toml
 	./scripts/bench.py -c $< $(BENCHCFLAGS) -o$@
 
-$(BUILDDIR)/%.lfs3.b.c: %.c $(BENCHES_LFS3)
-	./scripts/bench.py -c $(BENCHES_LFS3) -s $< $(BENCHCFLAGS) -o$@
-
-# limit .lfs2 files to lfs2 benches
-$(BUILDDIR)/%.lfs2.b.c: %.toml
-	./scripts/bench.py -c $< $(BENCHCFLAGS) -o$@
-
-$(BUILDDIR)/%.lfs2.b.c: %.c $(BENCHES_LFS2)
-	./scripts/bench.py -c $(BENCHES_LFS2) -s $< $(BENCHCFLAGS) -o$@
+$(BUILDDIR)/%.b.c: %.c $(BENCHES)
+	./scripts/bench.py -c $(BENCHES) -s $< $(BENCHCFLAGS) -o$@
 
 
 
