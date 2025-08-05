@@ -104,6 +104,16 @@ FS = $(if $(filter lfs3,$1),LFS3,$\
 		$(if $(filter lfs2,$1),LFS2,$\
 		$(if $(filter lfs1,$1),LFS1))))
 
+FS_N = $(if $(filter lfs3,$1),3,$\
+		$(if $(filter lfs3nb,$1),30,$\
+		$(if $(filter lfs2,$1),2,$\
+		$(if $(filter lfs1,$1),1))))
+
+FS_I = $(if $(filter lfs3,$1),0,$\
+		$(if $(filter lfs3nb,$1),1,$\
+		$(if $(filter lfs2,$1),2,$\
+		$(if $(filter lfs1,$1),3))))
+
 SIM = $(if $(filter emmc,$1),EMMC,$\
 		$(if $(filter nor,$1),NOR,$\
 		$(if $(filter nand,$1),NAND)))
@@ -749,9 +759,7 @@ $1: $$(BENCH_$(call FS,$3)_RUNNER)
 		-DCHUNK=$(P26_LITMUS_CHUNK) \
 		-DSTEP=$(P26_LITMUS_STEP) \
 		-DSEED="range($(P26_LITMUS_SAMPLES))" \
-		-DFS=$(if $(filter lfs3,$3),3,$\
-			$(if $(filter lfs3nb,$3),30,$\
-			$(if $(filter lfs2,$3),2))) \
+		-DFS=$(call FS_N,$3) \
 		-DREAD_SIZE=$$($(call SIM,$4)_READ_SIZE) \
 		-DPROG_SIZE=$$($(call SIM,$4)_PROG_SIZE) \
 		-DERASE_SIZE=$$($(call SIM,$4)_ERASE_SIZE) \
@@ -785,9 +793,7 @@ $1: $$(BENCH_$(call FS,$3)_RUNNER)
 		-DSIZE=$(P26_T_SIZES) \
 		-DCHUNK=$(P26_T_CHUNK) \
 		-DSIMTIME=$(P26_T_SIMTIME) \
-		-DFS=$(if $(filter lfs3,$3),3,$\
-			$(if $(filter lfs3nb,$3),30,$\
-			$(if $(filter lfs2,$3),2))) \
+		-DFS=$(call FS_N,$3) \
 		-DREAD_SIZE=$$($(call SIM,$4)_READ_SIZE) \
 		-DPROG_SIZE=$$($(call SIM,$4)_PROG_SIZE) \
 		-DERASE_SIZE=$$($(call SIM,$4)_ERASE_SIZE) \
@@ -830,9 +836,7 @@ $1: $$(BENCH_$(call FS,$3)_RUNNER)
 		-DSIZE=$(P26_T_SIZE) \
 		-DCHUNK=$(P26_T_CHUNK) \
 		-DSIMTIME=$(P26_T_SIMTIME) \
-		-DFS=$(if $(filter lfs3,$3),3,$\
-			$(if $(filter lfs3nb,$3),30,$\
-			$(if $(filter lfs2,$3),2))) \
+		-DFS=$(call FS_N,$3) \
 		-DREAD_SIZE=$$($(call SIM,$4)_READ_SIZE) \
 		-DPROG_SIZE=$$($(call SIM,$4)_PROG_SIZE) \
 		-DERASE_SIZE=$$($(call SIM,$4)_ERASE_SIZE) \
@@ -869,9 +873,7 @@ $1: $$(BENCH_$(call FS,$3)_RUNNER)
 		-DSIZE=$(P26_T_SIZE) \
 		-DCHUNK=$(P26_T_CHUNK) \
 		-DSIMTIME=$(P26_T_SIMTIME) \
-		-DFS=$(if $(filter lfs3,$3),3,$\
-			$(if $(filter lfs3nb,$3),30,$\
-			$(if $(filter lfs2,$3),2))) \
+		-DFS=$(call FS_N,$3) \
 		-DPAGE_SIZE=$(P26_T_PAGE_SIZES) \
 		-DERASE_SIZE=$$($(call SIM,$4)_ERASE_SIZE) \
 		-DREAD_TIME=$$($(call SIM,$4)_READ_TIME) \
@@ -905,9 +907,7 @@ $1: $$(BENCH_$(call FS,$3)_RUNNER)
 		-DSIZE=$(P26_T_SIZE) \
 		-DCHUNK=$(P26_T_CHUNK) \
 		-DSIMTIME=$(P26_T_SIMTIME) \
-		-DFS=$(if $(filter lfs3,$3),3,$\
-			$(if $(filter lfs3nb,$3),30,$\
-			$(if $(filter lfs2,$3),2))) \
+		-DFS=$(call FS_N,$3) \
 		-DREAD_SIZE=$$($(call SIM,$4)_READ_SIZE) \
 		-DPROG_SIZE=$$($(call SIM,$4)_PROG_SIZE) \
 		-DERASE_SIZE=$$($(call SIM,$4)_ERASE_SIZE) \
@@ -1580,6 +1580,62 @@ CODEMAP_COLORS += -C'lfs*_fs=\#a68c74'     # was '#debb9bbf', # brown
 CODEMAP_COLORS += -C'lfs*_bd=\#9b9b9b'     # was '#cfcfcfbf', # gray
 endif
 
+
+## Show compile-time sizes
+.PHONY: sizes
+sizes: $(foreach fs, lfs3 lfs3nb lfs2 lfs1, \
+		$(CODEMAP_$(call FS,$(fs))_OBJ) \
+		$(CODEMAP_$(call FS,$(fs))_CI))
+	$(strip ./scripts/csv.py \
+		$(foreach fs, lfs3 lfs3nb lfs2 lfs1, \
+			<(./scripts/csv.py \
+				<(./scripts/code.py $(CODEMAP_$(call FS,$(fs))_OBJ) -o-) \
+				-bi=$(call FS_I,$(fs)) -bfs=$(fs) \
+				-fcode=code_size -o-) \
+			<(./scripts/csv.py \
+				<(./scripts/data.py $(CODEMAP_$(call FS,$(fs))_OBJ) -o-) \
+				-bi=$(call FS_I,$(fs)) -bfs=$(fs) \
+				-fdata=data_size -o-) \
+			<(./scripts/csv.py \
+				<(./scripts/stack.py $(CODEMAP_$(call FS,$(fs))_CI) -o-) \
+				-bi=$(call FS_I,$(fs)) -bfs=$(fs) \
+				-fstack='max(stack_limit)' -o-) \
+			<(./scripts/csv.py \
+				<(./scripts/ctx.py $(CODEMAP_$(call FS,$(fs))_OBJ) -o-) \
+				-bi=$(call FS_I,$(fs)) -bfs=$(fs) \
+				-fctx='max(ctx_size)' -o-)) \
+		-Bi -bfs -fcode -fdata -fstack='max(stack)' -fctx='max(ctx)' \
+		--no-total)
+		
+## Show rdonly compile-time sizes
+.PHONY: sizes-rdonly
+sizes-rdonly: $(foreach fs, lfs3 lfs3nb lfs2, \
+		$(CODEMAP_$(call FS,$(fs))_OBJ:.o=.rdonly.o) \
+		$(CODEMAP_$(call FS,$(fs))_CI:.ci=.rdonly.ci))
+	$(strip ./scripts/csv.py \
+		$(foreach fs, lfs3 lfs3nb lfs2, \
+			<(./scripts/csv.py \
+				<(./scripts/code.py \
+					$(CODEMAP_$(call FS,$(fs))_OBJ:.o=.rdonly.o) -o-) \
+				-bi=$(call FS_I,$(fs)) -bfs=$(fs) \
+				-fcode=code_size -o-) \
+			<(./scripts/csv.py \
+				<(./scripts/data.py \
+					$(CODEMAP_$(call FS,$(fs))_OBJ:.o=.rdonly.o) -o-) \
+				-bi=$(call FS_I,$(fs)) -bfs=$(fs) \
+				-fdata=data_size -o-) \
+			<(./scripts/csv.py \
+				<(./scripts/stack.py \
+					$(CODEMAP_$(call FS,$(fs))_CI:.ci=.rdonly.ci) -o-) \
+				-bi=$(call FS_I,$(fs)) -bfs=$(fs) \
+				-fstack='max(stack_limit)' -o-) \
+			<(./scripts/csv.py \
+				<(./scripts/ctx.py \
+					$(CODEMAP_$(call FS,$(fs))_OBJ:.o=.rdonly.o) -o-) \
+				-bi=$(call FS_I,$(fs)) -bfs=$(fs) \
+				-fctx='max(ctx_size)' -o-)) \
+		-Bi -bfs -fcode -fdata -fstack='max(stack)' -fctx='max(ctx)' \
+		--no-total)
 
 
 ## Generate all codemaps!
