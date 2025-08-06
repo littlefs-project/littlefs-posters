@@ -38,6 +38,13 @@ static void bench_p26_reset(const struct lfs3_cfg *cfg) {
 static bool bench_p26_oot(const struct lfs3_cfg *cfg) {
     return (bench_p26_time(cfg) >= (uint64_t)SIMTIME);
 }
+
+// is the current bench stuck? not making progress?
+static bool bench_p26_stuck(const struct lfs3_cfg *cfg, uint64_t n) {
+    // ok if we've read/progged more than twice the runtime we're
+    // definitely stuck, note these aren't even the same units
+    return (n > 2*bench_p26_time(cfg));
+}
 '''
 
 
@@ -132,6 +139,11 @@ code = '''
             SPIFFS_ftruncate(&spiffs, fd, 0) => 0;
             #endif
             size = 0;
+        }
+
+        // bail if we get stuck
+        if (bench_p26_stuck(CFG, written)) {
+            return;
         }
     }
     #if defined(LFS3)
@@ -250,6 +262,11 @@ code = '''
         written += CHUNK;
 
         size = lfs3_max(size, pos + CHUNK);
+
+        // bail if we get stuck
+        if (bench_p26_stuck(CFG, written)) {
+            return;
+        }
     }
     #if defined(LFS3)
     lfs3_file_close(&lfs3, &file) => 0;
@@ -366,6 +383,11 @@ code = '''
         #endif
 
         written += CHUNK;
+
+        // bail if we get stuck
+        if (bench_p26_stuck(CFG, written)) {
+            return;
+        }
     }
     BENCH_STOP("write");
 
@@ -516,6 +538,11 @@ code = '''
         #endif
 
         written += CHUNK;
+
+        // bail if we get stuck
+        if (bench_p26_stuck(CFG, written)) {
+            return;
+        }
     }
     #if defined(LFS3)
     lfs3_file_close(&lfs3, &file) => 0;

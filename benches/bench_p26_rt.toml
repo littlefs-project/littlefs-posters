@@ -37,14 +37,18 @@ static void bench_p26_reset(const struct lfs3_cfg *cfg) {
 static bool bench_p26_oot(const struct lfs3_cfg *cfg) {
     return (bench_p26_time(cfg) >= (uint64_t)SIMTIME);
 }
+
+// is the current bench stuck? not making progress?
+static bool bench_p26_stuck(const struct lfs3_cfg *cfg, uint64_t n) {
+    // ok if we've read/progged more than twice the runtime we're
+    // definitely stuck, note these aren't even the same units
+    return (n > 2*bench_p26_time(cfg));
+}
 '''
 
 
 
 [cases.bench_p26_rt_linear]
-# TODO this loops infinitely, we should just have an additional check
-# that we don't read more than is possible in 2*SIMTIME or something
-if = 'BENCH_IFDEF_SPIFFS(SIZE > 1024, true)'
 code = '''
     #if defined(LFS3)
     lfs3_t lfs3;
@@ -161,6 +165,11 @@ code = '''
             #endif
             size = 0;
         }
+
+        // bail if we get stuck
+        if (bench_p26_stuck(CFG, readed)) {
+            return;
+        }
     }
     #if defined(LFS3)
     lfs3_file_close(&lfs3, &file) => 0;
@@ -187,9 +196,6 @@ code = '''
 '''
 
 [cases.bench_p26_rt_random]
-# TODO this loops infinitely, we should just have an additional check
-# that we don't read more than is possible in 2*SIMTIME or something
-if = 'BENCH_IFDEF_SPIFFS(SIZE > 1024, true)'
 code = '''
     #if defined(LFS3)
     lfs3_t lfs3;
@@ -305,6 +311,11 @@ code = '''
         assert(d <= CHUNK);
         #endif
         readed += CHUNK;
+
+        // bail if we get stuck
+        if (bench_p26_stuck(CFG, readed)) {
+            return;
+        }
     }
     #if defined(LFS3)
     lfs3_file_close(&lfs3, &file) => 0;
@@ -449,6 +460,11 @@ code = '''
         #endif
 
         readed += CHUNK;
+
+        // bail if we get stuck
+        if (bench_p26_stuck(CFG, readed)) {
+            return;
+        }
     }
     BENCH_STOP("read");
 
