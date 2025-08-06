@@ -1,5 +1,4 @@
 # High-level write-throughput benchmarks
-ifndef = 'SPIFFS'
 
 
 # these are common and can be overridden suite-wide
@@ -45,23 +44,41 @@ static bool bench_p26_oot(const struct lfs3_cfg *cfg) {
 
 [cases.bench_p26_wt_linear]
 code = '''
-    #ifdef LFS3
+    #if defined(LFS3)
     lfs3_t lfs3;
     lfs3_format(&lfs3, LFS3_F_RDWR, CFG) => 0;
     lfs3_mount(&lfs3, LFS3_M_RDWR, CFG) => 0;
-    #else
+    #elif defined(LFS2)
     lfs2_t lfs2;
     lfs2_format(&lfs2, CFG_LFS2) => 0;
     lfs2_mount(&lfs2, CFG_LFS2) => 0;
+    #elif defined(SPIFFS)
+    spiffs spiffs;
+    spiffs.user_data = CFG;
+    uint8_t work_buffer[2*PAGE_SIZE];
+    uint8_t fd_buffer[FD_SIZE];
+    uint8_t pagecache_buffer[PAGECACHE_SIZE];
+    // yes we need this mount
+    SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
+            fd_buffer, FD_SIZE,
+            pagecache_buffer, PAGECACHE_SIZE,
+            NULL) => SPIFFS_ERR_NOT_A_FS;
+    SPIFFS_format(&spiffs) => 0;
+    SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
+            fd_buffer, FD_SIZE,
+            pagecache_buffer, PAGECACHE_SIZE,
+            NULL) => 0;
     #endif
     uint32_t prng = SEED;
 
     // go ahead and make consistent to avoid lazy mount operations
     // messing with the benchmark
-    #ifdef LFS3
+    #if defined(LFS3)
     lfs3_fs_mkconsistent(&lfs3) => 0;
-    #else
+    #elif defined(LFS2)
     lfs2_fs_mkconsistent(&lfs2) => 0;
+    #elif defined(SPIFFS)
+    SPIFFS_gc_quick(&spiffs, 0) => SPIFFS_ERR_NO_DELETED_BLOCKS;
     #endif
 
     // reset our timer
@@ -69,14 +86,18 @@ code = '''
 
     // open a file
     BENCH_START("write", 0);
-    #ifdef LFS3
+    #if defined(LFS3)
     lfs3_file_t file;
     lfs3_file_open(&lfs3, &file, "bench_linear",
             LFS3_O_RDWR | LFS3_O_CREAT | LFS3_O_EXCL) => 0;
-    #else
+    #elif defined(LFS2)
     lfs2_file_t file;
     lfs2_file_open(&lfs2, &file, "bench_linear",
             LFS2_O_RDWR | LFS2_O_CREAT | LFS2_O_EXCL) => 0;
+    #elif defined(SPIFFS)
+    spiffs_file fd = SPIFFS_open(&spiffs, "bench_linear",
+            SPIFFS_RDWR | SPIFFS_CREAT | SPIFFS_EXCL, 0);
+    assert(fd >= 0);
     #endif
     lfs3_off_t size = 0;
     uint64_t written = 0;
@@ -86,10 +107,12 @@ code = '''
         for (lfs3_size_t j = 0; j < CHUNK; j++) {
             wbuf[j] = 'a' + (BENCH_PRNG(&prng) % 26);
         }
-        #ifdef LFS3
+        #if defined(LFS3)
         lfs3_file_write(&lfs3, &file, wbuf, CHUNK) => CHUNK;
-        #else
+        #elif defined(LFS2)
         lfs2_file_write(&lfs2, &file, wbuf, CHUNK) => CHUNK;
+        #elif defined(SPIFFS)
+        SPIFFS_write(&spiffs, fd, wbuf, CHUNK) => CHUNK;
         #endif
         size += CHUNK;
         written += CHUNK;
@@ -98,20 +121,25 @@ code = '''
         // front of the file when we hit the end, but this overly
         // penalizes littlefs2, so instead we truncate
         if (size >= SIZE) {
-            #ifdef LFS3
+            #if defined(LFS3)
             lfs3_file_rewind(&lfs3, &file) => 0;
             lfs3_file_truncate(&lfs3, &file, 0) => 0;
-            #else
+            #elif defined(LFS2)
             lfs2_file_rewind(&lfs2, &file) => 0;
             lfs2_file_truncate(&lfs2, &file, 0) => 0;
+            #elif defined(SPIFFS)
+            SPIFFS_lseek(&spiffs, fd, 0, SPIFFS_SEEK_SET) => 0;
+            SPIFFS_ftruncate(&spiffs, fd, 0) => 0;
             #endif
             size = 0;
         }
     }
-    #ifdef LFS3
+    #if defined(LFS3)
     lfs3_file_close(&lfs3, &file) => 0;
-    #else
+    #elif defined(LFS2)
     lfs2_file_close(&lfs2, &file) => 0;
+    #elif defined(SPIFFS)
+    SPIFFS_close(&spiffs, fd) => 0;
     #endif
     BENCH_STOP("write");
 
@@ -121,32 +149,52 @@ code = '''
     BENCH_START("write", written);
     BENCH_STOP("write");
 
-    #ifdef LFS3
+    #if defined(LFS3)
     lfs3_unmount(&lfs3) => 0;
-    #else
+    #elif defined(LFS2)
     lfs2_unmount(&lfs2) => 0;
+    #elif defined(SPIFFS)
+    SPIFFS_unmount(&spiffs);
     #endif
 '''
 
 [cases.bench_p26_wt_random]
 code = '''
-    #ifdef LFS3
+    #if defined(LFS3)
     lfs3_t lfs3;
     lfs3_format(&lfs3, LFS3_F_RDWR, CFG) => 0;
     lfs3_mount(&lfs3, LFS3_M_RDWR, CFG) => 0;
-    #else
+    #elif defined(LFS2)
     lfs2_t lfs2;
     lfs2_format(&lfs2, CFG_LFS2) => 0;
     lfs2_mount(&lfs2, CFG_LFS2) => 0;
+    #elif defined(SPIFFS)
+    spiffs spiffs;
+    spiffs.user_data = CFG;
+    uint8_t work_buffer[2*PAGE_SIZE];
+    uint8_t fd_buffer[FD_SIZE];
+    uint8_t pagecache_buffer[PAGECACHE_SIZE];
+    // yes we need this mount
+    SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
+            fd_buffer, FD_SIZE,
+            pagecache_buffer, PAGECACHE_SIZE,
+            NULL) => SPIFFS_ERR_NOT_A_FS;
+    SPIFFS_format(&spiffs) => 0;
+    SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
+            fd_buffer, FD_SIZE,
+            pagecache_buffer, PAGECACHE_SIZE,
+            NULL) => 0;
     #endif
     uint32_t prng = SEED;
 
     // go ahead and make consistent to avoid lazy mount operations
     // messing with the benchmark
-    #ifdef LFS3
+    #if defined(LFS3)
     lfs3_fs_mkconsistent(&lfs3) => 0;
-    #else
+    #elif defined(LFS2)
     lfs2_fs_mkconsistent(&lfs2) => 0;
+    #elif defined(SPIFFS)
+    SPIFFS_gc_quick(&spiffs, 0) => SPIFFS_ERR_NO_DELETED_BLOCKS;
     #endif
 
     // reset our timer
@@ -154,23 +202,37 @@ code = '''
 
     // open a file
     BENCH_START("write", 0);
-    #ifdef LFS3
+    #if defined(LFS3)
     lfs3_file_t file;
     lfs3_file_open(&lfs3, &file, "bench_random",
             LFS3_O_RDWR | LFS3_O_CREAT | LFS3_O_EXCL) => 0;
-    #else
+    #elif defined(LFS2)
     lfs2_file_t file;
     lfs2_file_open(&lfs2, &file, "bench_random",
             LFS2_O_RDWR | LFS2_O_CREAT | LFS2_O_EXCL) => 0;
+    #elif defined(SPIFFS)
+    spiffs_file fd = SPIFFS_open(&spiffs, "bench_random",
+            SPIFFS_RDWR | SPIFFS_CREAT | SPIFFS_EXCL, 0);
+    assert(fd >= 0);
     #endif
+    lfs3_off_t size = 0;
     uint64_t written = 0;
     while (!bench_p26_oot(CFG)) {
         // seek to a random location
         lfs3_off_t pos = BENCH_PRNG(&prng) % SIZE;
-        #ifdef LFS3
+        #if defined(LFS3)
         lfs3_file_seek(&lfs3, &file, pos, LFS3_SEEK_SET) => pos;
-        #else
+        #elif defined(LFS2)
         lfs2_file_seek(&lfs2, &file, pos, LFS2_SEEK_SET) => pos;
+        #elif defined(SPIFFS)
+        // if we seek beyond the end of the file we need to emulate zeros
+        if (pos > size) {
+            SPIFFS_lseek(&spiffs, fd, 0, SPIFFS_SEEK_END) => size;
+            for (lfs3_size_t i = 0; i < (pos - size); i++) {
+                SPIFFS_write(&spiffs, fd, &(uint8_t){0}, 1) => 1;
+            }
+        }
+        SPIFFS_lseek(&spiffs, fd, pos, SPIFFS_SEEK_SET) => pos;
         #endif
 
         // write to the file
@@ -178,17 +240,23 @@ code = '''
         for (lfs3_size_t j = 0; j < CHUNK; j++) {
             wbuf[j] = 'a' + (BENCH_PRNG(&prng) % 26);
         }
-        #ifdef LFS3
+        #if defined(LFS3)
         lfs3_file_write(&lfs3, &file, wbuf, CHUNK) => CHUNK;
-        #else
+        #elif defined(LFS2)
         lfs2_file_write(&lfs2, &file, wbuf, CHUNK) => CHUNK;
+        #elif defined(SPIFFS)
+        SPIFFS_write(&spiffs, fd, wbuf, CHUNK) => CHUNK;
         #endif
         written += CHUNK;
+
+        size = lfs3_max(size, pos + CHUNK);
     }
-    #ifdef LFS3
+    #if defined(LFS3)
     lfs3_file_close(&lfs3, &file) => 0;
-    #else
+    #elif defined(LFS2)
     lfs2_file_close(&lfs2, &file) => 0;
+    #elif defined(SPIFFS)
+    SPIFFS_close(&spiffs, fd) => 0;
     #endif
     BENCH_STOP("write");
 
@@ -198,32 +266,52 @@ code = '''
     BENCH_START("write", written);
     BENCH_STOP("write");
 
-    #ifdef LFS3
+    #if defined(LFS3)
     lfs3_unmount(&lfs3) => 0;
-    #else
+    #elif defined(LFS2)
     lfs2_unmount(&lfs2) => 0;
+    #elif defined(SPIFFS)
+    SPIFFS_unmount(&spiffs);
     #endif
 '''
 
 [cases.bench_p26_wt_many]
 code = '''
-    #ifdef LFS3
+    #if defined(LFS3)
     lfs3_t lfs3;
     lfs3_format(&lfs3, LFS3_F_RDWR, CFG) => 0;
     lfs3_mount(&lfs3, LFS3_M_RDWR, CFG) => 0;
-    #else
+    #elif defined(LFS2)
     lfs2_t lfs2;
     lfs2_format(&lfs2, CFG_LFS2) => 0;
     lfs2_mount(&lfs2, CFG_LFS2) => 0;
+    #elif defined(SPIFFS)
+    spiffs spiffs;
+    spiffs.user_data = CFG;
+    uint8_t work_buffer[2*PAGE_SIZE];
+    uint8_t fd_buffer[FD_SIZE];
+    uint8_t pagecache_buffer[PAGECACHE_SIZE];
+    // yes we need this mount
+    SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
+            fd_buffer, FD_SIZE,
+            pagecache_buffer, PAGECACHE_SIZE,
+            NULL) => SPIFFS_ERR_NOT_A_FS;
+    SPIFFS_format(&spiffs) => 0;
+    SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
+            fd_buffer, FD_SIZE,
+            pagecache_buffer, PAGECACHE_SIZE,
+            NULL) => 0;
     #endif
     uint32_t prng = SEED;
 
     // go ahead and make consistent to avoid lazy mount operations
     // messing with the benchmark
-    #ifdef LFS3
+    #if defined(LFS3)
     lfs3_fs_mkconsistent(&lfs3) => 0;
-    #else
+    #elif defined(LFS2)
     lfs2_fs_mkconsistent(&lfs2) => 0;
+    #elif defined(SPIFFS)
+    SPIFFS_gc_quick(&spiffs, 0) => SPIFFS_ERR_NO_DELETED_BLOCKS;
     #endif
 
     // reset our timer
@@ -247,13 +335,13 @@ code = '''
         // roughly to the benchmark SIZE
         uint8_t wbuf[CHUNK];
         memset(wbuf, 'a'+(BENCH_PRNG(&prng) % 26), CHUNK);
-        #ifdef LFS3
+        #if defined(LFS3)
         lfs3_file_t file;
         lfs3_file_open(&lfs3, &file, name,
                 LFS3_O_WRONLY | LFS3_O_CREAT | LFS3_O_TRUNC) => 0;
         lfs3_file_write(&lfs3, &file, wbuf, CHUNK) => CHUNK;
         lfs3_file_close(&lfs3, &file) => 0;
-        #else
+        #elif defined(LFS2)
         lfs2_file_t file;
         err = lfs2_file_open(&lfs2, &file, name,
                 LFS2_O_WRONLY | LFS2_O_CREAT | LFS2_O_TRUNC);
@@ -269,6 +357,12 @@ code = '''
         if (err) {
             goto failed;
         }
+        #elif defined(SPIFFS)
+        spiffs_file fd = SPIFFS_open(&spiffs, name,
+                SPIFFS_RDWR | SPIFFS_CREAT | SPIFFS_TRUNC, 0);
+        assert(fd >= 0);
+        SPIFFS_write(&spiffs, fd, wbuf, CHUNK) => CHUNK;
+        SPIFFS_close(&spiffs, fd) => 0;
         #endif
 
         written += CHUNK;
@@ -281,10 +375,12 @@ code = '''
     BENCH_START("write", written);
     BENCH_STOP("write");
 
-    #ifdef LFS3
+    #if defined(LFS3)
     lfs3_unmount(&lfs3) => 0;
-    #else
+    #elif defined(LFS2)
     lfs2_unmount(&lfs2) => 0;
+    #elif defined(SPIFFS)
+    SPIFFS_unmount(&spiffs);
     #endif
     return;
 
@@ -300,23 +396,41 @@ failed:;
 
 [cases.bench_p26_wt_logging]
 code = '''
-    #ifdef LFS3
+    #if defined(LFS3)
     lfs3_t lfs3;
     lfs3_format(&lfs3, LFS3_F_RDWR, CFG) => 0;
     lfs3_mount(&lfs3, LFS3_M_RDWR, CFG) => 0;
-    #else
+    #elif defined(LFS2)
     lfs2_t lfs2;
     lfs2_format(&lfs2, CFG_LFS2) => 0;
     lfs2_mount(&lfs2, CFG_LFS2) => 0;
+    #elif defined(SPIFFS)
+    spiffs spiffs;
+    spiffs.user_data = CFG;
+    uint8_t work_buffer[2*PAGE_SIZE];
+    uint8_t fd_buffer[FD_SIZE];
+    uint8_t pagecache_buffer[PAGECACHE_SIZE];
+    // yes we need this mount
+    SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
+            fd_buffer, FD_SIZE,
+            pagecache_buffer, PAGECACHE_SIZE,
+            NULL) => SPIFFS_ERR_NOT_A_FS;
+    SPIFFS_format(&spiffs) => 0;
+    SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
+            fd_buffer, FD_SIZE,
+            pagecache_buffer, PAGECACHE_SIZE,
+            NULL) => 0;
     #endif
     uint32_t prng = SEED;
 
     // go ahead and make consistent to avoid lazy mount operations
     // messing with the benchmark
-    #ifdef LFS3
+    #if defined(LFS3)
     lfs3_fs_mkconsistent(&lfs3) => 0;
-    #else
+    #elif defined(LFS2)
     lfs2_fs_mkconsistent(&lfs2) => 0;
+    #elif defined(SPIFFS)
+    SPIFFS_gc_quick(&spiffs, 0) => SPIFFS_ERR_NO_DELETED_BLOCKS;
     #endif
 
     // reset our timer
@@ -324,14 +438,18 @@ code = '''
 
     // open a file
     BENCH_START("write", 0);
-    #ifdef LFS3
+    #if defined(LFS3)
     lfs3_file_t file;
     lfs3_file_open(&lfs3, &file, "bench_log",
             LFS3_O_RDWR | LFS3_O_CREAT | LFS3_O_EXCL | LFS3_O_APPEND) => 0;
-    #else
+    #elif defined(LFS2)
     lfs2_file_t file;
     lfs2_file_open(&lfs2, &file, "bench_log",
             LFS2_O_RDWR | LFS2_O_CREAT | LFS2_O_EXCL | LFS2_O_APPEND) => 0;
+    #elif defined(SPIFFS)
+    spiffs_file fd = SPIFFS_open(&spiffs, "bench_log",
+            SPIFFS_RDWR | SPIFFS_CREAT | SPIFFS_EXCL | SPIFFS_APPEND, 0);
+    assert(fd >= 0);
     #endif
     uint64_t written = 0;
     while (!bench_p26_oot(CFG)) {
@@ -340,29 +458,34 @@ code = '''
         for (lfs3_size_t j = 0; j < CHUNK; j++) {
             wbuf[j] = 'a' + (BENCH_PRNG(&prng) % 26);
         }
-        #ifdef LFS3
+        #if defined(LFS3)
         lfs3_file_write(&lfs3, &file, wbuf, CHUNK) => CHUNK;
-        #else
+        #elif defined(LFS2)
         lfs2_file_write(&lfs2, &file, wbuf, CHUNK) => CHUNK;
+        #elif defined(SPIFFS)
+        SPIFFS_write(&spiffs, fd, wbuf, CHUNK) => CHUNK;
         #endif
 
         // sync
-        #ifdef LFS3
+        #if defined(LFS3)
         lfs3_file_sync(&lfs3, &file) => 0;
-        #else
+        #elif defined(LFS2)
         lfs2_file_sync(&lfs2, &file) => 0;
+        #elif defined(SPIFFS)
+        s32_t d = SPIFFS_fflush(&spiffs, fd);
+        assert(d >= 0);
         #endif
 
         // for v3, fruncate, for v2, rotate if full
         //
         // unlike litmus benchmarks we just use SIZE here
-        #ifdef LFS3
+        #if defined(LFS3)
         lfs3_soff_t size = lfs3_file_size(&lfs3, &file);
         assert(size >= 0);
         if (size > SIZE) {
             lfs3_file_fruncate(&lfs3, &file, SIZE) => 0;
         }
-        #else
+        #elif defined(LFS2)
         lfs3_soff_t size = lfs2_file_size(&lfs2, &file);
         assert(size >= 0);
         if (size >= SIZE) {
@@ -374,14 +497,32 @@ code = '''
                         | LFS2_O_EXCL
                         | LFS2_O_APPEND) => 0;
         }
+        #elif defined(SPIFFS)
+        spiffs_stat stat;
+        SPIFFS_fstat(&spiffs, fd, &stat) => 0;
+        assert(stat.size >= 0);
+        if (stat.size >= SIZE) {
+            SPIFFS_close(&spiffs, fd) => 0;
+            int err = SPIFFS_remove(&spiffs, "bench_log.1");
+            assert(!err || err == SPIFFS_ERR_NOT_FOUND);
+            SPIFFS_rename(&spiffs, "bench_log", "bench_log.1") => 0;
+            fd = SPIFFS_open(&spiffs, "bench_log",
+                    SPIFFS_RDWR
+                        | SPIFFS_CREAT
+                        | SPIFFS_EXCL
+                        | SPIFFS_APPEND, 0);
+            assert(fd >= 0);
+        }
         #endif
 
         written += CHUNK;
     }
-    #ifdef LFS3
+    #if defined(LFS3)
     lfs3_file_close(&lfs3, &file) => 0;
-    #else
+    #elif defined(LFS2)
     lfs2_file_close(&lfs2, &file) => 0;
+    #elif defined(SPIFFS)
+    SPIFFS_close(&spiffs, fd) => 0;
     #endif
     BENCH_STOP("write");
 
@@ -391,9 +532,11 @@ code = '''
     BENCH_START("write", written);
     BENCH_STOP("write");
 
-    #ifdef LFS3
+    #if defined(LFS3)
     lfs3_unmount(&lfs3) => 0;
-    #else
+    #elif defined(LFS2)
     lfs2_unmount(&lfs2) => 0;
+    #elif defined(SPIFFS)
+    SPIFFS_unmount(&spiffs);
     #endif
 '''

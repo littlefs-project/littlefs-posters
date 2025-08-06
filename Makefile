@@ -589,26 +589,23 @@ bench-p26-litmus-linear: \
 ## Run p26 litmus random benchmarks
 .PHONY: bench-p26-litmus-random
 bench-p26-litmus-random: \
-		$(foreach sim, $(BENCH_SIMS), \
-			$(RESULTSDIR)/bench_p26_litmus_random.lfs3.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_litmus_random.lfs3nb.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_litmus_random.lfs2.$(sim).csv)
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_litmus_random.$(fs).$(sim).csv))
 
 ## Run p26 litmus many benchmarks
 .PHONY: bench-p26-litmus-many
 bench-p26-litmus-many: \
-		$(foreach sim, $(BENCH_SIMS), \
-			$(RESULTSDIR)/bench_p26_litmus_many.lfs3.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_litmus_many.lfs3nb.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_litmus_many.lfs2.$(sim).csv)
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_litmus_many.$(fs).$(sim).csv))
 
 ## Run p26 litmus logging benchmarks
 .PHONY: bench-p26-litmus-logging
 bench-p26-litmus-logging: \
-		$(foreach sim, $(BENCH_SIMS), \
-			$(RESULTSDIR)/bench_p26_litmus_logging.lfs3.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_litmus_logging.lfs3nb.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_litmus_logging.lfs2.$(sim).csv)
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_litmus_logging.$(fs).$(sim).csv))
 
 ## Run p26 write-throughput benchmarks
 .PHONY: bench-p26-wt
@@ -621,34 +618,30 @@ bench-p26-wt: \
 ## Run p26 write-throughput linear benchmarks
 .PHONY: bench-p26-wt-linear
 bench-p26-wt-linear: \
-		$(foreach sim, $(BENCH_SIMS), \
-			$(RESULTSDIR)/bench_p26_wt_linear.lfs3.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_linear.lfs3nb.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_linear.lfs2.$(sim).csv)
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_wt_linear.$(fs).$(sim).csv))
 
 ## Run p26 write-throughput random benchmarks
 .PHONY: bench-p26-wt-random
 bench-p26-wt-random: \
-		$(foreach sim, $(BENCH_SIMS), \
-			$(RESULTSDIR)/bench_p26_wt_random.lfs3.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_random.lfs3nb.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_random.lfs2.$(sim).csv)
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_wt_random.$(fs).$(sim).csv))
 
 ## Run p26 write-throughput many benchmarks
 .PHONY: bench-p26-wt-many
 bench-p26-wt-many: \
-		$(foreach sim, $(BENCH_SIMS), \
-			$(RESULTSDIR)/bench_p26_wt_many.lfs3.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_many.lfs3nb.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_many.lfs2.$(sim).csv)
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_wt_many.$(fs).$(sim).csv))
 
 ## Run p26 write-throughput logging benchmarks
 .PHONY: bench-p26-wt-logging
 bench-p26-wt-logging: \
-		$(foreach sim, $(BENCH_SIMS), \
-			$(RESULTSDIR)/bench_p26_wt_logging.lfs3.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_logging.lfs3nb.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_logging.lfs2.$(sim).csv)
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_wt_logging.$(fs).$(sim).csv))
 
 ## Run p26 read-throughput benchmarks
 .PHONY: bench-p26-rt
@@ -660,26 +653,23 @@ bench-p26-rt: \
 ## Run p26 read-throughput linear benchmarks
 .PHONY: bench-p26-rt-linear
 bench-p26-rt-linear: \
-		$(foreach sim, $(BENCH_SIMS), \
-			$(RESULTSDIR)/bench_p26_rt_linear.lfs3.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_rt_linear.lfs3nb.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_rt_linear.lfs2.$(sim).csv)
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_rt_linear.$(fs).$(sim).csv))
 
 ## Run p26 read-throughput random benchmarks
 .PHONY: bench-p26-rt-random
 bench-p26-rt-random: \
-		$(foreach sim, $(BENCH_SIMS), \
-			$(RESULTSDIR)/bench_p26_rt_random.lfs3.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_rt_random.lfs3nb.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_rt_random.lfs2.$(sim).csv)
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_rt_random.$(fs).$(sim).csv))
 
 ## Run p26 read-throughput many benchmarks
 .PHONY: bench-p26-rt-many
 bench-p26-rt-many: \
-		$(foreach sim, $(BENCH_SIMS), \
-			$(RESULTSDIR)/bench_p26_rt_many.lfs3.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_rt_many.lfs3nb.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_rt_many.lfs2.$(sim).csv)
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_rt_many.$(fs).$(sim).csv))
 
 ## Run p26 write-throughput block size benchmarks
 .PHONY: bench-p26-wt-bs
@@ -692,34 +682,30 @@ bench-p26-wt-bs: \
 ## Run p26 write-throughput block size linear benchmarks
 .PHONY: bench-p26-wt-bs-linear
 bench-p26-wt-bs-linear: \
-		$(foreach sim, $(BENCH_SIMS), \
-			$(RESULTSDIR)/bench_p26_wt_bs_linear.lfs3.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_bs_linear.lfs3nb.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_bs_linear.lfs2.$(sim).csv)
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_wt_bs_linear.$(fs).$(sim).csv))
 
 ## Run p26 write-throughput block size random benchmarks
 .PHONY: bench-p26-wt-bs-random
 bench-p26-wt-bs-random: \
-		$(foreach sim, $(BENCH_SIMS), \
-			$(RESULTSDIR)/bench_p26_wt_bs_random.lfs3.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_bs_random.lfs3nb.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_bs_random.lfs2.$(sim).csv)
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_wt_bs_random.$(fs).$(sim).csv))
 
 ## Run p26 write-throughput block size many benchmarks
 .PHONY: bench-p26-wt-bs-many
 bench-p26-wt-bs-many: \
-		$(foreach sim, $(BENCH_SIMS), \
-			$(RESULTSDIR)/bench_p26_wt_bs_many.lfs3.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_bs_many.lfs3nb.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_bs_many.lfs2.$(sim).csv)
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_wt_bs_many.$(fs).$(sim).csv))
 
 ## Run p26 write-throughput block size logging benchmarks
 .PHONY: bench-p26-wt-bs-logging
 bench-p26-wt-bs-logging: \
-		$(foreach sim, $(BENCH_SIMS), \
-			$(RESULTSDIR)/bench_p26_wt_bs_logging.lfs3.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_bs_logging.lfs3nb.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_bs_logging.lfs2.$(sim).csv)
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_wt_bs_logging.$(fs).$(sim).csv))
 
 ## Run p26 write-throughput read/prog size benchmarks
 .PHONY: bench-p26-wt-ps
@@ -732,34 +718,30 @@ bench-p26-wt-ps: \
 ## Run p26 write-throughput read/prog size linear benchmarks
 .PHONY: bench-p26-wt-ps-linear
 bench-p26-wt-ps-linear: \
-		$(foreach sim, $(BENCH_SIMS), \
-			$(RESULTSDIR)/bench_p26_wt_ps_linear.lfs3.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_ps_linear.lfs3nb.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_ps_linear.lfs2.$(sim).csv)
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_wt_ps_linear.$(fs).$(sim).csv))
 
 ## Run p26 write-throughput read/prog size random benchmarks
 .PHONY: bench-p26-wt-ps-random
 bench-p26-wt-ps-random: \
-		$(foreach sim, $(BENCH_SIMS), \
-			$(RESULTSDIR)/bench_p26_wt_ps_random.lfs3.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_ps_random.lfs3nb.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_ps_random.lfs2.$(sim).csv)
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_wt_ps_random.$(fs).$(sim).csv))
 
 ## Run p26 write-throughput read/prog size many benchmarks
 .PHONY: bench-p26-wt-ps-many
 bench-p26-wt-ps-many: \
-		$(foreach sim, $(BENCH_SIMS), \
-			$(RESULTSDIR)/bench_p26_wt_ps_many.lfs3.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_ps_many.lfs3nb.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_ps_many.lfs2.$(sim).csv)
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_wt_ps_many.$(fs).$(sim).csv))
 
 ## Run p26 write-throughput read/prog size logging benchmarks
 .PHONY: bench-p26-wt-ps-logging
 bench-p26-wt-ps-logging: \
-		$(foreach sim, $(BENCH_SIMS), \
-			$(RESULTSDIR)/bench_p26_wt_ps_logging.lfs3.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_ps_logging.lfs3nb.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_ps_logging.lfs2.$(sim).csv)
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_wt_ps_logging.$(fs).$(sim).csv))
 
 ## Run p26 write-throughput cache size benchmarks
 .PHONY: bench-p26-wt-cs
@@ -772,34 +754,30 @@ bench-p26-wt-cs: \
 ## Run p26 write-throughput cache size linear benchmarks
 .PHONY: bench-p26-wt-cs-linear
 bench-p26-wt-cs-linear: \
-		$(foreach sim, $(BENCH_SIMS), \
-			$(RESULTSDIR)/bench_p26_wt_cs_linear.lfs3.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_cs_linear.lfs3nb.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_cs_linear.lfs2.$(sim).csv)
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_wt_cs_linear.$(fs).$(sim).csv))
 
 ## Run p26 write-throughput cache size random benchmarks
 .PHONY: bench-p26-wt-cs-random
 bench-p26-wt-cs-random: \
-		$(foreach sim, $(BENCH_SIMS), \
-			$(RESULTSDIR)/bench_p26_wt_cs_random.lfs3.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_cs_random.lfs3nb.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_cs_random.lfs2.$(sim).csv)
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_wt_cs_random.$(fs).$(sim).csv))
 
 ## Run p26 write-throughput cache size many benchmarks
 .PHONY: bench-p26-wt-cs-many
 bench-p26-wt-cs-many: \
-		$(foreach sim, $(BENCH_SIMS), \
-			$(RESULTSDIR)/bench_p26_wt_cs_many.lfs3.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_cs_many.lfs3nb.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_cs_many.lfs2.$(sim).csv)
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_wt_cs_many.$(fs).$(sim).csv))
 
 ## Run p26 write-throughput cache size logging benchmarks
 .PHONY: bench-p26-wt-cs-logging
 bench-p26-wt-cs-logging: \
-		$(foreach sim, $(BENCH_SIMS), \
-			$(RESULTSDIR)/bench_p26_wt_cs_logging.lfs3.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_cs_logging.lfs3nb.$(sim).csv \
-			$(RESULTSDIR)/bench_p26_wt_cs_logging.lfs2.$(sim).csv)
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_wt_cs_logging.$(fs).$(sim).csv))
 
 
 # p26 bench rules!
@@ -1508,18 +1486,11 @@ $1: $2
 			--title=nand \
 			-W0.33" \
 		--legend \
-		-L3='lfs3%n$\
-			- bs=$(EMMC_LFS3_BLOCK_SIZE)%n$\
-			- bs=$(NOR_LFS3_BLOCK_SIZE)%n$\
-			- bs=$(NAND_LFS3_BLOCK_SIZE)' \
-		-L30='lfs3nb%n$\
-			- bs=$(EMMC_LFS3NB_BLOCK_SIZE)%n$\
-			- bs=$(NOR_LFS3NB_BLOCK_SIZE)%n$\
-			- bs=$(NAND_LFS3NB_BLOCK_SIZE)' \
-		-L2='lfs2%n$\
-			- bs=$(EMMC_LFS2_BLOCK_SIZE)%n$\
-			- bs=$(NOR_LFS2_BLOCK_SIZE)%n$\
-			- bs=$(NAND_LFS2_BLOCK_SIZE)' \
+		$(foreach fs, $(BENCH_FSS),$\
+			-L'$(N_$(fs))=$(fs)%n$\
+				- bs=$(EMMC_$(U_$(fs))_BLOCK_SIZE)%n$\
+				- bs=$(NOR_$(U_$(fs))_BLOCK_SIZE)%n$\
+				- bs=$(NAND_$(U_$(fs))_BLOCK_SIZE)') \
 		$(PLOT_COLORS_1) \
 		-Fo- -F^- -Fs- -FX- -FP- \
 		--xlog \
