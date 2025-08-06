@@ -328,7 +328,9 @@ build bench-runner build-benches: \
 
 ## Find total section sizes
 .PHONY: size
-size: $(BENCH_LFS3_OBJ) $(BENCH_LFS2_OBJ)
+size: \
+		$(foreach fs, $(BENCH_FSS), \
+			$(BENCH_$(U_$(fs))_OBJ))
 	$(SIZE) -t $^
 
 ## Generate a ctags file
@@ -337,8 +339,8 @@ tags ctags:
 	$(strip $(CTAGS) \
 		--totals --fields=+n --c-types=+p \
 		$(shell find -H -name '*.h') \
-		$(BENCH_LFS3_SRC) \
-		$(BENCH_LFS2_SRC))
+		$(foreach fs, $(BENCH_FSS), \
+			$(BENCH_$(U_$(fs))_SRC)))
 
 ## Show this help text
 .PHONY: help
