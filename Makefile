@@ -197,7 +197,8 @@ YAFFS2_CORE_C := $(shell grep -o '[^ ]*\.c' yaffs2/direct/handle_common.sh)
 YAFFS2_CORE_H := $(shell grep -o '[^ ]*\.h' yaffs2/direct/handle_common.sh)
 YAFFS2_CORE_E := $(shell grep -o '\-e "[^"]*"' yaffs2/direct/handle_common.sh)
 YAFFS2_DIRECT_C := $(notdir $(wildcard yaffs2/direct/*.c))
-YAFFS2_DIRECT_H := $(notdir $(wildcard yaffs2/direct/*.h))
+YAFFS2_DIRECT_H := $(filter-out yaffscfg.h,\
+		$(notdir $(wildcard yaffs2/direct/*.h)))
 
 CODEMAP_YAFFS2_CFLAGS += -DYAFFS2=1
 CODEMAP_YAFFS2_SRC ?= \
@@ -578,61 +579,33 @@ $(BUILDDIR)/%.b.c: %.c $(BENCHES)
 	./scripts/bench.py -c $(BENCHES) -s $< $(BENCHCFLAGS) -o$@
 
 # yaffs2 preprocessing rules
+#
+# yaffs2 doesn't seem to consistently include yaffscfg.h, though this
+# may be a case where I'm misunderstanding yaffs2 configuration works,
+# that or a side-effect of yaffs2 being Linux-first
+#
+# to workaround this, we just inject yaffscfg.h into every yaffs2 file,
+# sometimes redundantly
+#
+# yaffs2 also expects some core names to be preprocessed in direct mode,
+# which we've grepped and apply here, see above
+#
 $(BUILDDIR)/yaffs2/%.h: yaffs2/direct/%.h
-	sed $< -e '1i#include "yaffs2_cfg.h"' >$@
+	sed $< -e '1i#include "yaffscfg.h"' >$@
 
 $(BUILDDIR)/yaffs2/%.h: yaffs2/core/%.h
-	sed $< -e '1i#include "yaffs2_cfg.h"' $(YAFFS2_CORE_E) >$@
+	sed $< -e '1i#include "yaffscfg.h"' $(YAFFS2_CORE_E) >$@
 
 $(BUILDDIR)/yaffs2/%.c: yaffs2/direct/%.c \
 		$(addprefix $(BUILDDIR)/yaffs2/,\
 			$(YAFFS2_CORE_H) $(YAFFS2_DIRECT_H))
-	sed $< -e '1i#include "yaffs2_cfg.h"' >$@
+	sed $< -e '1i#include "yaffscfg.h"' >$@
 
 $(BUILDDIR)/yaffs2/%.c: yaffs2/core/%.c \
 		$(addprefix $(BUILDDIR)/yaffs2/,\
 			$(YAFFS2_CORE_H) $(YAFFS2_DIRECT_H))
-	sed $< -e '1i#include "yaffs2_cfg.h"' $(YAFFS2_CORE_E) >$@
+	sed $< -e '1i#include "yaffscfg.h"' $(YAFFS2_CORE_E) >$@
 
-
-
-
-
-
-
-
-
-
-
-
-
-# TODO
-#
-# we're feeling monstrous today so instead of actually running yaffs2's
-# handle_common.sh script, just parse it for the info we need
-#
-
-#YAFFS2_PRE_SRC := $(shell grep 
-#
-#
-###
-### use yaffs_yaffs.h to determine if files have been copied
-###
-##$(BUILDDIR)/yaffs2/%.c: $(BUILDDIR)/yaffs2/yaffs_yaffs2.h
-##$(BUILDDIR)/yaffs2/yaffs_yaffs2.h: \
-##		$(wildcard yaffs2/direct/*) \
-##		$(wildcard yaffs2/core/*)
-##	$(strip find yaffs2/direct/ -type f \
-##		-execdir cp "{}" $(BUILDDIR)/yaffs2/ ";")
-##	$(strip find yaffs2/core/ -type f \
-##		-execdir cp "{}" $(BUILDDIR)/yaffs2/core/ ";")
-##	
-##	echo $^
-##	find  -not -type d -execdir cp "{}" /dest/path ";"
-##	cp $< $@
-#
-#$(BUILDDIR)/yaffs2/%.c: yaffs2/direct/%.c
-#	cp $< $@
 
 
 
