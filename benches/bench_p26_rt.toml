@@ -342,6 +342,11 @@ code = '''
 '''
 
 [cases.bench_p26_rt_many]
+# spiffs simply doesn't scale well enough to create this many files
+# before we start reading
+if = [
+    'BENCH_IFDEF_SPIFFS(SIZE < 128*1024, true)',
+]
 code = '''
     #if defined(LFS3)
     lfs3_t lfs3;
