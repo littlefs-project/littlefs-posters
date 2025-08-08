@@ -239,8 +239,8 @@ void bench_permutation(size_t i, uint32_t *buffer, size_t size);
     BENCH_DEFINE(FD_SIZE,            FD_COUNT*sizeof(spiffs_fd)             ) \
     BENCH_DEFINE(CACHE_SIZE,         0                                      ) \
     /* spiffs's page cache is different from littlefs's cache,             */ \
-    /* let's default to 4 pages, and add CACHE_SIZE if explicitly set      */ \
-    BENCH_DEFINE(PAGECACHE_COUNT,    4                                      ) \
+    /* let's default to 2 pages, and add CACHE_SIZE if explicitly set      */ \
+    BENCH_DEFINE(PAGECACHE_COUNT,    2                                      ) \
     BENCH_DEFINE(PAGECACHE_SIZE,     sizeof(spiffs_cache)                     \
                                         + PAGECACHE_COUNT                     \
                                             * (sizeof(spiffs_cache_page)      \
@@ -259,7 +259,9 @@ void bench_permutation(size_t i, uint32_t *buffer, size_t size);
     BENCH_DEFINE(PAGE_SIZE,          LFS3_MAX(PROG_SIZE, 512)               ) \
     BENCH_DEFINE(CACHE_SIZE,         0                                      ) \
     BENCH_DEFINE(RESERVED_BLOCKS,    5                                      ) \
-    BENCH_DEFINE(PAGECACHE_COUNT,    4 + (CACHE_SIZE / PAGE_SIZE)           ) \
+    /* yaffs2's page cache is different from littlefs's cache,             */ \
+    /* let's default to 2 pages, and add CACHE_SIZE if explicitly set      */ \
+    BENCH_DEFINE(PAGECACHE_COUNT,    2 + (CACHE_SIZE / PAGE_SIZE)           ) \
     BENCH_DEFINE(REFRESH_PERIOD,     1000                                   )
 #else
 #define BENCH_YAFFS2_DEFINES
