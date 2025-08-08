@@ -43,7 +43,7 @@ void bench_trace(const char *fmt, ...);
 #define BENCH_IFDEF_LFS3(a, b) (b)
 #endif
 #ifdef LFS2
-#define BENCH_IFDEF_LFS2(a, b) (b)
+#define BENCH_IFDEF_LFS2(a, b) (a)
 #else
 #define BENCH_IFDEF_LFS2(a, b) (b)
 #endif
