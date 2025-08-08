@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 // needed only for constants?
 #undef _FEATURES_H
@@ -65,6 +66,55 @@ typedef int16_t  s16;
 typedef int8_t   s8;
 
 typedef off_t loff_t;
+
+
+// take over os glue (yaffs_osglue.h)
+//
+// (sorry, I know this is cursed)
+#define __YAFFS_OSGLUE_H__
+
+// override various os glue
+
+static void yaffsfs_OSInitialisation(void) {}
+static inline u32 yaffsfs_CurrentTime(void) { return 0; }
+static inline void yaffsfs_Lock(void) {}
+static inline void yaffsfs_Unlock(void) {}
+
+__attribute__((weak))
+int yaffs_errno = 0;
+
+static inline void yaffsfs_SetError(int err) {
+    yaffs_errno = err;
+}
+
+static inline int yaffsfs_GetLastError(void) {
+    return yaffs_errno;
+}
+
+static inline void *yaffsfs_malloc(size_t size) {
+    return malloc(size);
+}
+
+static inline void yaffsfs_free(void *ptr) {
+    free(ptr);
+}
+
+static inline int yaffsfs_CheckMemRegion(const void *addr, size_t size,
+        int write_request) {
+    (void)addr;
+    (void)size;
+    (void)write_request;
+    return 0;
+}
+
+__attribute__((weak))
+unsigned int yaffs_trace_mask = 0;
+
+static inline void yaffs_bug_fn(const char *file_name, int line_no) {
+    (void)file_name;
+    (void)line_no;
+    __builtin_trap();
+}
 
 
 #endif

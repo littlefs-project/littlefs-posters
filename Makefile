@@ -206,7 +206,8 @@ CODEMAP_YAFFS2_SRC ?= \
 		$(addprefix yaffs2/direct/,$(YAFFS2_DIRECT_C))
 CODEMAP_YAFFS2_SRC_ := \
 		$(addprefix $(BUILDDIR)/yaffs2/,\
-			$(YAFFS2_CORE_C) $(YAFFS2_DIRECT_C))
+			$(YAFFS2_CORE_C) \
+			$(YAFFS2_DIRECT_C))
 CODEMAP_YAFFS2_SRC__ := \
 		$(patsubst $(BUILDDIR)/yaffs2/%,$(BUILDDIR)/thumb/yaffs2/%,\
 			$(CODEMAP_YAFFS2_SRC_))
@@ -286,9 +287,17 @@ BENCH_YAFFS2_SRC ?= \
 		$(addprefix yaffs2/direct/,$(YAFFS2_DIRECT_C)) \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard bd/*.c)) \
 		runners/bench_runner.c
+BENCH_YAFFS2_SRC_ := \
+		$(filter-out yaffs2/%, $(BENCH_YAFFS2_SRC)) \
+		$(addprefix $(BUILDDIR)/yaffs2/,\
+			$(YAFFS2_CORE_C) \
+			$(YAFFS2_DIRECT_C))
 BENCH_YAFFS2_B     := \
 		$(BENCHES:%.toml=$(BUILDDIR)/%.yaffs2.b.c) \
-		$(BENCH_YAFFS2_SRC:%.c=$(BUILDDIR)/%.yaffs2.b.c)
+		$(patsubst %.c,$(BUILDDIR)/%.yaffs2.b.c,\
+			$(filter-out $(BUILDDIR)/%,$(BENCH_YAFFS2_SRC_))) \
+		$(patsubst %.c,%.yaffs2.b.c,\
+			$(filter $(BUILDDIR)/%,$(BENCH_YAFFS2_SRC_)))
 # let's not stress test prettyasserts right now
 BENCH_YAFFS2_A     := \
 		$(patsubst %.b.c,%.b.a.c, \
@@ -578,6 +587,9 @@ $(BUILDDIR)/%.b.c: %.toml
 $(BUILDDIR)/%.b.c: %.c $(BENCHES)
 	./scripts/bench.py -c $(BENCHES) -s $< $(BENCHCFLAGS) -o$@
 
+$(BUILDDIR)/%.b.c: $(BUILDDIR)/%.c $(BENCHES)
+	./scripts/bench.py -c $(BENCHES) -s $< $(BENCHCFLAGS) -o$@
+
 # yaffs2 preprocessing rules
 #
 # yaffs2 doesn't seem to consistently include yaffscfg.h, though this
@@ -590,20 +602,21 @@ $(BUILDDIR)/%.b.c: %.c $(BENCHES)
 # yaffs2 also expects some core names to be preprocessed in direct mode,
 # which we've grepped and apply here, see above
 #
+$(BENCH_YAFFS2_OBJ): \
+		$(addprefix $(BUILDDIR)/yaffs2/,\
+			$(YAFFS2_CORE_H) \
+			$(YAFFS2_DIRECT_H))
+
 $(BUILDDIR)/yaffs2/%.h: yaffs2/direct/%.h
 	sed $< -e '1i#include "yaffscfg.h"' >$@
 
 $(BUILDDIR)/yaffs2/%.h: yaffs2/core/%.h
 	sed $< -e '1i#include "yaffscfg.h"' $(YAFFS2_CORE_E) >$@
 
-$(BUILDDIR)/yaffs2/%.c: yaffs2/direct/%.c \
-		$(addprefix $(BUILDDIR)/yaffs2/,\
-			$(YAFFS2_CORE_H) $(YAFFS2_DIRECT_H))
+$(BUILDDIR)/yaffs2/%.c: yaffs2/direct/%.c
 	sed $< -e '1i#include "yaffscfg.h"' >$@
 
-$(BUILDDIR)/yaffs2/%.c: yaffs2/core/%.c \
-		$(addprefix $(BUILDDIR)/yaffs2/,\
-			$(YAFFS2_CORE_H) $(YAFFS2_DIRECT_H))
+$(BUILDDIR)/yaffs2/%.c: yaffs2/core/%.c
 	sed $< -e '1i#include "yaffscfg.h"' $(YAFFS2_CORE_E) >$@
 
 

@@ -29,8 +29,32 @@ void bench_trace(const char *fmt, ...);
 #elif defined(SPIFFS)
 #include "spiffs.h"
 #include "spiffs_nucleus.h"
+#elif defined(YAFFS2)
+#include "yaffsfs.h"
 #else
 #error "No filesystem defined?"
+#endif
+
+// ifdef macros for filesystem version
+#ifdef LFS3
+#define BENCH_IFDEF_LFS3(a, b) (a)
+#else
+#define BENCH_IFDEF_LFS3(a, b) (b)
+#endif
+#ifdef LFS2
+#define BENCH_IFDEF_LFS2(a, b) (b)
+#else
+#define BENCH_IFDEF_LFS2(a, b) (b)
+#endif
+#ifdef SPIFFS
+#define BENCH_IFDEF_SPIFFS(a, b) (a)
+#else
+#define BENCH_IFDEF_SPIFFS(a, b) (b)
+#endif
+#ifdef YAFFS2
+#define BENCH_IFDEF_YAFFS2(a, b) (a)
+#else
+#define BENCH_IFDEF_YAFFS2(a, b) (b)
 #endif
 
 #include "bd/lfs3_emubd.h"
@@ -117,25 +141,6 @@ void bench_permutation(size_t i, uint32_t *buffer, size_t size);
 
 
 
-// ifdef macros for filesystem version
-#if defined(LFS3)
-#define BENCH_IFDEF_LFS3(a, b)   (a)
-#define BENCH_IFDEF_LFS2(a, b)   (b)
-#define BENCH_IFDEF_SPIFFS(a, b) (b)
-#elif defined(LFS2)
-#define BENCH_IFDEF_LFS3(a, b)   (b)
-#define BENCH_IFDEF_LFS2(a, b)   (a)
-#define BENCH_IFDEF_SPIFFS(a, b) (b)
-#elif defined(SPIFFS)
-#define BENCH_IFDEF_LFS3(a, b)   (b)
-#define BENCH_IFDEF_LFS2(a, b)   (b)
-#define BENCH_IFDEF_SPIFFS(a, b) (a)
-#else
-#error "No filesystem defined?"
-#endif
-
-
-
 
 // a few preconfigured defines that control how benches run
 
@@ -164,7 +169,8 @@ void bench_permutation(size_t i, uint32_t *buffer, size_t size);
     /* filesystem-specific config                                          */ \
     BENCH_LFS3_DEFINES                                                        \
     BENCH_LFS2_DEFINES                                                        \
-    BENCH_SPIFFS_DEFINES
+    BENCH_SPIFFS_DEFINES                                                      \
+    BENCH_YAFFS2_DEFINES
 
 // littlefs3 specific implicit defines
 #ifdef LFS3
@@ -241,6 +247,17 @@ void bench_permutation(size_t i, uint32_t *buffer, size_t size);
                                         + CACHE_SIZE)
 #else
 #define BENCH_SPIFFS_DEFINES
+#endif
+
+// yaffs2 specific implicit defines
+#ifdef YAFFS2
+#define BENCH_YAFFS2_DEFINES \
+    /*           name                value (overridable)                   */ \
+    BENCH_DEFINE(FS,                 5                                      ) \
+    BENCH_DEFINE(PAGE_SIZE,          0                                      ) \
+    BENCH_DEFINE(CACHE_SIZE,         0                                      )
+#else
+#define BENCH_YAFFS2_DEFINES
 #endif
 
 // declare defines as global intmax_ts
@@ -347,6 +364,12 @@ struct bench_cfg {
     .phys_erase_block   = BLOCK_SIZE,               \
     .log_block_size     = BLOCK_SIZE,               \
     .log_page_size      = PAGE_SIZE,
+
+#endif
+
+// yaffs2 cfg struct fields
+#ifdef YAFFS2
+#define BENCH_YAFFS2_CFG // TODO
 
 #endif
 
