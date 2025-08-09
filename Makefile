@@ -961,49 +961,49 @@ ifdef XKCD
 PLOTFLAGS += --xkcd
 endif
 
+# give specific filesystems explicit colors/shapes, to keep things
+# consistent
 ifdef LIGHT
-PLOT_COLORS ?= \
-		\#4c72b0bf $(if, blue    ) \
-		\#dd8452bf $(if, orange  ) \
-		\#55a868bf $(if, green   ) \
-		\#c44e52bf $(if, red     ) \
-		\#8172b3bf $(if, purple  ) \
-		\#937860bf $(if, brown   ) \
-		\#da8bc3bf $(if, pink    ) \
-		\#8c8c8cbf $(if, gray    ) \
-		\#ccb974bf $(if, yellow  ) \
-		\#64b5cdbf $(if, cyan    )
+# colors borrowed from Seaborn
+# \#4c72b0bf # blue
+# \#dd8452bf # orange
+# \#55a868bf # green
+# \#c44e52bf # red
+# \#8172b3bf # purple
+# \#937860bf # brown
+# \#da8bc3bf # pink
+# \#8c8c8cbf # gray
+# \#ccb974bf # yellow
+# \#64b5cdbf # cyan
+C_lfs3   = \#4c72b0bf # blue
+C_lfs3nb = \#dd8452bf # orange
+C_lfs2   = \#55a868bf # green
+C_spiffs = \#c44e52bf # red
+C_yaffs2 = \#8172b3bf # purple
 else
-PLOT_COLORS ?= \
-		\#a1c9f4bf $(if, blue    ) \
-		\#ffb482bf $(if, orange  ) \
-		\#8de5a1bf $(if, green   ) \
-		\#ff9f9bbf $(if, red     ) \
-		\#d0bbffbf $(if, purple  ) \
-		\#debb9bbf $(if, brown   ) \
-		\#fab0e4bf $(if, pink    ) \
-		\#cfcfcfbf $(if, gray    ) \
-		\#fffea3bf $(if, yellow  ) \
-		\#b9f2f0bf $(if, cyan    )
+# colors borrowed from Seaborn
+# \#a1c9f4bf # blue
+# \#ffb482bf # orange
+# \#8de5a1bf # green
+# \#ff9f9bbf # red
+# \#d0bbffbf # purple
+# \#debb9bbf # brown
+# \#fab0e4bf # pink
+# \#cfcfcfbf # gray
+# \#fffea3bf # yellow
+# \#b9f2f0bf # cyan
+C_lfs3   = \#a1c9f4bf # blue
+C_lfs3nb = \#ffb482bf # orange
+C_lfs2   = \#8de5a1bf # green
+C_spiffs = \#ff9f9bbf # red
+C_yaffs2 = \#d0bbffbf # purple
 endif
-PLOT_COLORS_1 := $(foreach c, $(PLOT_COLORS), \
-		-C$c)
-PLOT_COLORS_2 := $(foreach c, $(PLOT_COLORS), \
-		-C$c \
-		-C$c)
-PLOT_COLORS_3 := $(foreach c, $(PLOT_COLORS), \
-		-C$c \
-		-C$c \
-		-C$c)
-PLOT_COLORS_1BND := $(foreach c, $(PLOT_COLORS), \
-		-C$c -C$(c:bf=1f))
-PLOT_COLORS_2BND := $(foreach c, $(PLOT_COLORS), \
-		-C$c -C$(c:bf=1f) \
-		-C$c -C$(c:bf=1f))
-PLOT_COLORS_3BND := $(foreach c, $(PLOT_COLORS), \
-		-C$c -C$(c:bf=1f) \
-		-C$c -C$(c:bf=1f) \
-		-C$c -C$(c:bf=1f))
+
+F_lfs3	 = o # circle
+F_lfs3nb = ^ # triangle
+F_lfs2   = s # square
+F_spiffs = X # big x
+F_yaffs2 = P # big plus
 
 
 
@@ -1188,7 +1188,10 @@ $1: $2
 				- bs=$(NOR_$(U_$(fs))_BLOCK_SIZE)%n$\
 				- bs=$(NAND_$(U_$(fs))_BLOCK_SIZE)' \
 			-L'$(N_$(fs)),$4_bnd=') \
-		$(PLOT_COLORS_1BND) \
+		$(foreach fs, $(BENCH_FSS),$\
+			-C'$(N_$(fs)),$4_avg=$(C_$(fs))') \
+		$(foreach fs, $(BENCH_FSS),$\
+			-C'$(N_$(fs)),$4_bnd=$(C_$(fs):bf=1f)') \
 		$7 \
 		$$(PLOTFLAGS) \
 		-o$$@)
@@ -1282,8 +1285,10 @@ $1: $2
 		--legend \
 		$(foreach fs, $(BENCH_FSS),$\
 			-L'$(N_$(fs))=$(fs)') \
-		$(PLOT_COLORS_1) \
-		-Fo- -F^- -Fs- -FX- -FP- \
+		$(foreach fs, $(BENCH_FSS),$\
+			-C'$(N_$(fs))=$(C_$(fs))') \
+		$(foreach fs, $(BENCH_FSS),$\
+			-F'$(N_$(fs))=$(addsuffix -,$(F_$(fs)))') \
 		--xlog \
 		--xticks=4 \
 		-X"$$(shell python -c 'a=min([$5]); print(a-a/4)'),$\
