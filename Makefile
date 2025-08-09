@@ -106,11 +106,11 @@ NAND_ERASE_TIME ?= 15     # tBE=2 ms, block=131072 (2 ms / 131072)
 
 
 # filesystems/sims to benchmark
-BENCH_FSS = lfs3 lfs3nb lfs2 spiffs yaffs2
-BENCH_SIMS = emmc nor nand
+BENCH_FSS ?= lfs3 lfs3nb lfs2 spiffs yaffs2
+BENCH_SIMS ?= emmc nor nand
 
-CODEMAP_FSS = lfs3 lfs3nb lfs2 lfs1 spiffs yaffs2
-CODEMAP_RDONLY_FSS = lfs3 lfs3nb lfs2 spiffs
+CODEMAP_FSS ?= lfs3 lfs3nb lfs2 lfs1 spiffs yaffs2
+CODEMAP_RDONLY_FSS ?= lfs3 lfs3nb lfs2 spiffs
 
 # poor man's uppercase
 U_lfs3   = LFS3

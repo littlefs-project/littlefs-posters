@@ -5,12 +5,17 @@ PLOTSDIR ?= plots_bs
 
 
 # range of erase sizes to test for throughput testing
-P26_T_BLOCK_SIZES ?= 1024,2048,4096,8192,16384,32768,65536,131072
+P26_T_BLOCK_SIZES ?= 4096,8192,16384,32768,65536,131072
+P26_T_BLOCK_SIZES_1M ?= 4096,8192,16384,32768,65536,131072,$\
+		262144,524288,1048576
 
 # 1MiB sizes
 DISK_SIZE_1M ?= 268435456
 P26_T_SIZE_1M ?= 1048576
 
+
+# we only care about NOR and NAND really
+BENCH_SIMS ?= nor nand
 
 # use our bench rules
 BENCH_P26_RULES ?= \
@@ -99,7 +104,7 @@ bench-p26-wt-bs-1M-logging: \
 				$(RESULTSDIR)/bench_p26_wt_bs_1M_logging.$(fs).$(sim).csv))
 
 
-# p26 read/write-throughput block size bench rule
+# p26 block size bench rule
 #
 # $1 - target
 # $2 - bench case
@@ -107,6 +112,7 @@ bench-p26-wt-bs-1M-logging: \
 # $4 - sim type
 # $5 - disk size
 # $6 - file size
+# $7 - block sizes
 #
 define BENCH_P26_T_BS_RULE
 $1: $$(BENCH_$(U_$3)_RUNNER)
@@ -123,7 +129,7 @@ $1: $$(BENCH_$(U_$3)_RUNNER)
 		-DREAD_TIME=$$($(U_$4)_READ_TIME) \
 		-DPROG_TIME=$$($(U_$4)_PROG_TIME) \
 		-DERASE_TIME=$$($(U_$4)_ERASE_TIME) \
-		-DBLOCK_SIZE=$(P26_T_BLOCK_SIZES) \
+		-DBLOCK_SIZE=$(or $7,$(P26_T_BLOCK_SIZES)) \
 		-o$$@)
 endef
 
@@ -144,7 +150,8 @@ $(foreach fs, $(BENCH_FSS),$\
 				$(fs),$\
 				$(sim),$\
 				$(DISK_SIZE_1M),$\
-				$(P26_T_SIZE_1M)))))
+				$(P26_T_SIZE_1M),$\
+				$(P26_T_BLOCK_SIZES_1M)))))
 
 
 
@@ -205,8 +212,53 @@ plot-p26-wt-bs-1M-logging: \
 		$(PLOTSDIR)/bench_p26_wt_bs_1M_logging.svg
 
 
+# p26 block sizes plot rule
+#
+# $1 - target
+# $2 - sources
+# $3 - title
+# $4 - x-axis
+# $5 - x-ticks
+# $6 - extra plotmpl.py flags
+#
+define PLOT_P26_BS_RULE
+$1: $2
+	$$(strip ./scripts/plotmpl.py $$^ \
+		-W1500 -H350 \
+		--title=$3 \
+		-bFS \
+		-x$4 \
+		-ybench_readed \
+		--subplot=" \
+			-DERASE_SIZE=$(NOR_ERASE_SIZE) \
+			--title=nor" \
+		--subplot-right=" \
+			-DERASE_SIZE=$(NAND_ERASE_SIZE) \
+			--title=nand \
+			-W0.5" \
+		--legend \
+		$(foreach fs, $(BENCH_FSS),$\
+			-L'$(N_$(fs))=$(fs)') \
+		$(foreach fs, $(BENCH_FSS),$\
+			-C'$(N_$(fs))=$(C_$(fs))') \
+		$(foreach fs, $(BENCH_FSS),$\
+			-F'$(N_$(fs))=$(addsuffix -,$(F_$(fs)))') \
+		--xlog \
+		--xticks=4 \
+		-X"$$(shell python -c 'a=min([$5]); print(a-a/4)'),$\
+			$$(shell python -c 'b=max([$5]); print(b+b/4)')" \
+		--x2 --xunits=B \
+		--y2 --yunits=B/s \
+		$$(shell python -c '$\
+			for n in [$5]: $\
+				print("--add-xticklabel=%d=\"%%(x)IB\"" % n)') \
+		$6 \
+		$$(PLOTFLAGS) \
+		-o$$@)
+endef
+
 # p26 write-throughput block size plot rules
-$(eval $(call PLOT_P26_T_RULE,$\
+$(eval $(call PLOT_P26_BS_RULE,$\
 		$(PLOTSDIR)/bench_p26_wt_bs_%.svg,$\
 		$(foreach fs, $(BENCH_FSS),$\
 			$(foreach sim, $(BENCH_SIMS),$\
@@ -214,6 +266,17 @@ $(eval $(call PLOT_P26_T_RULE,$\
 		"$$* file writes - block sizes - simulated throughput",$\
 		BLOCK_SIZE,$\
 		$(P26_T_BLOCK_SIZES),$\
+		--xlabel="block size"))
+
+# p26 write-throughput block size 1MiB plot rules
+$(eval $(call PLOT_P26_BS_RULE,$\
+		$(PLOTSDIR)/bench_p26_wt_bs_1M_%.svg,$\
+		$(foreach fs, $(BENCH_FSS),$\
+			$(foreach sim, $(BENCH_SIMS),$\
+				$(RESULTSDIR)/bench_p26_wt_bs_1M_%.$(fs).$(sim).tsim.csv)),$\
+		"$$* file writes - block sizes - simulated throughput",$\
+		BLOCK_SIZE,$\
+		$(P26_T_BLOCK_SIZES_1M),$\
 		--xlabel="block size"))
 
 
