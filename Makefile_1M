@@ -1,5 +1,3 @@
-# overrideable build dir, default to ./build_1M
-BUILDDIR ?= build_1M
 # overrideable results dir, default to ./results_1M
 RESULTSDIR ?= results_1M
 # overrideable plots dir, defaults ./plots_1M
