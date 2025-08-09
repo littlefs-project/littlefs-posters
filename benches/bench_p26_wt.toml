@@ -159,6 +159,18 @@ code = '''
     BENCH_START("write", written);
     BENCH_STOP("write");
 
+    // find the total disk usage after the benchmark
+    #if defined(LFS3)
+    uintmax_t usage = bench_helpers_usage(&lfs3);
+    #elif defined(LFS2)
+    uintmax_t usage = bench_helpers_usage(&lfs2);
+    #elif defined(SPIFFS)
+    uintmax_t usage = bench_helpers_usage(&spiffs);
+    #elif defined(YAFFS2)
+    uintmax_t usage = bench_helpers_usage(&yaffs2);
+    #endif
+    BENCH_RESULT("usage", written, usage);
+
     #if defined(LFS3)
     lfs3_unmount(&lfs3) => 0;
     #elif defined(LFS2)
@@ -311,6 +323,18 @@ code = '''
     BENCH_START("write", written);
     BENCH_STOP("write");
 
+    // find the total disk usage after the benchmark
+    #if defined(LFS3)
+    uintmax_t usage = bench_helpers_usage(&lfs3);
+    #elif defined(LFS2)
+    uintmax_t usage = bench_helpers_usage(&lfs2);
+    #elif defined(SPIFFS)
+    uintmax_t usage = bench_helpers_usage(&spiffs);
+    #elif defined(YAFFS2)
+    uintmax_t usage = bench_helpers_usage(&yaffs2);
+    #endif
+    BENCH_RESULT("usage", written, usage);
+
     #if defined(LFS3)
     lfs3_unmount(&lfs3) => 0;
     #elif defined(LFS2)
@@ -450,6 +474,18 @@ code = '''
     // TODO we should really move n to BENCH_STOP
     BENCH_START("write", written);
     BENCH_STOP("write");
+
+    // find the total disk usage after the benchmark
+    #if defined(LFS3)
+    uintmax_t usage = bench_helpers_usage(&lfs3);
+    #elif defined(LFS2)
+    uintmax_t usage = bench_helpers_usage(&lfs2);
+    #elif defined(SPIFFS)
+    uintmax_t usage = bench_helpers_usage(&spiffs);
+    #elif defined(YAFFS2)
+    uintmax_t usage = bench_helpers_usage(&yaffs2);
+    #endif
+    BENCH_RESULT("usage", written, usage);
 
     #if defined(LFS3)
     lfs3_unmount(&lfs3) => 0;
@@ -653,6 +689,18 @@ code = '''
     // TODO we should really move n to BENCH_STOP
     BENCH_START("write", written);
     BENCH_STOP("write");
+
+    // find the total disk usage after the benchmark
+    #if defined(LFS3)
+    uintmax_t usage = bench_helpers_usage(&lfs3);
+    #elif defined(LFS2)
+    uintmax_t usage = bench_helpers_usage(&lfs2);
+    #elif defined(SPIFFS)
+    uintmax_t usage = bench_helpers_usage(&spiffs);
+    #elif defined(YAFFS2)
+    uintmax_t usage = bench_helpers_usage(&yaffs2);
+    #endif
+    BENCH_RESULT("usage", written, usage);
 
     #if defined(LFS3)
     lfs3_unmount(&lfs3) => 0;

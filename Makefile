@@ -952,7 +952,8 @@ PLOT_RULES ?= plot-p26
 PLOT_P26_RULES ?= \
 		plot-p26-litmus \
 		plot-p26-wt \
-		plot-p26-rt
+		plot-p26-rt \
+		plot-p26-wt-usage
 
 # plot config
 ifndef LIGHT
@@ -1113,6 +1114,35 @@ plot-p26-rt-random: \
 plot-p26-rt-many: \
 		$(PLOTSDIR)/bench_p26_rt_many.svg
 
+## Plot p26 write-throughput usage benchmarks
+.PHONY: plot-p26-wt-usage
+plot-p26-wt-usage: \
+		plot-p26-wt-usage-linear \
+		plot-p26-wt-usage-random \
+		plot-p26-wt-usage-many \
+		plot-p26-wt-usage-logging
+
+## Plot p26 write-throughput usage linear benchmarks
+.PHONY: plot-p26-wt-usage-linear
+plot-p26-wt-usage-linear: \
+		$(PLOTSDIR)/bench_p26_wt_usage_linear.svg
+
+## Plot p26 write-throughput usage random benchmarks
+.PHONY: plot-p26-wt-usage-random
+plot-p26-wt-usage-random: \
+		$(PLOTSDIR)/bench_p26_wt_usage_random.svg
+
+## Plot p26 write-throughput usage many benchmarks
+.PHONY: plot-p26-wt-usage-many
+plot-p26-wt-usage-many: \
+		$(PLOTSDIR)/bench_p26_wt_usage_many.svg
+
+## Plot p26 write-throughput usage logging benchmarks
+.PHONY: plot-p26-wt-usage-logging
+plot-p26-wt-usage-logging: \
+		$(PLOTSDIR)/bench_p26_wt_usage_logging.svg
+
+
 
 
 # p26 plot rules!
@@ -1265,7 +1295,8 @@ $(eval $(call PLOT_P26_LITMUS_RULE,$\
 # $3 - title
 # $4 - x-axis
 # $5 - x-ticks
-# $6 - extra plotmpl.py flags
+# $6 - measurement
+# $7 - extra plotmpl.py flags
 #
 define PLOT_P26_T_RULE
 $1: $2
@@ -1275,6 +1306,7 @@ $1: $2
 		-bFS \
 		-x$4 \
 		-ybench_readed \
+		-Dm=$6 \
 		--subplot=" \
 			-DERASE_SIZE=$(EMMC_ERASE_SIZE) \
 			--title=sd/emmc" \
@@ -1302,11 +1334,12 @@ $1: $2
 		$$(shell python -c '$\
 			for n in [$5]: $\
 				print("--add-xticklabel=%d=\"%%(x)IB\"" % n)') \
-		$6 \
+		$7 \
 		$$(PLOTFLAGS) \
 		-o$$@)
 endef
 
+# p26 throughput plot rules
 $(eval $(call PLOT_P26_T_RULE,$\
 		$(PLOTSDIR)/bench_p26_wt_%.svg,$\
 		$(foreach fs, $(BENCH_FSS),$\
@@ -1314,7 +1347,9 @@ $(eval $(call PLOT_P26_T_RULE,$\
 				$(RESULTSDIR)/bench_p26_wt_%.$(fs).$(sim).tsim.csv)),$\
 		"$$* file writes - simulated throughput",$\
 		SIZE,$\
-		$(P26_T_SIZES)))
+		$(P26_T_SIZES),$\
+		write+tsim,$\
+		--y2 --yunits=B/s))
 
 $(eval $(call PLOT_P26_T_RULE,$\
 		$(PLOTSDIR)/bench_p26_rt_%.svg,$\
@@ -1323,7 +1358,22 @@ $(eval $(call PLOT_P26_T_RULE,$\
 				$(RESULTSDIR)/bench_p26_rt_%.$(fs).$(sim).tsim.csv)),$\
 		"$$* file reads - simulated throughput",$\
 		SIZE,$\
-		$(P26_T_SIZES)))
+		$(P26_T_SIZES),$\
+		read+tsim,$\
+		--y2 --yunits=B/s))
+
+# p26 throughput usage rules
+$(eval $(call PLOT_P26_T_RULE,$\
+		$(PLOTSDIR)/bench_p26_wt_usage_%.svg,$\
+		$(foreach fs, $(BENCH_FSS),$\
+			$(foreach sim, $(BENCH_SIMS),$\
+				$(RESULTSDIR)/bench_p26_wt_%.$(fs).$(sim).csv)),$\
+		"$$* file writes - disk usage",$\
+		SIZE,$\
+		$(P26_T_SIZES),$\
+		usage,$\
+		--y2 --yunits=B))
+
 
 
 
