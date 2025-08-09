@@ -951,6 +951,7 @@ $(RESULTSDIR)/bench_%.avg.csv: $(RESULTSDIR)/bench_%.csv
 PLOT_RULES ?= plot-p26
 PLOT_P26_RULES ?= \
 		plot-p26-litmus \
+		plot-p26-litmus-ops \
 		plot-p26-wt \
 		plot-p26-rt \
 		plot-p26-wt-usage
@@ -1031,38 +1032,62 @@ plot-p26-litmus: \
 ## Plot p26 litmus linear benchmarks
 .PHONY: plot-p26-litmus-linear
 plot-p26-litmus-linear: \
-		$(PLOTSDIR)/bench_p26_litmus_linear_r.svg \
-		$(PLOTSDIR)/bench_p26_litmus_linear_p.svg \
-		$(PLOTSDIR)/bench_p26_litmus_linear_e.svg \
-		$(PLOTSDIR)/bench_p26_litmus_linear_u.svg \
 		$(PLOTSDIR)/bench_p26_litmus_linear.svg
 
 ## Plot p26 litmus random benchmarks
 .PHONY: plot-p26-litmus-random
 plot-p26-litmus-random: \
-		$(PLOTSDIR)/bench_p26_litmus_random_r.svg \
-		$(PLOTSDIR)/bench_p26_litmus_random_p.svg \
-		$(PLOTSDIR)/bench_p26_litmus_random_e.svg \
-		$(PLOTSDIR)/bench_p26_litmus_random_u.svg \
 		$(PLOTSDIR)/bench_p26_litmus_random.svg
 
 ## Plot p26 litmus many benchmarks
 .PHONY: plot-p26-litmus-many
 plot-p26-litmus-many: \
-		$(PLOTSDIR)/bench_p26_litmus_many_r.svg \
-		$(PLOTSDIR)/bench_p26_litmus_many_p.svg \
-		$(PLOTSDIR)/bench_p26_litmus_many_e.svg \
-		$(PLOTSDIR)/bench_p26_litmus_many_u.svg \
 		$(PLOTSDIR)/bench_p26_litmus_many.svg
 
 ## Plot p26 litmus logging benchmarks
 .PHONY: plot-p26-litmus-logging
 plot-p26-litmus-logging: \
+		$(PLOTSDIR)/bench_p26_litmus_logging.svg
+
+## Plot p26 litmus ops benchmarks
+.PHONY: plot-p26-litmus-ops
+plot-p26-litmus-ops: \
+		plot-p26-litmus-ops-linear \
+		plot-p26-litmus-ops-random \
+		plot-p26-litmus-ops-many \
+		plot-p26-litmus-ops-logging
+
+## Plot p26 litmus ops linear benchmarks
+.PHONY: plot-p26-litmus-ops-linear
+plot-p26-litmus-ops-linear: \
+		$(PLOTSDIR)/bench_p26_litmus_linear_r.svg \
+		$(PLOTSDIR)/bench_p26_litmus_linear_p.svg \
+		$(PLOTSDIR)/bench_p26_litmus_linear_e.svg \
+		$(PLOTSDIR)/bench_p26_litmus_linear_u.svg
+
+## Plot p26 litmus ops random benchmarks
+.PHONY: plot-p26-litmus-ops-random
+plot-p26-litmus-ops-random: \
+		$(PLOTSDIR)/bench_p26_litmus_random_r.svg \
+		$(PLOTSDIR)/bench_p26_litmus_random_p.svg \
+		$(PLOTSDIR)/bench_p26_litmus_random_e.svg \
+		$(PLOTSDIR)/bench_p26_litmus_random_u.svg
+
+## Plot p26 litmus ops many benchmarks
+.PHONY: plot-p26-litmus-ops-many
+plot-p26-litmus-ops-many: \
+		$(PLOTSDIR)/bench_p26_litmus_many_r.svg \
+		$(PLOTSDIR)/bench_p26_litmus_many_p.svg \
+		$(PLOTSDIR)/bench_p26_litmus_many_e.svg \
+		$(PLOTSDIR)/bench_p26_litmus_many_u.svg
+
+## Plot p26 litmus ops logging benchmarks
+.PHONY: plot-p26-litmus-ops-logging
+plot-p26-litmus-ops-logging: \
 		$(PLOTSDIR)/bench_p26_litmus_logging_r.svg \
 		$(PLOTSDIR)/bench_p26_litmus_logging_p.svg \
 		$(PLOTSDIR)/bench_p26_litmus_logging_e.svg \
-		$(PLOTSDIR)/bench_p26_litmus_logging_u.svg \
-		$(PLOTSDIR)/bench_p26_litmus_logging.svg
+		$(PLOTSDIR)/bench_p26_litmus_logging_u.svg
 
 ## Plot p26 write-throughput benchmarks
 .PHONY: plot-p26-wt
