@@ -7,11 +7,19 @@ PLOTSDIR ?= plots_bs
 # range of erase sizes to test for throughput testing
 P26_T_BLOCK_SIZES ?= 1024,2048,4096,8192,16384,32768,65536,131072
 
+# 1MiB sizes
+DISK_SIZE_1M ?= 268435456
+P26_T_SIZE_1M ?= 1048576
+
 
 # use our bench rules
-BENCH_P26_RULES ?= bench-p26-wt-bs
+BENCH_P26_RULES ?= \
+	bench-p26-wt-bs \
+	bench-p26-wt-bs-1M
 # use our plot rules
-PLOT_P26_RULES ?= plot-p26-wt-bs
+PLOT_P26_RULES ?= \
+	plot-p26-wt-bs \
+	plot-p26-wt-bs-1M
 
 # default Makefile does most of the work
 include Makefile
@@ -54,6 +62,42 @@ bench-p26-wt-bs-logging: \
 			$(foreach sim, $(BENCH_SIMS), \
 				$(RESULTSDIR)/bench_p26_wt_bs_logging.$(fs).$(sim).csv))
 
+## Run p26 write-throughput block size benchmarks
+.PHONY: bench-p26-wt-bs-1M
+bench-p26-wt-bs-1M: \
+		bench-p26-wt-bs-1M-linear \
+		bench-p26-wt-bs-1M-random \
+		bench-p26-wt-bs-1M-many \
+		bench-p26-wt-bs-1M-logging
+
+## Run p26 write-throughput block size linear benchmarks
+.PHONY: bench-p26-wt-bs-1M-linear
+bench-p26-wt-bs-1M-linear: \
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_wt_bs_1M_linear.$(fs).$(sim).csv))
+
+## Run p26 write-throughput block size random benchmarks
+.PHONY: bench-p26-wt-bs-1M-random
+bench-p26-wt-bs-1M-random: \
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_wt_bs_1M_random.$(fs).$(sim).csv))
+
+## Run p26 write-throughput block size many benchmarks
+.PHONY: bench-p26-wt-bs-1M-many
+bench-p26-wt-bs-1M-many: \
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_wt_bs_1M_many.$(fs).$(sim).csv))
+
+## Run p26 write-throughput block size logging benchmarks
+.PHONY: bench-p26-wt-bs-1M-logging
+bench-p26-wt-bs-1M-logging: \
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_wt_bs_1M_logging.$(fs).$(sim).csv))
+
 
 # p26 read/write-throughput block size bench rule
 #
@@ -61,11 +105,15 @@ bench-p26-wt-bs-logging: \
 # $2 - bench case
 # $3 - fs type/version
 # $4 - sim type
+# $5 - disk size
+# $6 - file size
 #
 define BENCH_P26_T_BS_RULE
 $1: $$(BENCH_$(U_$3)_RUNNER)
 	$$(strip ./scripts/bench.py -R$$< -B $2 \
-		-DSIZE=$(P26_T_SIZE) \
+		$(BENCHFLAGS) \
+		-DDISK_SIZE=$(or $5,$(DISK_SIZE)) \
+		-DSIZE=$(or $6,$(P26_T_SIZE)) \
 		-DCHUNK=$(P26_T_CHUNK) \
 		-DSIMTIME=$(P26_T_SIMTIME) \
 		-DFS=$(N_$3) \
@@ -76,7 +124,6 @@ $1: $$(BENCH_$(U_$3)_RUNNER)
 		-DPROG_TIME=$$($(U_$4)_PROG_TIME) \
 		-DERASE_TIME=$$($(U_$4)_ERASE_TIME) \
 		-DBLOCK_SIZE=$(P26_T_BLOCK_SIZES) \
-		$$(BENCHFLAGS) \
 		-o$$@)
 endef
 
@@ -88,6 +135,16 @@ $(foreach fs, $(BENCH_FSS),$\
 				bench_p26_wt_$$*,$\
 				$(fs),$\
 				$(sim)))))
+
+$(foreach fs, $(BENCH_FSS),$\
+	$(foreach sim, $(BENCH_SIMS),$\
+		$(eval $(call BENCH_P26_T_BS_RULE,$\
+				$(RESULTSDIR)/bench_p26_wt_bs_1M_%.$(fs).$(sim).csv,$\
+				bench_p26_wt_$$*,$\
+				$(fs),$\
+				$(sim),$\
+				$(DISK_SIZE_1M),$\
+				$(P26_T_SIZE_1M)))))
 
 
 
@@ -118,6 +175,34 @@ plot-p26-wt-bs-many: \
 .PHONY: plot-p26-wt-bs-logging
 plot-p26-wt-bs-logging: \
 		$(PLOTSDIR)/bench_p26_wt_bs_logging.svg
+
+## Plot p26 write-throughput block size benchmarks
+.PHONY: plot-p26-wt-bs-1M
+plot-p26-wt-bs-1M: \
+		plot-p26-wt-bs-1M-linear \
+		plot-p26-wt-bs-1M-random \
+		plot-p26-wt-bs-1M-many \
+		plot-p26-wt-bs-1M-logging
+
+## Plot p26 write-throughput linear block size benchmarks
+.PHONY: plot-p26-wt-bs-1M-linear
+plot-p26-wt-bs-1M-linear: \
+		$(PLOTSDIR)/bench_p26_wt_bs_1M_linear.svg
+
+## Plot p26 write-throughput random block size benchmarks
+.PHONY: plot-p26-wt-bs-1M-random
+plot-p26-wt-bs-1M-random: \
+		$(PLOTSDIR)/bench_p26_wt_bs_1M_random.svg
+
+## Plot p26 write-throughput many block size benchmarks
+.PHONY: plot-p26-wt-bs-1M-many
+plot-p26-wt-bs-1M-many: \
+		$(PLOTSDIR)/bench_p26_wt_bs_1M_many.svg
+
+## Plot p26 write-throughput logging block size benchmarks
+.PHONY: plot-p26-wt-bs-1M-logging
+plot-p26-wt-bs-1M-logging: \
+		$(PLOTSDIR)/bench_p26_wt_bs_1M_logging.svg
 
 
 # p26 write-throughput block size plot rules

@@ -782,6 +782,7 @@ bench-p26-rt-many: \
 define BENCH_P26_LITMUS_RULE
 $1: $$(BENCH_$(U_$3)_RUNNER)
 	$$(strip ./scripts/bench.py -R$$< -B $2 \
+		$(BENCHFLAGS) \
 		-DSIZE=$(P26_LITMUS_SIZE) \
 		-DCHUNK=$(P26_LITMUS_CHUNK) \
 		-DSTEP=$(P26_LITMUS_STEP) \
@@ -794,7 +795,6 @@ $1: $$(BENCH_$(U_$3)_RUNNER)
 		-DPROG_TIME=$$($(U_$4)_PROG_TIME) \
 		-DERASE_TIME=$$($(U_$4)_ERASE_TIME) \
 		-DBLOCK_SIZE=$$($(U_$4)_$(U_$3)_BLOCK_SIZE) \
-		$$(BENCHFLAGS) \
 		-o$$@)
 endef
 
@@ -817,6 +817,7 @@ $(foreach fs, $(BENCH_FSS),$\
 define BENCH_P26_T_RULE
 $1: $$(BENCH_$(U_$3)_RUNNER)
 	$$(strip ./scripts/bench.py -R$$< -B $2 \
+		$(BENCHFLAGS) \
 		-DSIZE=$(P26_T_SIZES) \
 		-DCHUNK=$(P26_T_CHUNK) \
 		-DSIMTIME=$(P26_T_SIMTIME) \
@@ -828,7 +829,6 @@ $1: $$(BENCH_$(U_$3)_RUNNER)
 		-DPROG_TIME=$$($(U_$4)_PROG_TIME) \
 		-DERASE_TIME=$$($(U_$4)_ERASE_TIME) \
 		-DBLOCK_SIZE=$$($(U_$4)_$(U_$3)_BLOCK_SIZE) \
-		$$(BENCHFLAGS) \
 		-o$$@)
 endef
 
