@@ -13,7 +13,7 @@ defines.SEED = 42
 
 # include common bench helpers
 code = '''
-#include "bench_helpers.h"
+#include "benches/bench_helpers.h"
 '''
 
 

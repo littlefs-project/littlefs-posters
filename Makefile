@@ -223,7 +223,7 @@ BENCH_LFS3_SRC ?= \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard littlefs3/*.c)) \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard bd/*.c)) \
 		runners/bench_runner.c \
-		bench_helpers.c
+		benches/bench_helpers.c
 BENCH_LFS3_B     := \
 		$(BENCHES:%.toml=$(BUILDDIR)/%.b.c) \
 		$(BENCH_LFS3_SRC:%.c=$(BUILDDIR)/%.b.c)
@@ -246,7 +246,7 @@ BENCH_LFS2_SRC ?= \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard littlefs2/*.c)) \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard bd/*.c)) \
 		runners/bench_runner.c \
-		bench_helpers.c
+		benches/bench_helpers.c
 BENCH_LFS2_B     := \
 		$(BENCHES:%.toml=$(BUILDDIR)/%.b.c) \
 		$(BENCH_LFS2_SRC:%.c=$(BUILDDIR)/%.b.c)
@@ -262,7 +262,7 @@ BENCH_SPIFFS_SRC ?= \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard spiffs/src/*.c)) \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard bd/*.c)) \
 		runners/bench_runner.c \
-		bench_helpers.c
+		benches/bench_helpers.c
 BENCH_SPIFFS_B     := \
 		$(BENCHES:%.toml=$(BUILDDIR)/%.spiffs.b.c) \
 		$(BENCH_SPIFFS_SRC:%.c=$(BUILDDIR)/%.spiffs.b.c)
@@ -286,7 +286,7 @@ BENCH_YAFFS2_SRC ?= \
 		$(addprefix yaffs2/direct/,$(YAFFS2_DIRECT_C)) \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard bd/*.c)) \
 		runners/bench_runner.c \
-		bench_helpers.c
+		benches/bench_helpers.c
 BENCH_YAFFS2_SRC_ := \
 		$(filter-out yaffs2/%, $(BENCH_YAFFS2_SRC)) \
 		$(addprefix $(BUILDDIR)/yaffs2/,\

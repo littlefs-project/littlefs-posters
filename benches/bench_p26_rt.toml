@@ -15,7 +15,7 @@ defines.SIMTIME = '60000000000ULL' # 1 minute
 
 # include common bench helpers
 code = '''
-#include "bench_helpers.h"
+#include "benches/bench_helpers.h"
 '''
 
 
