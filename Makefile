@@ -218,6 +218,7 @@ BENCHES ?= $(wildcard benches/*.toml)
 
 # littlefs3 bench-runner (the default)
 BENCH_LFS3_RUNNER ?= $(BUILDDIR)/bench_lfs3_runner
+BENCH_LFS3_FILTER ?= sed -n -e'1p' -e'/\<lfs3_emubd/d' -e'/\<lfs3/p'
 BENCH_LFS3_CFLAGS += -DLFS3=1 -DLFS3_YES_BMAP=1
 BENCH_LFS3_SRC ?= \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard littlefs3/*.c)) \
@@ -234,6 +235,7 @@ BENCH_LFS3_CI    := $(BENCH_LFS3_A:%.b.a.c=%.lfs3.b.a.ci)
 
 # littlefs3 no-bmap bench-runner
 BENCH_LFS3NB_RUNNER ?= $(BUILDDIR)/bench_lfs3nb_runner
+BENCH_LFS3NB_FILTER ?= $(BENCH_LFS3_FILTER)
 BENCH_LFS3NB_CFLAGS += -DLFS3=1
 BENCH_LFS3NB_OBJ   := $(BENCH_LFS3_A:%.b.a.c=%.lfs3nb.b.a.o)
 BENCH_LFS3NB_DEP   := $(BENCH_LFS3_A:%.b.a.c=%.lfs3nb.b.a.d)
@@ -241,6 +243,7 @@ BENCH_LFS3NB_CI    := $(BENCH_LFS3_A:%.b.a.c=%.lfs3nb.b.a.ci)
 
 # littlefs2 bench-runner
 BENCH_LFS2_RUNNER ?= $(BUILDDIR)/bench_lfs2_runner
+BENCH_LFS2_FILTER ?= sed -n -e'1p' -e'/\<lfs2/p'
 BENCH_LFS2_CFLAGS += -DLFS2=1
 BENCH_LFS2_SRC ?= \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard littlefs2/*.c)) \
@@ -257,6 +260,7 @@ BENCH_LFS2_CI    := $(BENCH_LFS2_A:%.b.a.c=%.lfs2.b.a.ci)
 
 # spiffs bench-runner
 BENCH_SPIFFS_RUNNER ?= $(BUILDDIR)/bench_spiffs_runner
+BENCH_SPIFFS_FILTER ?= sed -n -e'1p' -e'/\<SPIFFS/p'
 BENCH_SPIFFS_CFLAGS += -DSPIFFS=1
 BENCH_SPIFFS_SRC ?= \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard spiffs/src/*.c)) \
@@ -280,6 +284,7 @@ BENCH_SPIFFS_CI    := $(BENCH_SPIFFS_A:.c=.ci)
 # note yaffs2 needs a preprocessing step with handle_common.sh
 #
 BENCH_YAFFS2_RUNNER ?= $(BUILDDIR)/bench_yaffs2_runner
+BENCH_YAFFS2_FILTER ?= sed -n -e'1p' -e'/\<yaffs/p'
 BENCH_YAFFS2_CFLAGS += -DYAFFS2=1
 BENCH_YAFFS2_SRC ?= \
 		$(addprefix yaffs2/core/,$(YAFFS2_CORE_C)) \
@@ -338,6 +343,10 @@ CFLAGS += -ftrack-macro-expansion=0
 CFLAGS += -Wl,--wrap=malloc
 CFLAGS += -Wl,--wrap=free
 CFLAGS += -Wl,--wrap=realloc
+# gc unused functions
+CFLAGS += -ffunction-sections
+CFLAGS += -fdata-sections
+CFLAGS += -Wl,--gc-sections
 ifdef DEBUG
 CFLAGS += -O0
 else
@@ -410,13 +419,6 @@ build bench-runner build-benches: \
 		$(foreach fs, $(BENCH_FSS), \
 			$(BENCH_$(U_$(fs))_RUNNER))
 
-## Find total section sizes
-.PHONY: size
-size: \
-		$(foreach fs, $(BENCH_FSS), \
-			$(BENCH_$(U_$(fs))_OBJ))
-	$(SIZE) -t $^
-
 ## Generate a ctags file
 .PHONY: tags ctags
 tags ctags:
@@ -451,6 +453,77 @@ all: \
 		codemap \
 		bench \
 		plot
+
+## Find total section sizes
+.PHONY: size
+size: \
+		$(foreach fs, $(BENCH_FSS), \
+			$(BENCH_$(U_$(fs))_RUNNER))
+	$(SIZE) -t $^
+
+## Find compile-time sizes _before_ link-time gc
+.PHONY: sizes-prelink
+sizes-prelink: \
+		$(foreach fs, $(BENCH_FSS), \
+			$(BENCH_$(U_$(fs))_OBJ) \
+			$(BENCH_$(U_$(fs))_CI))
+	$(strip ./scripts/csv.py \
+		$(foreach fs, $(BENCH_FSS), \
+			<(./scripts/csv.py \
+				<(./scripts/code.py $(BENCH_$(U_$(fs))_OBJ) -bfunction -o- \
+					| $(BENCH_$(U_$(fs))_FILTER)) \
+				-bi=$(I_$(fs)) -bfs=$(fs) -bfunction -o-) \
+			<(./scripts/csv.py \
+				<(./scripts/data.py $(BENCH_$(U_$(fs))_OBJ) -bfunction -o- \
+					| $(BENCH_$(U_$(fs))_FILTER)) \
+				-bi=$(I_$(fs)) -bfs=$(fs) -bfunction -o-) \
+			<(./scripts/csv.py \
+				<(./scripts/stack.py $(BENCH_$(U_$(fs))_CI) -bfunction -o- \
+					| $(BENCH_$(U_$(fs))_FILTER)) \
+				-bi=$(I_$(fs)) -bfs=$(fs) -bfunction -o-) \
+			<(./scripts/csv.py \
+				<(./scripts/ctx.py $(BENCH_$(U_$(fs))_OBJ) -bfunction -o- \
+					| $(BENCH_$(U_$(fs))_FILTER)) \
+				-bi=$(I_$(fs)) -bfs=$(fs) -bfunction -o-)) \
+		-Bi -bfs \
+		-fcode=code_size \
+		-fdata=data_size \
+		-fstack='max(stack_limit)' \
+		-fctx='max(ctx_size)' \
+		--no-total)
+
+## Find compile-time sizes _after_ link-time gc
+#
+# note we need to filter .ci symbols based on runner symbols picked up
+# by code/data/ctx/etc
+#
+.PHONY: sizes-postlink bench-sizes
+sizes-postlink bench-sizes: \
+		$(foreach fs, $(BENCH_FSS), \
+			$(BENCH_$(U_$(fs))_RUNNER))
+	$(strip ./scripts/csv.py \
+		$(foreach fs, $(BENCH_FSS), \
+			<(./scripts/csv.py \
+				<(./scripts/code.py $(BENCH_$(U_$(fs))_RUNNER) \
+					-bfunction -o- \
+						| $(BENCH_$(U_$(fs))_FILTER)) \
+				<(./scripts/data.py $(BENCH_$(U_$(fs))_RUNNER) \
+					-bfunction -o- \
+						| $(BENCH_$(U_$(fs))_FILTER)) \
+				<(./scripts/stack.py $(BENCH_$(U_$(fs))_CI) \
+					-bfunction -o- \
+						| $(BENCH_$(U_$(fs))_FILTER)) \
+				<(./scripts/ctx.py $(BENCH_$(U_$(fs))_RUNNER) \
+					-bfunction -o- \
+						| $(BENCH_$(U_$(fs))_FILTER)) \
+				-bi=$(I_$(fs)) -bfs=$(fs) -bfunction -o-)) \
+		-Bi -bfs \
+		-fcode=code_size \
+		-fdata=data_size \
+		-fstack='max((code_size) ? stack_limit : 0)' \
+		-fctx='max(ctx_size)' \
+		--no-total)
+
 
 
 # low-level rules
