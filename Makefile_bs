@@ -1,6 +1,6 @@
-# overrideable results dir, default to ./results_1M
+# overrideable results dir
 RESULTSDIR ?= results_bs
-# overrideable plots dir, defaults ./plots_1M
+# overrideable plots dir
 PLOTSDIR ?= plots_bs
 
 
