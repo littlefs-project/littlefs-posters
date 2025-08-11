@@ -1000,8 +1000,7 @@ $1: $$(BENCH_$(U_$3)_RUNNER) $2
 		-fbench_readed="bench_readed + $$$$( \
 			./scripts/data.py $(BENCH_$(U_$(fs))_RUNNER) -bfunction -o- \
 				| $(BENCH_$(U_$(fs))_FILTER) \
-				| ./scripts/csv.py - -fdata_size \
-				| awk 'NR==2 {print ($$$$2 !~ /-/) ? $$$$2 : 0}')" \
+				| ./scripts/csv.py - -fdata_size --total)" \
 		-fbench_proged=0 \
 		-fbench_erased=0 \
 		-o$$@)
