@@ -40,8 +40,10 @@ bool bench_helpers_simstuck(const struct lfs3_cfg *cfg, uint64_t n) {
 #if defined(LFS2)
 static int bench_helpers_usage_cb(void *ctx, lfs3_block_t block) {
     uint8_t *usage_bmap = ctx;
-    // TODO found a bug in littlefs2?
+    // TODO found a bug in littlefs2? lfs2_fs_traverse is returning the
+    // fake cache block when it shouldn't
     if ((lfs3_sblock_t)block < 0) {
+        LFS3_WARN("lfs2_fs_traverse: weird block? %d", block);
         return 0;
     }
     usage_bmap[block/8] |= 1 << (block % 8);
@@ -96,7 +98,10 @@ uintmax_t bench_helpers_usage(void *fs) {
     uint8_t *usage_bmap = malloc((BLOCK_COUNT+8-1)/8);
     memset(usage_bmap, 0, (BLOCK_COUNT+8-1)/8);
 
-    lfs2_fs_traverse(lfs2, bench_helpers_usage_cb, usage_bmap) => 0;
+    int err = lfs2_fs_traverse(lfs2, bench_helpers_usage_cb, usage_bmap);
+    if (err) {
+        LFS3_WARN("lfs2_fs_traverse: failed %d", err);
+    }
 
     lfs3_size_t usage = 0;
     for (lfs3_size_t j = 0; j < BLOCK_COUNT; j++) {

@@ -25,12 +25,10 @@ BENCH_RULES ?= \
 PLOT_RULES ?= \
 	plot-p26-bs \
 	plot-p26-bs-usage \
-	plot-p26-bs-stack \
-	plot-p26-bs-heap \
+	plot-p26-bs-ram \
 	plot-p26-bs-1M \
 	plot-p26-bs-usage-1M \
-	plot-p26-bs-stack-1M \
-	plot-p26-bs-heap-1M
+	plot-p26-bs-ram-1M
 
 # default Makefile does most of the work
 include Makefile
@@ -217,61 +215,33 @@ plot-p26-bs-usage-many: \
 plot-p26-bs-usage-logging: \
 		$(PLOTSDIR)/bench_p26_bs_usage_logging.svg
 
-## Plot p26 block size stack benchmarks
-.PHONY: plot-p26-bs-stack
-plot-p26-bs-stack: \
-		plot-p26-bs-stack-linear \
-		plot-p26-bs-stack-random \
-		plot-p26-bs-stack-many \
-		plot-p26-bs-stack-logging
+## Plot p26 block size RAM benchmarks
+.PHONY: plot-p26-bs-ram
+plot-p26-bs-ram: \
+		plot-p26-bs-ram-linear \
+		plot-p26-bs-ram-random \
+		plot-p26-bs-ram-many \
+		plot-p26-bs-ram-logging
 
-## Plot p26 write-throughput stack linear block size benchmarks
-.PHONY: plot-p26-bs-stack-linear
-plot-p26-bs-stack-linear: \
-		$(PLOTSDIR)/bench_p26_bs_stack_linear.svg
+## Plot p26 write-throughput RAM linear block size benchmarks
+.PHONY: plot-p26-bs-ram-linear
+plot-p26-bs-ram-linear: \
+		$(PLOTSDIR)/bench_p26_bs_ram_linear.svg
 
-## Plot p26 write-throughput stack random block size benchmarks
-.PHONY: plot-p26-bs-stack-random
-plot-p26-bs-stack-random: \
-		$(PLOTSDIR)/bench_p26_bs_stack_random.svg
+## Plot p26 write-throughput RAM random block size benchmarks
+.PHONY: plot-p26-bs-ram-random
+plot-p26-bs-ram-random: \
+		$(PLOTSDIR)/bench_p26_bs_ram_random.svg
 
-## Plot p26 write-throughput stack many block size benchmarks
-.PHONY: plot-p26-bs-stack-many
-plot-p26-bs-stack-many: \
-		$(PLOTSDIR)/bench_p26_bs_stack_many.svg
+## Plot p26 write-throughput RAM many block size benchmarks
+.PHONY: plot-p26-bs-ram-many
+plot-p26-bs-ram-many: \
+		$(PLOTSDIR)/bench_p26_bs_ram_many.svg
 
-## Plot p26 write-throughput stack logging block size benchmarks
-.PHONY: plot-p26-bs-stack-logging
-plot-p26-bs-stack-logging: \
-		$(PLOTSDIR)/bench_p26_bs_stack_logging.svg
-
-## Plot p26 block size heap benchmarks
-.PHONY: plot-p26-bs-heap
-plot-p26-bs-heap: \
-		plot-p26-bs-heap-linear \
-		plot-p26-bs-heap-random \
-		plot-p26-bs-heap-many \
-		plot-p26-bs-heap-logging
-
-## Plot p26 write-throughput heap linear block size benchmarks
-.PHONY: plot-p26-bs-heap-linear
-plot-p26-bs-heap-linear: \
-		$(PLOTSDIR)/bench_p26_bs_heap_linear.svg
-
-## Plot p26 write-throughput heap random block size benchmarks
-.PHONY: plot-p26-bs-heap-random
-plot-p26-bs-heap-random: \
-		$(PLOTSDIR)/bench_p26_bs_heap_random.svg
-
-## Plot p26 write-throughput heap many block size benchmarks
-.PHONY: plot-p26-bs-heap-many
-plot-p26-bs-heap-many: \
-		$(PLOTSDIR)/bench_p26_bs_heap_many.svg
-
-## Plot p26 write-throughput heap logging block size benchmarks
-.PHONY: plot-p26-bs-heap-logging
-plot-p26-bs-heap-logging: \
-		$(PLOTSDIR)/bench_p26_bs_heap_logging.svg
+## Plot p26 write-throughput RAM logging block size benchmarks
+.PHONY: plot-p26-bs-ram-logging
+plot-p26-bs-ram-logging: \
+		$(PLOTSDIR)/bench_p26_bs_ram_logging.svg
 
 ## Plot p26 block size benchmarks
 .PHONY: plot-p26-bs-1M
@@ -329,61 +299,33 @@ plot-p26-bs-usage-1M-many: \
 plot-p26-bs-usage-1M-logging: \
 		$(PLOTSDIR)/bench_p26_bs_usage_1M_logging.svg
 
-## Plot p26 block size stack benchmarks
-.PHONY: plot-p26-bs-stack-1M
-plot-p26-bs-stack-1M: \
-		plot-p26-bs-stack-1M-linear \
-		plot-p26-bs-stack-1M-random \
-		plot-p26-bs-stack-1M-many \
-		plot-p26-bs-stack-1M-logging
+## Plot p26 block size RAM benchmarks
+.PHONY: plot-p26-bs-ram-1M
+plot-p26-bs-ram-1M: \
+		plot-p26-bs-ram-1M-linear \
+		plot-p26-bs-ram-1M-random \
+		plot-p26-bs-ram-1M-many \
+		plot-p26-bs-ram-1M-logging
 
-## Plot p26 write-throughput stack linear block size benchmarks
-.PHONY: plot-p26-bs-stack-1M-linear
-plot-p26-bs-stack-1M-linear: \
-		$(PLOTSDIR)/bench_p26_bs_stack_1M_linear.svg
+## Plot p26 write-throughput RAM linear block size benchmarks
+.PHONY: plot-p26-bs-ram-1M-linear
+plot-p26-bs-ram-1M-linear: \
+		$(PLOTSDIR)/bench_p26_bs_ram_1M_linear.svg
 
-## Plot p26 write-throughput stack random block size benchmarks
-.PHONY: plot-p26-bs-stack-1M-random
-plot-p26-bs-stack-1M-random: \
-		$(PLOTSDIR)/bench_p26_bs_stack_1M_random.svg
+## Plot p26 write-throughput RAM random block size benchmarks
+.PHONY: plot-p26-bs-ram-1M-random
+plot-p26-bs-ram-1M-random: \
+		$(PLOTSDIR)/bench_p26_bs_ram_1M_random.svg
 
-## Plot p26 write-throughput stack many block size benchmarks
-.PHONY: plot-p26-bs-stack-1M-many
-plot-p26-bs-stack-1M-many: \
-		$(PLOTSDIR)/bench_p26_bs_stack_1M_many.svg
+## Plot p26 write-throughput RAM many block size benchmarks
+.PHONY: plot-p26-bs-ram-1M-many
+plot-p26-bs-ram-1M-many: \
+		$(PLOTSDIR)/bench_p26_bs_ram_1M_many.svg
 
-## Plot p26 write-throughput stack logging block size benchmarks
-.PHONY: plot-p26-bs-stack-1M-logging
-plot-p26-bs-stack-1M-logging: \
-		$(PLOTSDIR)/bench_p26_bs_stack_1M_logging.svg
-
-## Plot p26 block size heap benchmarks
-.PHONY: plot-p26-bs-heap-1M
-plot-p26-bs-heap-1M: \
-		plot-p26-bs-heap-1M-linear \
-		plot-p26-bs-heap-1M-random \
-		plot-p26-bs-heap-1M-many \
-		plot-p26-bs-heap-1M-logging
-
-## Plot p26 write-throughput heap linear block size benchmarks
-.PHONY: plot-p26-bs-heap-1M-linear
-plot-p26-bs-heap-1M-linear: \
-		$(PLOTSDIR)/bench_p26_bs_heap_1M_linear.svg
-
-## Plot p26 write-throughput heap random block size benchmarks
-.PHONY: plot-p26-bs-heap-1M-random
-plot-p26-bs-heap-1M-random: \
-		$(PLOTSDIR)/bench_p26_bs_heap_1M_random.svg
-
-## Plot p26 write-throughput heap many block size benchmarks
-.PHONY: plot-p26-bs-heap-1M-many
-plot-p26-bs-heap-1M-many: \
-		$(PLOTSDIR)/bench_p26_bs_heap_1M_many.svg
-
-## Plot p26 write-throughput heap logging block size benchmarks
-.PHONY: plot-p26-bs-heap-1M-logging
-plot-p26-bs-heap-1M-logging: \
-		$(PLOTSDIR)/bench_p26_bs_heap_1M_logging.svg
+## Plot p26 write-throughput RAM logging block size benchmarks
+.PHONY: plot-p26-bs-ram-1M-logging
+plot-p26-bs-ram-1M-logging: \
+		$(PLOTSDIR)/bench_p26_bs_ram_1M_logging.svg
 
 
 
@@ -457,25 +399,14 @@ $(eval $(call PLOT_P26_BS_RULE,$\
 		--xlabel="block size" --y2 --yunits=B))
 
 $(eval $(call PLOT_P26_BS_RULE,$\
-		$(PLOTSDIR)/bench_p26_bs_stack_%.svg,$\
+		$(PLOTSDIR)/bench_p26_bs_ram_%.svg,$\
 		$(foreach fs, $(BENCH_FSS),$\
 			$(foreach sim, $(BENCH_SIMS),$\
-				$(RESULTSDIR)/bench_p26_bs_%.$(fs).$(sim).csv)),$\
-		"$$* file writes - block sizes - heap usage",$\
+				$(RESULTSDIR)/bench_p26_bs_%.$(fs).$(sim).ram.csv)),$\
+		"$$* file writes - block sizes - RAM usage",$\
 		BLOCK_SIZE,$\
 		$(P26_T_BLOCK_SIZES),$\
-		stack,$\
-		--xlabel="block size" --y2 --yunits=B))
-
-$(eval $(call PLOT_P26_BS_RULE,$\
-		$(PLOTSDIR)/bench_p26_bs_heap_%.svg,$\
-		$(foreach fs, $(BENCH_FSS),$\
-			$(foreach sim, $(BENCH_SIMS),$\
-				$(RESULTSDIR)/bench_p26_bs_%.$(fs).$(sim).csv)),$\
-		"$$* file writes - block sizes - heap usage",$\
-		BLOCK_SIZE,$\
-		$(P26_T_BLOCK_SIZES),$\
-		heap,$\
+		ram,$\
 		--xlabel="block size" --y2 --yunits=B))
 
 # p26 block size 1MiB plot rules
@@ -502,25 +433,14 @@ $(eval $(call PLOT_P26_BS_RULE,$\
 		--xlabel="block size" --y2 --yunits=B))
 
 $(eval $(call PLOT_P26_BS_RULE,$\
-		$(PLOTSDIR)/bench_p26_bs_stack_1M_%.svg,$\
+		$(PLOTSDIR)/bench_p26_bs_ram_1M_%.svg,$\
 		$(foreach fs, $(BENCH_FSS),$\
 			$(foreach sim, $(BENCH_SIMS),$\
-				$(RESULTSDIR)/bench_p26_bs_1M_%.$(fs).$(sim).csv)),$\
-		"$$* file writes - block sizes - stack usage",$\
+				$(RESULTSDIR)/bench_p26_bs_1M_%.$(fs).$(sim).ram.csv)),$\
+		"$$* file writes - block sizes - RAM usage",$\
 		BLOCK_SIZE,$\
 		$(P26_T_BLOCK_SIZES_1M),$\
-		stack,$\
-		--xlabel="block size" --y2 --yunits=B))
-
-$(eval $(call PLOT_P26_BS_RULE,$\
-		$(PLOTSDIR)/bench_p26_bs_heap_1M_%.svg,$\
-		$(foreach fs, $(BENCH_FSS),$\
-			$(foreach sim, $(BENCH_SIMS),$\
-				$(RESULTSDIR)/bench_p26_bs_1M_%.$(fs).$(sim).csv)),$\
-		"$$* file writes - block sizes - heap usage",$\
-		BLOCK_SIZE,$\
-		$(P26_T_BLOCK_SIZES_1M),$\
-		heap,$\
+		ram,$\
 		--xlabel="block size" --y2 --yunits=B))
 
 
