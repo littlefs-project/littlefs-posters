@@ -22,7 +22,11 @@ else
 P26_LITMUS_STEP ?= 8 # was 1, prioritizing speed over accuracy
 endif
 # how many samples to measure for litmus testing?
+ifdef PRECISE
 P26_LITMUS_SAMPLES ?= 16
+else
+P26_LITMUS_SAMPLES ?= 4
+endif
 
 # range of sizes to test for throughput testing?
 P26_T_SIZES ?= 1024,2048,4096,8192,16384,32768
