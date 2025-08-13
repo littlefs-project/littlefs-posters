@@ -8,6 +8,23 @@
 #define BENCH_RUNNER_H
 
 
+// default to using kiwibd
+#if !defined(BENCH_KIWIBD) && !defined(BENCH_EMUBD)
+#define BENCH_KIWIBD
+#endif
+
+// ifdef macros for bd
+#ifdef BENCH_KIWIBD
+#define BENCH_IFDEF_KIWIBD(a, b) (a)
+#else
+#define BENCH_IFDEF_KIWIBD(a, b) (b)
+#endif
+#ifdef BENCH_EMUBD
+#define BENCH_IFDEF_EMUBD(a, b) (a)
+#else
+#define BENCH_IFDEF_EMUBD(a, b) (b)
+#endif
+
 // override LFS3_TRACE
 void bench_trace(const char *fmt, ...);
 
@@ -18,8 +35,11 @@ void bench_trace(const char *fmt, ...);
         __VA_ARGS__)
 #define LFS3_TRACE(...) LFS3_TRACE_(__VA_ARGS__, "")
 #define LFS2_TRACE(...) LFS3_TRACE_(__VA_ARGS__, "")
+#ifdef BENCH_KIWIBD
+#define LFS3_KIWIBD_TRACE(...) LFS3_TRACE_(__VA_ARGS__, "")
+#else
 #define LFS3_EMUBD_TRACE(...) LFS3_TRACE_(__VA_ARGS__, "")
-#define LFS2_EMUBD_TRACE(...) LFS3_TRACE_(__VA_ARGS__, "")
+#endif
 
 // note these are indirectly included in any generated files
 #if defined(LFS3)
@@ -58,7 +78,11 @@ void bench_trace(const char *fmt, ...);
 #define BENCH_IFDEF_YAFFS2(a, b) (b)
 #endif
 
+#ifdef BENCH_KIWIBD
+#include "bd/lfs3_kiwibd.h"
+#else
 #include "bd/lfs3_emubd.h"
+#endif
 #include <stdio.h>
 #include <stdint.h>
 
@@ -179,17 +203,36 @@ size_t bench_heap(void);
     BENCH_DEFINE(READ_TIME,          40                                     ) \
     BENCH_DEFINE(PROG_TIME,          1582                                   ) \
     BENCH_DEFINE(ERASE_TIME,         10986                                  ) \
-    /* emubd config                                                        */ \
-    BENCH_DEFINE(ERASE_VALUE,        -2                                     ) \
-    BENCH_DEFINE(ERASE_CYCLES,       0                                      ) \
-    BENCH_DEFINE(BADBLOCK_BEHAVIOR,  LFS3_EMUBD_BADBLOCK_PROGERROR          ) \
-    BENCH_DEFINE(POWERLOSS_BEHAVIOR, LFS3_EMUBD_POWERLOSS_ATOMIC            ) \
-    BENCH_DEFINE(EMUBD_SEED,         0                                      ) \
+    /* bd-specific config                                                  */ \
+    BENCH_KIWIBD_DEFINES                                                      \
+    BENCH_EMUBD_DEFINES                                                       \
     /* filesystem-specific config                                          */ \
     BENCH_LFS3_DEFINES                                                        \
     BENCH_LFS2_DEFINES                                                        \
     BENCH_SPIFFS_DEFINES                                                      \
     BENCH_YAFFS2_DEFINES
+
+// kiwibd specific implicit defines
+#ifdef BENCH_KIWIBD
+#define BENCH_KIWIBD_DEFINES \
+    /* emubd config                                                        */ \
+    BENCH_DEFINE(ERASE_VALUE,        -2                                     )
+#else
+#define BENCH_KIWIBD_DEFINES
+#endif
+
+// emubd specific implicit defines
+#ifdef BENCH_EMUBD
+#define BENCH_EMUBD_DEFINES \
+    /* emubd config                                                        */ \
+    BENCH_DEFINE(ERASE_VALUE,        -2                                     ) \
+    BENCH_DEFINE(ERASE_CYCLES,       0                                      ) \
+    BENCH_DEFINE(BADBLOCK_BEHAVIOR,  LFS3_EMUBD_BADBLOCK_PROGERROR          ) \
+    BENCH_DEFINE(POWERLOSS_BEHAVIOR, LFS3_EMUBD_POWERLOSS_ATOMIC            ) \
+    BENCH_DEFINE(EMUBD_SEED,         0                                      )
+#else
+#define BENCH_EMUBD_DEFINES
+#endif
 
 // littlefs3 specific implicit defines
 #ifdef LFS3
@@ -317,13 +360,21 @@ struct bench_cfg {
     .block_size         = BLOCK_SIZE,           \
     .block_count        = BLOCK_COUNT,
 
-// common bd cfg struct fields
-#define BENCH_BDCFG \
+// kiwibd cfg struct fields
+#ifdef BENCH_KIWIBD
+#define BENCH_KIWIBD_CFG \
+    .erase_value        = ERASE_VALUE,
+#endif
+
+// emubd cfg struct fields
+#ifdef BENCH_EMUBD
+#define BENCH_EMUBD_CFG \
     .erase_value        = ERASE_VALUE,          \
     .erase_cycles       = ERASE_CYCLES,         \
     .badblock_behavior  = BADBLOCK_BEHAVIOR,    \
     .powerloss_behavior = POWERLOSS_BEHAVIOR,   \
     .seed               = EMUBD_SEED,
+#endif
 
 // filesystem-specific cfg struct fields
 

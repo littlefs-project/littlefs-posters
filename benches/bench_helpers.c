@@ -12,19 +12,31 @@
 // this is derived form the current read/prog/erase ops
 uint64_t bench_helpers_simtime(const struct lfs3_cfg *cfg) {
     uint64_t time = 0;
+    #ifdef BENCH_KIWIBD
+    time += lfs3_kiwibd_readed(cfg) * READ_TIME;
+    time += lfs3_kiwibd_proged(cfg) * PROG_TIME;
+    time += lfs3_kiwibd_erased(cfg) * ERASE_TIME;
+    #else
     time += lfs3_emubd_readed(cfg) * READ_TIME;
     time += lfs3_emubd_proged(cfg) * PROG_TIME;
     time += lfs3_emubd_erased(cfg) * ERASE_TIME;
+    #endif
     return time;
 }
 
 // reset the current time
 //
-// yes this just resets emubd's read/prog/erase trackers
+// yes this just resets emubd/kiwibd's read/prog/erase trackers
 void bench_helpers_simreset(const struct lfs3_cfg *cfg) {
+    #ifdef BENCH_KIWIBD
+    lfs3_kiwibd_setreaded(cfg, 0);
+    lfs3_kiwibd_setproged(cfg, 0);
+    lfs3_kiwibd_seterased(cfg, 0);
+    #else
     lfs3_emubd_setreaded(cfg, 0);
     lfs3_emubd_setproged(cfg, 0);
     lfs3_emubd_seterased(cfg, 0);
+    #endif
 }
 
 // is the current bench stuck? not making progress?
@@ -129,6 +141,7 @@ uintmax_t bench_helpers_usage(void *fs) {
     return used;
 
     #elif defined(YAFFS2)
+    (void)fs;
     // measure disk usage
     //
     // we rely on yaffs2's internal bookkeeping here

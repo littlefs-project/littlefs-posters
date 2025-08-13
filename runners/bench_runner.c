@@ -9,7 +9,11 @@
 #endif
 
 #include "runners/bench_runner.h"
+#ifdef BENCH_KIWIBD
+#include "bd/lfs3_kiwibd.h"
+#else
 #include "bd/lfs3_emubd.h"
+#endif
 
 #include <getopt.h>
 #include <sys/types.h>
@@ -440,9 +444,14 @@ FILE *bench_trace_file = NULL;
 uint32_t bench_trace_cycles = 0;
 uint64_t bench_trace_time = 0;
 uint64_t bench_trace_open_time = 0;
-lfs3_emubd_sleep_t bench_read_sleep = 0.0;
-lfs3_emubd_sleep_t bench_prog_sleep = 0.0;
-lfs3_emubd_sleep_t bench_erase_sleep = 0.0;
+#ifdef BENCH_KIWIBD
+typedef lfs3_kiwibd_sleep_t bench_sleep_t;
+#else
+typedef lfs3_emubd_sleep_t bench_sleep_t;
+#endif
+bench_sleep_t bench_read_sleep = 0.0;
+bench_sleep_t bench_prog_sleep = 0.0;
+bench_sleep_t bench_erase_sleep = 0.0;
 
 // this determines both the backtrace buffer and the trace printf buffer, if
 // trace ends up interleaved or truncated this may need to be increased
@@ -749,12 +758,20 @@ void *__wrap_realloc(void *p, size_t size) {
 
 
 // bench recording state
+#ifdef BENCH_KIWIBD
+typedef lfs3_kiwibd_io_t bench_io_t;
+typedef lfs3_kiwibd_sio_t bench_sio_t;
+#else
+typedef lfs3_emubd_io_t bench_io_t;
+typedef lfs3_emubd_sio_t bench_sio_t;
+#endif
+
 typedef struct bench_record {
     const char *m;
     uintmax_t n;
-    lfs3_emubd_io_t last_readed;
-    lfs3_emubd_io_t last_proged;
-    lfs3_emubd_io_t last_erased;
+    bench_io_t last_readed;
+    bench_io_t last_proged;
+    bench_io_t last_erased;
 } bench_record_t;
 
 static struct lfs3_cfg *bench_cfg = NULL;
@@ -772,12 +789,21 @@ void bench_start(const char *m, uintmax_t n) {
 
     // measure current read/prog/erase
     assert(bench_cfg);
-    lfs3_emubd_sio_t readed = lfs3_emubd_readed(bench_cfg);
+    #ifdef BENCH_KIWIBD
+    bench_sio_t readed = lfs3_kiwibd_readed(bench_cfg);
     assert(readed >= 0);
-    lfs3_emubd_sio_t proged = lfs3_emubd_proged(bench_cfg);
+    bench_sio_t proged = lfs3_kiwibd_proged(bench_cfg);
     assert(proged >= 0);
-    lfs3_emubd_sio_t erased = lfs3_emubd_erased(bench_cfg);
+    bench_sio_t erased = lfs3_kiwibd_erased(bench_cfg);
     assert(erased >= 0);
+    #else
+    bench_sio_t readed = lfs3_emubd_readed(bench_cfg);
+    assert(readed >= 0);
+    bench_sio_t proged = lfs3_emubd_proged(bench_cfg);
+    assert(proged >= 0);
+    bench_sio_t erased = lfs3_emubd_erased(bench_cfg);
+    assert(erased >= 0);
+    #endif
 
     // allocate a new record
     bench_record_t *record = mappend(
@@ -799,12 +825,21 @@ void bench_stop(const char *m) {
 
     // measure current read/prog/erase
     assert(bench_cfg);
-    lfs3_emubd_sio_t readed = lfs3_emubd_readed(bench_cfg);
+    #ifdef BENCH_KIWIBD
+    bench_sio_t readed = lfs3_kiwibd_readed(bench_cfg);
     assert(readed >= 0);
-    lfs3_emubd_sio_t proged = lfs3_emubd_proged(bench_cfg);
+    bench_sio_t proged = lfs3_kiwibd_proged(bench_cfg);
     assert(proged >= 0);
-    lfs3_emubd_sio_t erased = lfs3_emubd_erased(bench_cfg);
+    bench_sio_t erased = lfs3_kiwibd_erased(bench_cfg);
     assert(erased >= 0);
+    #else
+    bench_sio_t readed = lfs3_emubd_readed(bench_cfg);
+    assert(readed >= 0);
+    bench_sio_t proged = lfs3_emubd_proged(bench_cfg);
+    assert(proged >= 0);
+    bench_sio_t erased = lfs3_emubd_erased(bench_cfg);
+    assert(erased >= 0);
+    #endif
 
     // find our record
     for (size_t i = 0; i < bench_record_count; i++) {
@@ -1482,7 +1517,11 @@ int bench_bd_read(const struct lfs3_cfg *cfg, lfs3_block_t block,
         lfs3_off_t off, void *buffer, lfs3_size_t size) {
     bench_stack_watermark();
     bench_heap_pause();
+    #ifdef BENCH_KIWIBD
+    int err = lfs3_kiwibd_read(cfg, block, off, buffer, size);
+    #else
     int err = lfs3_emubd_read(cfg, block, off, buffer, size);
+    #endif
     bench_heap_resume();
     return err;
 }
@@ -1491,7 +1530,11 @@ int bench_bd_prog(const struct lfs3_cfg *cfg, lfs3_block_t block,
         lfs3_off_t off, const void *buffer, lfs3_size_t size) {
     bench_stack_watermark();
     bench_heap_pause();
+    #ifdef BENCH_KIWIBD
+    int err = lfs3_kiwibd_prog(cfg, block, off, buffer, size);
+    #else
     int err = lfs3_emubd_prog(cfg, block, off, buffer, size);
+    #endif
     bench_heap_resume();
     return err;
 }
@@ -1499,7 +1542,11 @@ int bench_bd_prog(const struct lfs3_cfg *cfg, lfs3_block_t block,
 int bench_bd_erase(const struct lfs3_cfg *cfg, lfs3_block_t block) {
     bench_stack_watermark();
     bench_heap_pause();
+    #ifdef BENCH_KIWIBD
+    int err = lfs3_kiwibd_erase(cfg, block);
+    #else
     int err = lfs3_emubd_erase(cfg, block);
+    #endif
     bench_heap_resume();
     return err;
 }
@@ -1507,7 +1554,11 @@ int bench_bd_erase(const struct lfs3_cfg *cfg, lfs3_block_t block) {
 int bench_bd_sync(const struct lfs3_cfg *cfg) {
     bench_stack_watermark();
     bench_heap_pause();
+    #ifdef BENCH_KIWIBD
+    int err = lfs3_kiwibd_sync(cfg);
+    #else
     int err = lfs3_emubd_sync(cfg);
+    #endif
     bench_heap_resume();
     return err;
 }
@@ -1747,8 +1798,11 @@ void perm_run(
     }
 
     // create block device and configuration
+    #ifdef BENCH_KIWIBD
+    lfs3_kiwibd_t bd;
+    #else
     lfs3_emubd_t bd;
-
+    #endif
     struct bench_cfg cfg = {
         // we always create an lfs3_cfg struct, this weirdness is
         // necessary to make littlefs's bd API work
@@ -1797,20 +1851,40 @@ void perm_run(
         #endif
     };
 
+    // using kiwibd?
+    #if defined(BENCH_KIWIBD)
+    struct lfs3_kiwibd_cfg bdcfg = {
+        .disk_path          = bench_disk_path,
+        .read_sleep         = bench_read_sleep,
+        .prog_sleep         = bench_prog_sleep,
+        .erase_sleep        = bench_erase_sleep,
+        BENCH_KIWIBD_CFG
+    };
+
+    int err = lfs3_kiwibd_createcfg(&cfg.cfg,
+            bench_disk_path, &bdcfg);
+    if (err) {
+        fprintf(stderr, "error: could not create kiwibd: %d\n", err);
+        exit(-1);
+    }
+
+    // using emubd?
+    #elif defined(BENCH_EMUBD)
     struct lfs3_emubd_cfg bdcfg = {
         .disk_path          = bench_disk_path,
         .read_sleep         = bench_read_sleep,
         .prog_sleep         = bench_prog_sleep,
         .erase_sleep        = bench_erase_sleep,
-        BENCH_BDCFG
+        BENCH_EMUBD_CFG
     };
 
     int err = lfs3_emubd_createcfg(&cfg.cfg,
             bench_disk_path, &bdcfg);
     if (err) {
-        fprintf(stderr, "error: could not create block device: %d\n", err);
+        fprintf(stderr, "error: could not create emubd: %d\n", err);
         exit(-1);
     }
+    #endif
 
     // run the bench
     printf("running ");
@@ -1828,11 +1902,19 @@ void perm_run(
     printf("\n");
 
     // cleanup
-    err = lfs3_emubd_destroy(&cfg.cfg);
+    #if defined(BENCH_KIWIBD)
+    err = lfs3_kiwibd_destroy(&cfg.cfg);
     if (err) {
-        fprintf(stderr, "error: could not destroy block device: %d\n", err);
+        fprintf(stderr, "error: could not destroy kiwibd: %d\n", err);
         exit(-1);
     }
+    #else
+    err = lfs3_emubd_destroy(&cfg.cfg);
+    if (err) {
+        fprintf(stderr, "error: could not destroy emubd: %d\n", err);
+        exit(-1);
+    }
+    #endif
 }
 
 static void run(void) {
