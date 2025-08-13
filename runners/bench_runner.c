@@ -1664,8 +1664,8 @@ static int bench_bd_yaffs2_readchunk(struct yaffs_dev *yaffs2, int page,
     assert(oob_len == 0);
 
     const struct bench_cfg *cfg = yaffs2->driver_context;
-    lfs3_block_t block = page / (BLOCK_SIZE / PAGE_SIZE);
-    lfs3_off_t off = (page % (BLOCK_SIZE / PAGE_SIZE)) * PAGE_SIZE;
+    lfs3_block_t block = page / (BLOCK_SIZE / YPAGE_SIZE);
+    lfs3_off_t off = (page % (BLOCK_SIZE / YPAGE_SIZE)) * YPAGE_SIZE;
     int err = bench_bd_read(&cfg->cfg, block, off, data, data_len);
     if (err) {
         return YAFFS_FAIL;
@@ -1683,8 +1683,8 @@ static int bench_bd_yaffs2_writechunk(struct yaffs_dev *yaffs2, int page,
     assert(oob_len == 0);
 
     const struct bench_cfg *cfg = yaffs2->driver_context;
-    lfs3_block_t block = page / (BLOCK_SIZE / PAGE_SIZE);
-    lfs3_off_t off = (page % (BLOCK_SIZE / PAGE_SIZE)) * PAGE_SIZE;
+    lfs3_block_t block = page / (BLOCK_SIZE / YPAGE_SIZE);
+    lfs3_off_t off = (page % (BLOCK_SIZE / YPAGE_SIZE)) * YPAGE_SIZE;
     int err = bench_bd_prog(&cfg->cfg, block, off, data, data_len);
     if (err) {
         return YAFFS_FAIL;

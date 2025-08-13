@@ -63,35 +63,6 @@ bench-p26-ps-logging: \
 
 
 
-# p26 read/prog size bench subrule
-#
-# $1 - target
-# $2 - bench case
-# $3 - fs type/version
-# $4 - sim type
-# $5 - disk size
-# $6 - file size
-# $7 - read/prog size
-#
-define BENCH_P26_T_PS_PS_RULE
-$1: $(BENCH_$(U_$3)_RUNNER)
-	$$(strip ./scripts/bench.py -R$$< -B $2 \
-		$(BENCHFLAGS) \
-		-DDISK_SIZE=$(or $5,$(DISK_SIZE)) \
-		-DSIZE=$(or $6,$(P26_T_SIZE)) \
-		-DCHUNK=$(P26_T_CHUNK) \
-		-DSIMTIME=$(P26_T_SIMTIME) \
-		-DFS=$(N_$3) \
-		-DREAD_SIZE=$(or $7,$($(U_$4)_READ_SIZE)) \
-		-DPROG_SIZE=$(or $7,$($(U_$4)_PROG_SIZE)) \
-		-DERASE_SIZE=$($(U_$4)_ERASE_SIZE) \
-		-DREAD_TIME=$($(U_$4)_READ_TIME) \
-		-DPROG_TIME=$($(U_$4)_PROG_TIME) \
-		-DERASE_TIME=$($(U_$4)_ERASE_TIME) \
-		-DBLOCK_SIZE=$($(U_$4)_$(U_$3)_BLOCK_SIZE) \
-		-o$$@)
-endef
-
 # p26 read/prog size bench rule
 #
 # $1 - target
@@ -103,25 +74,20 @@ endef
 # $7 - read/prog sizes
 #
 define BENCH_P26_T_PS_RULE
-$(foreach ps, $(subst $(,), ,$(or $7,$(P26_T_PAGE_SIZES))), \
-	$(eval $(call BENCH_P26_T_PS_PS_RULE,$\
-		$(1:.csv=.ps_$(ps).csv),$\
-		$2,$\
-		$3,$\
-		$4,$\
-		$5,$\
-		$6,$\
-		$(ps))))
-
-$1: $(foreach ps, $(subst $(,), ,$(or $7,$(P26_T_PAGE_SIZES))), \
-		$(patsubst %.csv,%.ps_$(ps).csv,$1))
-	$$(strip ./scripts/csv.py $$^ \
-		-fbench_readed \
-		-fbench_proged \
-		-fbench_erased \
-		-fbench_creaded \
-		-fbench_cproged \
-		-fbench_cerased \
+$1: $(BENCH_$(U_$3)_RUNNER)
+	$$(strip ./scripts/bench.py -R$$< -B $2 \
+		$(BENCHFLAGS) \
+		-DDISK_SIZE=$(or $5,$(DISK_SIZE)) \
+		-DSIZE=$(or $6,$(P26_T_SIZE)) \
+		-DCHUNK=$(P26_T_CHUNK) \
+		-DSIMTIME=$(P26_T_SIMTIME) \
+		-DFS=$(N_$3) \
+		-DPAGE_SIZE=$(or $7,$(P26_T_PAGE_SIZES)) \
+		-DERASE_SIZE=$($(U_$4)_ERASE_SIZE) \
+		-DREAD_TIME=$($(U_$4)_READ_TIME) \
+		-DPROG_TIME=$($(U_$4)_PROG_TIME) \
+		-DERASE_TIME=$($(U_$4)_ERASE_TIME) \
+		-DBLOCK_SIZE=$($(U_$4)_$(U_$3)_BLOCK_SIZE) \
 		-o$$@)
 endef
 

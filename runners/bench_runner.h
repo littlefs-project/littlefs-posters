@@ -155,9 +155,20 @@ size_t bench_heap(void);
 // common implicit defines
 #define BENCH_IMPLICIT_DEFINES \
     /*           name                value (overridable)                   */ \
+    /* note FS must be explicitly defined to be included in output.csv,    */ \
+    /* hacky, I know... TODO BENCH_EXPLICIT_DEFINES?                       */ \
+    BENCH_DEFINE(FS,                 0                                      ) \
     BENCH_DEFINE(READ_SIZE,          (PAGE_SIZE) ? PAGE_SIZE : 1            ) \
     BENCH_DEFINE(PROG_SIZE,          (PAGE_SIZE) ? PAGE_SIZE : 1            ) \
     BENCH_DEFINE(BLOCK_SIZE,         4096                                   ) \
+    /* optional, overrides both READ_SIZE and PROG_SIZE                    */ \
+    BENCH_DEFINE(PAGE_SIZE,          0                                      ) \
+    /* default cache size, this doesn't necessarily need to be limited by  */ \
+    /* read/prog, but doing so levels the playing field                    */ \
+    BENCH_DEFINE(CACHE_SIZE,         LFS3_MAX(                                \
+                                        32,                                   \
+                                        LFS3_MAX(READ_SIZE, PROG_SIZE))     ) \
+    /* total disk size                                                     */ \
     BENCH_DEFINE(DISK_SIZE,          8*1024*1024                            ) \
     BENCH_DEFINE(BLOCK_COUNT,        DISK_SIZE/BLOCK_SIZE                   ) \
     /* ERASE_SIZE is just informative                                      */ \
@@ -183,18 +194,12 @@ size_t bench_heap(void);
 // littlefs3 specific implicit defines
 #ifdef LFS3
 #define BENCH_LFS3_DEFINES \
-    BENCH_DEFINE(FS,                 LFS3_IFDEF_BMAP(3, 30)                 ) \
-    BENCH_DEFINE(PAGE_SIZE,          0                                      ) \
-    BENCH_DEFINE(CACHE_SIZE,         0                                      ) \
     BENCH_DEFINE(BLOCK_RECYCLES,     1000                                   ) \
-    /* NOTE this was expanded to 32 to match littlefs2, see v2's cfg       */ \
-    BENCH_DEFINE(RCACHE_SIZE,        LFS3_MAX(32, READ_SIZE)                ) \
-    BENCH_DEFINE(PCACHE_SIZE,        LFS3_MAX(32, PROG_SIZE)                ) \
-    /* NOTE this max is not necessary, but levels the playing field        */ \
-    /* vs littlefs v2 (was 16)                                             */ \
-    BENCH_DEFINE(FILE_CACHE_SIZE,    LFS3_MAX(                                \
-                                        32,                                   \
-                                        LFS3_MAX(READ_SIZE, PROG_SIZE))     ) \
+    /* NOTE this was expanded to match littlefs2                           */ \
+    BENCH_DEFINE(RCACHE_SIZE,        LFS3_MAX(CACHE_SIZE, READ_SIZE)        ) \
+    BENCH_DEFINE(PCACHE_SIZE,        LFS3_MAX(CACHE_SIZE, PROG_SIZE)        ) \
+    /* NOTE this was expanded to match littlefs2                           */ \
+    BENCH_DEFINE(FILE_CACHE_SIZE,    CACHE_SIZE                             ) \
     BENCH_DEFINE(LOOKAHEAD_SIZE,     16                                     ) \
     BENCH_DEFINE(TREEDIFF_SIZE,      16                                     ) \
     BENCH_DEFINE(GC_FLAGS,           0                                      ) \
@@ -214,14 +219,14 @@ size_t bench_heap(void);
 #ifdef LFS2
 #define BENCH_LFS2_DEFINES \
     /*           name                value (overridable)                   */ \
-    BENCH_DEFINE(FS,                 2                                      ) \
-    BENCH_DEFINE(PAGE_SIZE,          0                                      ) \
     BENCH_DEFINE(BLOCK_CYCLES,       1000                                   ) \
-    /* NOTE this is necessary for inline files to not explode in           */ \
-    /* many testing                                                        */ \
-    BENCH_DEFINE(CACHE_SIZE,         LFS3_MAX(                                \
-                                        32,                                   \
-                                        LFS3_MAX(READ_SIZE, PROG_SIZE))     ) \
+    BENCH_DEFINE(LCACHE_SIZE,        LFS3_MIN(                                \
+                                        LFS3_MAX(                             \
+                                            CACHE_SIZE,                       \
+                                            LFS3_MAX(                         \
+                                                READ_SIZE,                    \
+                                                PROG_SIZE)),                  \
+                                        BLOCK_SIZE)                         ) \
     BENCH_DEFINE(LOOKAHEAD_SIZE,     16                                     ) \
     BENCH_DEFINE(COMPACT_THRESH,     0                                      ) \
     BENCH_DEFINE(METADATA_MAX,       0                                      ) \
@@ -234,18 +239,18 @@ size_t bench_heap(void);
 #ifdef SPIFFS
 #define BENCH_SPIFFS_DEFINES \
     /*           name                value (overridable)                   */ \
-    BENCH_DEFINE(FS,                 4                                      ) \
-    BENCH_DEFINE(PAGE_SIZE,          LFS3_MAX(PROG_SIZE, 256)               ) \
+    BENCH_DEFINE(SPAGE_SIZE,         LFS3_MAX(PROG_SIZE, 256)               ) \
     BENCH_DEFINE(FD_COUNT,           1                                      ) \
     BENCH_DEFINE(FD_SIZE,            FD_COUNT*sizeof(spiffs_fd)             ) \
-    BENCH_DEFINE(CACHE_SIZE,         0                                      ) \
-    /* spiffs's page cache is different from littlefs's cache,             */ \
-    /* let's default to 2 pages to roughly match littlefs                  */ \
-    BENCH_DEFINE(PAGECACHE_COUNT,    2                                      ) \
-    BENCH_DEFINE(PAGECACHE_SIZE,     sizeof(spiffs_cache)                     \
-                                        + PAGECACHE_COUNT                     \
+    /* spiffs's page cache is different from littlefs's cache, let's       */ \
+    /* default to max(2, 3*cache) pages to roughly match littlefs          */ \
+    BENCH_DEFINE(SCACHE_COUNT,       LFS3_MAX(                                \
+                                        2,                                    \
+                                        (3*CACHE_SIZE)/SPAGE_SIZE)          ) \
+    BENCH_DEFINE(SCACHE_SIZE,        sizeof(spiffs_cache)                     \
+                                        + SCACHE_COUNT                        \
                                             * (sizeof(spiffs_cache_page)      \
-                                                + PAGE_SIZE)                )
+                                                + SPAGE_SIZE)               )
 #else
 #define BENCH_SPIFFS_DEFINES
 #endif
@@ -254,14 +259,14 @@ size_t bench_heap(void);
 #ifdef YAFFS2
 #define BENCH_YAFFS2_DEFINES \
     /*           name                value (overridable)                   */ \
-    BENCH_DEFINE(FS,                 5                                      ) \
     /* this is limited by struct yaffs_obj_hdr                             */ \
-    BENCH_DEFINE(PAGE_SIZE,          LFS3_MAX(PROG_SIZE, 512)               ) \
-    BENCH_DEFINE(CACHE_SIZE,         0                                      ) \
+    BENCH_DEFINE(YPAGE_SIZE,         LFS3_MAX(PROG_SIZE, 512)               ) \
     BENCH_DEFINE(RESERVED_BLOCKS,    5                                      ) \
-    /* yaffs2's page cache is different from littlefs's cache,             */ \
-    /* let's default to 2 pages to roughly match littlefs                  */ \
-    BENCH_DEFINE(PAGECACHE_COUNT,    2                                      ) \
+    /* yaffs2's page cache is different from littlefs's cache, let's       */ \
+    /* default to max(2, 3*cache) pages to roughly match littlefs          */ \
+    BENCH_DEFINE(YCACHE_COUNT,       LFS3_MAX(                                \
+                                        2,                                    \
+                                        (3*CACHE_SIZE)/YPAGE_SIZE)          ) \
     BENCH_DEFINE(REFRESH_PERIOD,     1000                                   )
 #else
 #define BENCH_YAFFS2_DEFINES
@@ -357,15 +362,15 @@ struct bench_cfg {
 // littlefs2 cfg struct fields
 #ifdef LFS2
 #define BENCH_LFS2_CFG \
-    .read_size          = READ_SIZE,                        \
-    .prog_size          = PROG_SIZE,                        \
-    .block_size         = BLOCK_SIZE,                       \
-    .block_count        = BLOCK_COUNT,                      \
-    .block_cycles       = BLOCK_CYCLES,                     \
-    .cache_size         = LFS3_MIN(CACHE_SIZE, BLOCK_SIZE), \
-    .lookahead_size     = LOOKAHEAD_SIZE,                   \
-    .compact_thresh     = COMPACT_THRESH,                   \
-    .metadata_max       = METADATA_MAX,                     \
+    .read_size          = READ_SIZE,            \
+    .prog_size          = PROG_SIZE,            \
+    .block_size         = BLOCK_SIZE,           \
+    .block_count        = BLOCK_COUNT,          \
+    .block_cycles       = BLOCK_CYCLES,         \
+    .cache_size         = LCACHE_SIZE,          \
+    .lookahead_size     = LOOKAHEAD_SIZE,       \
+    .compact_thresh     = COMPACT_THRESH,       \
+    .metadata_max       = METADATA_MAX,         \
     .inline_max         = INLINE_MAX,
 #endif
 
@@ -376,7 +381,7 @@ struct bench_cfg {
     .phys_addr          = 0,                        \
     .phys_erase_block   = BLOCK_SIZE,               \
     .log_block_size     = BLOCK_SIZE,               \
-    .log_page_size      = PAGE_SIZE,
+    .log_page_size      = SPAGE_SIZE,
 #endif
 
 // yaffs2 cfg struct fields
@@ -384,13 +389,13 @@ struct bench_cfg {
 #define BENCH_YAFFS2_CFG \
     .name                   = "/",                      \
     .inband_tags            = true,                     \
-    .total_bytes_per_chunk  = PAGE_SIZE,                \
-    .chunks_per_block       = BLOCK_SIZE / PAGE_SIZE,   \
+    .total_bytes_per_chunk  = YPAGE_SIZE,               \
+    .chunks_per_block       = BLOCK_SIZE / YPAGE_SIZE,  \
     .spare_bytes_per_chunk  = 0,                        \
     .start_block            = 0,                        \
     .end_block              = BLOCK_COUNT-1,            \
     .n_reserved_blocks      = RESERVED_BLOCKS,          \
-    .n_caches               = PAGECACHE_COUNT,          \
+    .n_caches               = YCACHE_COUNT,             \
     .cache_bypass_aligned   = false,                    \
     .use_nand_ecc           = true, /* fake ecc */      \
     .tags_9bytes            = false,                    \

@@ -34,18 +34,18 @@ code = '''
     #elif defined(SPIFFS)
     spiffs spiffs;
     spiffs.user_data = CFG;
-    uint8_t work_buffer[2*PAGE_SIZE];
+    uint8_t work_buffer[2*SPAGE_SIZE];
     uint8_t fd_buffer[FD_SIZE];
-    uint8_t pagecache_buffer[PAGECACHE_SIZE];
+    uint8_t scache_buffer[SCACHE_SIZE];
     // yes we need this mount
     SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
             fd_buffer, FD_SIZE,
-            pagecache_buffer, PAGECACHE_SIZE,
+            scache_buffer, SCACHE_SIZE,
             NULL) => SPIFFS_ERR_NOT_A_FS;
     SPIFFS_format(&spiffs) => 0;
     SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
             fd_buffer, FD_SIZE,
-            pagecache_buffer, PAGECACHE_SIZE,
+            scache_buffer, SCACHE_SIZE,
             NULL) => 0;
     #elif defined(YAFFS2)
     // note this implicitly zeros yaffs_dev
@@ -184,18 +184,18 @@ code = '''
     #elif defined(SPIFFS)
     spiffs spiffs;
     spiffs.user_data = CFG;
-    uint8_t work_buffer[2*PAGE_SIZE];
+    uint8_t work_buffer[2*SPAGE_SIZE];
     uint8_t fd_buffer[FD_SIZE];
-    uint8_t pagecache_buffer[PAGECACHE_SIZE];
+    uint8_t scache_buffer[SCACHE_SIZE];
     // yes we need this mount
     SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
             fd_buffer, FD_SIZE,
-            pagecache_buffer, PAGECACHE_SIZE,
+            scache_buffer, SCACHE_SIZE,
             NULL) => SPIFFS_ERR_NOT_A_FS;
     SPIFFS_format(&spiffs) => 0;
     SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
             fd_buffer, FD_SIZE,
-            pagecache_buffer, PAGECACHE_SIZE,
+            scache_buffer, SCACHE_SIZE,
             NULL) => 0;
     #elif defined(YAFFS2)
     // note this implicitly zeros yaffs_dev
@@ -358,18 +358,18 @@ code = '''
     #elif defined(SPIFFS)
     spiffs spiffs;
     spiffs.user_data = CFG;
-    uint8_t work_buffer[2*PAGE_SIZE];
+    uint8_t work_buffer[2*SPAGE_SIZE];
     uint8_t fd_buffer[FD_SIZE];
-    uint8_t pagecache_buffer[PAGECACHE_SIZE];
+    uint8_t scache_buffer[SCACHE_SIZE];
     // yes we need this mount
     SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
             fd_buffer, FD_SIZE,
-            pagecache_buffer, PAGECACHE_SIZE,
+            scache_buffer, SCACHE_SIZE,
             NULL) => SPIFFS_ERR_NOT_A_FS;
     SPIFFS_format(&spiffs) => 0;
     SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
             fd_buffer, FD_SIZE,
-            pagecache_buffer, PAGECACHE_SIZE,
+            scache_buffer, SCACHE_SIZE,
             NULL) => 0;
     #elif defined(YAFFS2)
     // note this implicitly zeros yaffs_dev
@@ -493,18 +493,18 @@ code = '''
     #elif defined(SPIFFS)
     spiffs spiffs;
     spiffs.user_data = CFG;
-    uint8_t work_buffer[2*PAGE_SIZE];
+    uint8_t work_buffer[2*SPAGE_SIZE];
     uint8_t fd_buffer[FD_SIZE];
-    uint8_t pagecache_buffer[PAGECACHE_SIZE];
+    uint8_t scache_buffer[SCACHE_SIZE];
     // yes we need this mount
     SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
             fd_buffer, FD_SIZE,
-            pagecache_buffer, PAGECACHE_SIZE,
+            scache_buffer, SCACHE_SIZE,
             NULL) => SPIFFS_ERR_NOT_A_FS;
     SPIFFS_format(&spiffs) => 0;
     SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
             fd_buffer, FD_SIZE,
-            pagecache_buffer, PAGECACHE_SIZE,
+            scache_buffer, SCACHE_SIZE,
             NULL) => 0;
     #elif defined(YAFFS2)
     // note this implicitly zeros yaffs_dev
