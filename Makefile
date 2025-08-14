@@ -1148,7 +1148,7 @@ $(RESULTSDIR)/bench_%.tsim.csv: $(RESULTSDIR)/bench_%.csv
 define BENCH_P26_RAM_RULE
 $1: $(BENCH_$(U_$3)_RUNNER) $2
 	-$$(strip ./scripts/csv.py \
-		<(./scripts/csv.py $2 \
+		<(./scripts/csv.py $$(wordlist 2,$$(words $$^),$$^) \
 			-fn \
 			-fbench_readed \
 			-fbench_proged \
