@@ -11,7 +11,10 @@ defines.CHUNK = 32
 defines.SEED = 42
 
 # simulated time, in nanoseconds, to run the test
-defines.SIMTIME = '60000000000ULL' # 1 minute
+defines.SIM_TIME = '60000000000ULL' # 1 minute
+# simulation size in bytes
+defines.SIM_SIZE = 0
+
 
 # include common bench helpers
 code = '''
@@ -21,6 +24,9 @@ code = '''
 
 [cases.bench_p26_wt_linear]
 code = '''
+    // ok, one of these needs to be non-zero
+    LFS3_ASSERT(SIM_TIME > 0 || SIM_SIZE > 0);
+
     #if defined(LFS3)
     lfs3_t lfs3;
     lfs3_format(&lfs3, LFS3_F_RDWR, CFG) => 0;
@@ -99,24 +105,10 @@ code = '''
     #endif
     lfs3_off_t size = 0;
     uint64_t written = 0;
-    while (bench_helpers_simtime(CFG) < (uint64_t)SIMTIME) {
-        // write to the file
-        uint8_t wbuf[CHUNK];
-        for (lfs3_size_t j = 0; j < CHUNK; j++) {
-            wbuf[j] = 'a' + (BENCH_PRNG(&prng) % 26);
-        }
-        #if defined(LFS3)
-        lfs3_file_write(&lfs3, &file, wbuf, CHUNK) => CHUNK;
-        #elif defined(LFS2)
-        lfs2_file_write(&lfs2, &file, wbuf, CHUNK) => CHUNK;
-        #elif defined(SPIFFS)
-        SPIFFS_write(&spiffs, fd, wbuf, CHUNK) => CHUNK;
-        #elif defined(YAFFS2)
-        yaffs_write(fd, wbuf, CHUNK) => CHUNK;
-        #endif
-        size += CHUNK;
-        written += CHUNK;
-
+    while (!(SIM_SIZE
+                && written >= (uint64_t)SIM_SIZE)
+            && !(SIM_TIME
+                && bench_helpers_simtime(CFG) >= (uint64_t)SIM_TIME)) {
         // arguably we should just rewind and continue writing to the
         // front of the file when we hit the end, but this overly
         // penalizes littlefs2, so instead we truncate
@@ -137,8 +129,25 @@ code = '''
             size = 0;
         }
 
+        // write to the file
+        uint8_t wbuf[CHUNK];
+        for (lfs3_size_t j = 0; j < CHUNK; j++) {
+            wbuf[j] = 'a' + (BENCH_PRNG(&prng) % 26);
+        }
+        #if defined(LFS3)
+        lfs3_file_write(&lfs3, &file, wbuf, CHUNK) => CHUNK;
+        #elif defined(LFS2)
+        lfs2_file_write(&lfs2, &file, wbuf, CHUNK) => CHUNK;
+        #elif defined(SPIFFS)
+        SPIFFS_write(&spiffs, fd, wbuf, CHUNK) => CHUNK;
+        #elif defined(YAFFS2)
+        yaffs_write(fd, wbuf, CHUNK) => CHUNK;
+        #endif
+        size += CHUNK;
+        written += CHUNK;
+
         // bail if we get stuck
-        if (bench_helpers_simstuck(CFG, written)) {
+        if (SIM_TIME && bench_helpers_simstuck(CFG, written)) {
             return;
         }
     }
@@ -189,6 +198,9 @@ code = '''
 
 [cases.bench_p26_wt_random]
 code = '''
+    // ok, one of these needs to be non-zero
+    LFS3_ASSERT(SIM_TIME > 0 || SIM_SIZE > 0);
+
     #if defined(LFS3)
     lfs3_t lfs3;
     lfs3_format(&lfs3, LFS3_F_RDWR, CFG) => 0;
@@ -267,7 +279,10 @@ code = '''
     #endif
     lfs3_off_t size = 0;
     uint64_t written = 0;
-    while (bench_helpers_simtime(CFG) < (uint64_t)SIMTIME) {
+    while (!(SIM_SIZE
+                && written >= (uint64_t)SIM_SIZE)
+            && !(SIM_TIME
+                && bench_helpers_simtime(CFG) >= (uint64_t)SIM_TIME)) {
         // seek to a random location
         lfs3_off_t pos = BENCH_PRNG(&prng) % SIZE;
         #if defined(LFS3)
@@ -306,7 +321,7 @@ code = '''
         size = lfs3_max(size, pos + CHUNK);
 
         // bail if we get stuck
-        if (bench_helpers_simstuck(CFG, written)) {
+        if (SIM_TIME && bench_helpers_simstuck(CFG, written)) {
             return;
         }
     }
@@ -357,11 +372,18 @@ code = '''
 
 [cases.bench_p26_wt_many]
 if = [
-    # unfortunately the internal linked-list in yaffs2 scales
-    # O(n), which makes this difficult to benchmark
-    'BENCH_IFDEF_YAFFS2(SIZE <= 1024*1024, true)',
+    # spiffs simply doesn't scale well enough to create this many files
+    'BENCH_IFDEF_SPIFFS(SIZE <= 128*1024, true)',
+    # and surprisingly this was an issue for yaffs2 as well! but not on
+    # disk! the internal RAM-backed linked-list of on-disk files grows
+    # O(n), we aren't benchmarking this but it becomes a problem for
+    # actually running this bench
+    'BENCH_IFDEF_YAFFS2(SIZE <= 128*1024, true)',
 ]
 code = '''
+    // ok, one of these needs to be non-zero
+    LFS3_ASSERT(SIM_TIME > 0 || SIM_SIZE > 0);
+
     #if defined(LFS3)
     lfs3_t lfs3;
     lfs3_format(&lfs3, LFS3_F_RDWR, CFG) => 0;
@@ -426,7 +448,10 @@ code = '''
     #ifdef LFS2
     int err;
     #endif
-    while (bench_helpers_simtime(CFG) < (uint64_t)SIMTIME) {
+    while (!(SIM_SIZE
+                && written >= (uint64_t)SIM_SIZE)
+            && !(SIM_TIME
+                && bench_helpers_simtime(CFG) >= (uint64_t)SIM_TIME)) {
         // choose a random filename
         lfs3_off_t pos = BENCH_PRNG(&prng) % ((SIZE+(CHUNK-1))/CHUNK);
         char name[256];
@@ -476,7 +501,7 @@ code = '''
         written += CHUNK;
 
         // bail if we get stuck
-        if (bench_helpers_simstuck(CFG, written)) {
+        if (SIM_TIME && bench_helpers_simstuck(CFG, written)) {
             return;
         }
     }
@@ -528,6 +553,9 @@ failed:;
 
 [cases.bench_p26_wt_logging]
 code = '''
+    // ok, one of these needs to be non-zero
+    LFS3_ASSERT(SIM_TIME > 0 || SIM_SIZE > 0);
+
     #if defined(LFS3)
     lfs3_t lfs3;
     lfs3_format(&lfs3, LFS3_F_RDWR, CFG) => 0;
@@ -606,7 +634,10 @@ code = '''
     assert(fd >= 0);
     #endif
     uint64_t written = 0;
-    while (bench_helpers_simtime(CFG) < (uint64_t)SIMTIME) {
+    while (!(SIM_SIZE
+                && written >= (uint64_t)SIM_SIZE)
+            && !(SIM_TIME
+                && bench_helpers_simtime(CFG) >= (uint64_t)SIM_TIME)) {
         // append to log
         uint8_t wbuf[CHUNK];
         for (lfs3_size_t j = 0; j < CHUNK; j++) {
@@ -686,7 +717,7 @@ code = '''
         written += CHUNK;
 
         // bail if we get stuck
-        if (bench_helpers_simstuck(CFG, written)) {
+        if (SIM_TIME && bench_helpers_simstuck(CFG, written)) {
             return;
         }
     }

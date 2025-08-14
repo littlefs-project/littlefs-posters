@@ -4,7 +4,7 @@ RESULTSDIR ?= results_1M
 PLOTSDIR ?= plots_1M
 
 
-# and give us more space for activities
+# give us more space for activities
 DISK_SIZE ?= 268435456 # 256 MiB
 
 # increase bench sizes to 1 MiB
@@ -15,6 +15,11 @@ else
 P26_LITMUS_STEP ?= 256 # was 32, prioritizing speed over accuracy
 endif
 P26_T_SIZES ?= 32768,65536,131072,262144,524288,1048576
+ifdef PRECISE
+P26_T_SIM_SIZE ?= 16777216 # 4*1MiB
+else
+P26_T_SIM_SIZE ?= 4194304 # 4*1MiB
+endif
 
 
 # default Makefile does most of the work

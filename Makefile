@@ -34,11 +34,15 @@ P26_T_SIZES ?= 1024,2048,4096,8192,16384,32768
 P26_T_SIZE ?= $(lastword $(subst $(,), ,$(P26_T_SIZES)))
 # chunks size, i.e. size of writes/reads, for throughput testing?
 P26_T_CHUNK ?= 32
-# simulated time, in nanoseconds, for throughput testing?
+ifndef P26_T_SIM_TIME
+ifndef P26_T_SIM_SIZE
+# simulation size in bytes for throughput testing
 ifdef PRECISE
-P26_T_SIMTIME ?= 600000000000 # 10 minutes
+P26_T_SIM_SIZE ?= 524288 # 16*32KiB
 else
-P26_T_SIMTIME ?= 60000000000 # 1 minute
+P26_T_SIM_SIZE ?= 131072 # 4*32KiB
+endif
+endif
 endif
 
 
@@ -1039,7 +1043,8 @@ $1: $$(BENCH_$(U_$3)_RUNNER)
 		$(BENCHFLAGS) \
 		-DSIZE=$(P26_T_SIZES) \
 		-DCHUNK=$(P26_T_CHUNK) \
-		-DSIMTIME=$(P26_T_SIMTIME) \
+		-DSIM_TIME=$(or $(P26_T_SIM_TIME),0) \
+		-DSIM_SIZE=$(or $(P26_T_SIM_SIZE),0) \
 		-DFS=$(N_$3) \
 		-DREAD_SIZE=$$($(U_$4)_READ_SIZE) \
 		-DPROG_SIZE=$$($(U_$4)_PROG_SIZE) \

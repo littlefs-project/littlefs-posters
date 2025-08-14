@@ -11,7 +11,10 @@ defines.CHUNK = 32
 defines.SEED = 42
 
 # simulated time, in nanoseconds, to run the test
-defines.SIMTIME = '60000000000ULL' # 1 minute
+defines.SIM_TIME = '60000000000ULL' # 1 minute
+# simulation size in bytes
+defines.SIM_SIZE = 0
+
 
 # include common bench helpers
 code = '''
@@ -21,6 +24,9 @@ code = '''
 
 [cases.bench_p26_rt_linear]
 code = '''
+    // ok, one of these needs to be non-zero
+    LFS3_ASSERT(SIM_TIME > 0 || SIM_SIZE > 0);
+
     #if defined(LFS3)
     lfs3_t lfs3;
     lfs3_format(&lfs3, LFS3_F_RDWR, CFG) => 0;
@@ -138,7 +144,10 @@ code = '''
     #endif
     lfs3_off_t size = 0;
     uint64_t readed = 0;
-    while (bench_helpers_simtime(CFG) < (uint64_t)SIMTIME) {
+    while (!(SIM_SIZE
+                && readed >= (uint64_t)SIM_SIZE)
+            && !(SIM_TIME
+                && bench_helpers_simtime(CFG) >= (uint64_t)SIM_TIME)) {
         // read from the file
         uint8_t rbuf[CHUNK];
         #if defined(LFS3)
@@ -168,7 +177,7 @@ code = '''
         }
 
         // bail if we get stuck
-        if (bench_helpers_simstuck(CFG, readed)) {
+        if (SIM_TIME && bench_helpers_simstuck(CFG, readed)) {
             return;
         }
     }
@@ -203,6 +212,9 @@ code = '''
 
 [cases.bench_p26_rt_random]
 code = '''
+    // ok, one of these needs to be non-zero
+    LFS3_ASSERT(SIM_TIME > 0 || SIM_SIZE > 0);
+
     #if defined(LFS3)
     lfs3_t lfs3;
     lfs3_format(&lfs3, LFS3_F_RDWR, CFG) => 0;
@@ -319,7 +331,10 @@ code = '''
     fd = yaffs_open("bench_random", O_RDONLY, 0777);
     #endif
     uint64_t readed = 0;
-    while (bench_helpers_simtime(CFG) < (uint64_t)SIMTIME) {
+    while (!(SIM_SIZE
+                && readed >= (uint64_t)SIM_SIZE)
+            && !(SIM_TIME
+                && bench_helpers_simtime(CFG) >= (uint64_t)SIM_TIME)) {
         // seek to a random location
         lfs3_off_t pos = BENCH_PRNG(&prng) % SIZE;
         #if defined(LFS3)
@@ -350,7 +365,7 @@ code = '''
         readed += CHUNK;
 
         // bail if we get stuck
-        if (bench_helpers_simstuck(CFG, readed)) {
+        if (SIM_TIME && bench_helpers_simstuck(CFG, readed)) {
             return;
         }
     }
@@ -386,15 +401,17 @@ code = '''
 [cases.bench_p26_rt_many]
 if = [
     # spiffs simply doesn't scale well enough to create this many files
-    # before we start reading
-    'BENCH_IFDEF_SPIFFS(SIZE < 128*1024, true)',
+    'BENCH_IFDEF_SPIFFS(SIZE <= 128*1024, true)',
     # and surprisingly this was an issue for yaffs2 as well! but not on
     # disk! the internal RAM-backed linked-list of on-disk files grows
     # O(n), we aren't benchmarking this but it becomes a problem for
     # actually running this bench
-    'BENCH_IFDEF_YAFFS2(SIZE < 128*1024, true)',
+    'BENCH_IFDEF_YAFFS2(SIZE <= 128*1024, true)',
 ]
 code = '''
+    // ok, one of these needs to be non-zero
+    LFS3_ASSERT(SIM_TIME > 0 || SIM_SIZE > 0);
+
     #if defined(LFS3)
     lfs3_t lfs3;
     lfs3_format(&lfs3, LFS3_F_RDWR, CFG) => 0;
@@ -508,7 +525,10 @@ code = '''
     // open the files
     BENCH_START("read", 0);
     uint64_t readed = 0;
-    while (bench_helpers_simtime(CFG) < (uint64_t)SIMTIME) {
+    while (!(SIM_SIZE
+                && readed >= (uint64_t)SIM_SIZE)
+            && !(SIM_TIME
+                && bench_helpers_simtime(CFG) >= (uint64_t)SIM_TIME)) {
         // choose a random filename
         lfs3_off_t pos = BENCH_PRNG(&prng) % ((SIZE+(CHUNK-1))/CHUNK);
         char name[256];
@@ -544,7 +564,7 @@ code = '''
         readed += CHUNK;
 
         // bail if we get stuck
-        if (bench_helpers_simstuck(CFG, readed)) {
+        if (SIM_TIME && bench_helpers_simstuck(CFG, readed)) {
             return;
         }
     }

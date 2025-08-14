@@ -78,7 +78,7 @@ $1: $(BENCH_$(U_$3)_RUNNER)
 		-DDISK_SIZE=$(or $5,$(DISK_SIZE)) \
 		-DSIZE=$(or $6,$(P26_T_SIZE)) \
 		-DCHUNK=$(P26_T_CHUNK) \
-		-DSIMTIME=$(P26_T_SIMTIME) \
+		-DSIM_TIME=$(P26_T_SIM_TIME) \
 		-DFS=$(N_$3) \
 		-DPAGE_SIZE=$(or $7,$(P26_T_PAGE_SIZES)) \
 		-DERASE_SIZE=$($(U_$4)_ERASE_SIZE) \
