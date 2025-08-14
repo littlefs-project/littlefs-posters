@@ -69,6 +69,7 @@ bench-p26-ds-logging: \
 # $5 - disk sizes
 #
 define BENCH_P26_T_DS_RULE
+ifndef NO_BENCH
 $1: $(BENCH_$(U_$3)_RUNNER)
 	$$(strip ./scripts/bench.py -R$$< -B $2 \
 		$(BENCHFLAGS) \
@@ -85,6 +86,10 @@ $1: $(BENCH_$(U_$3)_RUNNER)
 		-DERASE_TIME=$($(U_$4)_ERASE_TIME) \
 		-DBLOCK_SIZE=$($(U_$4)_$(U_$3)_BLOCK_SIZE) \
 		-o$$@)
+else
+$1:
+	$$(warning NO_BENCH $$@)
+endif
 endef
 
 # p26 disk size bench rules

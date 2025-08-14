@@ -1008,6 +1008,7 @@ bench-p26-rt-many: \
 # $4 - sim type
 #
 define BENCH_P26_LITMUS_RULE
+ifndef NO_BENCH
 $1: $(BENCH_$(U_$3)_RUNNER)
 	$$(strip ./scripts/bench.py -R$$< -B $2 \
 		$(BENCHFLAGS) \
@@ -1024,6 +1025,10 @@ $1: $(BENCH_$(U_$3)_RUNNER)
 		-DERASE_TIME=$($(U_$4)_ERASE_TIME) \
 		-DBLOCK_SIZE=$($(U_$4)_$(U_$3)_BLOCK_SIZE) \
 		-o$$@)
+else
+$1:
+	$$(warning NO_BENCH $$@)
+endif
 endef
 
 $(foreach fs, $(BENCH_FSS),$\
@@ -1043,6 +1048,7 @@ $(foreach fs, $(BENCH_FSS),$\
 # $4 - sim type
 #
 define BENCH_P26_T_RULE
+ifndef NO_BENCH
 $1: $(BENCH_$(U_$3)_RUNNER)
 	$$(strip ./scripts/bench.py -R$$< -B $2 \
 		$(BENCHFLAGS) \
@@ -1059,6 +1065,10 @@ $1: $(BENCH_$(U_$3)_RUNNER)
 		-DERASE_TIME=$($(U_$4)_ERASE_TIME) \
 		-DBLOCK_SIZE=$($(U_$4)_$(U_$3)_BLOCK_SIZE) \
 		-o$$@)
+else
+$1:
+	$$(warning NO_BENCH $$@)
+endif
 endef
 
 # p26 write-throughput bench rules
@@ -1686,7 +1696,8 @@ $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		$(PLOTSDIR)/bench_p26_litmus_%.svg,$\
 		$(foreach fs, $(BENCH_FSS),$\
 			$(foreach sim, $(BENCH_SIMS),$\
-				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).sim.avg.csv $\
+				$(RESULTSDIR)/bench_p26_litmus_%$\
+					.$(fs).$(sim).sim.avg.csv $\
 				$(RESULTSDIR)/bench_p26_litmus_%$\
 					.$(fs).$(sim).sim.amor.avg.csv)),$\
 		"$$* file writes - simulated runtime",$\

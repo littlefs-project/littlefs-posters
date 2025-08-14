@@ -74,6 +74,7 @@ bench-p26-cs-logging: \
 # $7 - cache sizes
 #
 define BENCH_P26_T_CS_RULE
+ifndef NO_BENCH
 $1: $(BENCH_$(U_$3)_RUNNER)
 	$$(strip ./scripts/bench.py -R$$< -B $2 \
 		$(BENCHFLAGS) \
@@ -91,6 +92,10 @@ $1: $(BENCH_$(U_$3)_RUNNER)
 		-DBLOCK_SIZE=$($(U_$4)_$(U_$3)_BLOCK_SIZE) \
 		-DCACHE_SIZE=$(or $7,$(P26_T_$(U_$4)_CACHE_SIZES)) \
 		-o$$@)
+else
+$1:
+	$$(warning NO_BENCH $$@)
+endif
 endef
 
 # p26 cache size bench rules
