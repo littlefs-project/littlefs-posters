@@ -79,7 +79,8 @@ $1: $(BENCH_$(U_$3)_RUNNER)
 		-DDISK_SIZE=$(or $5,$(DISK_SIZE)) \
 		-DSIZE=$(or $6,$(P26_T_SIZE)) \
 		-DCHUNK=$(P26_T_CHUNK) \
-		-DSIM_TIME=$(P26_T_SIM_TIME) \
+		-DSIM_TIME=$(or $(P26_T_SIM_TIME),0) \
+		-DSIM_SIZE=$(or $(P26_T_SIM_SIZE),0) \
 		-DFS=$(N_$3) \
 		-DREAD_SIZE=$($(U_$4)_READ_SIZE) \
 		-DPROG_SIZE=$($(U_$4)_PROG_SIZE) \
