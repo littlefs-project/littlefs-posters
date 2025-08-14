@@ -74,8 +74,8 @@ bench-p26-cs-logging: \
 # $7 - cache sizes
 #
 define BENCH_P26_T_CS_RULE
-$1: $(BENCH_$(U_$3)_RUNNER)
-	$$(strip ./scripts/bench.py -R$$< -B $2 \
+$1: | $(BENCH_$(U_$3)_RUNNER)
+	$$(strip ./scripts/bench.py -R$$| -B $2 \
 		$(BENCHFLAGS) \
 		-DDISK_SIZE=$(or $5,$(DISK_SIZE)) \
 		-DSIZE=$(or $6,$(P26_T_SIZE)) \

@@ -1003,21 +1003,21 @@ bench-p26-rt-many: \
 # $4 - sim type
 #
 define BENCH_P26_LITMUS_RULE
-$1: $$(BENCH_$(U_$3)_RUNNER)
-	$$(strip ./scripts/bench.py -R$$< -B $2 \
+$1: | $(BENCH_$(U_$3)_RUNNER)
+	$$(strip ./scripts/bench.py -R$$| -B $2 \
 		$(BENCHFLAGS) \
 		-DSIZE=$(P26_LITMUS_SIZE) \
 		-DCHUNK=$(P26_LITMUS_CHUNK) \
 		-DSTEP=$(P26_LITMUS_STEP) \
 		-DSEED="range($(P26_LITMUS_SAMPLES))" \
 		-DFS=$(N_$3) \
-		-DREAD_SIZE=$$($(U_$4)_READ_SIZE) \
-		-DPROG_SIZE=$$($(U_$4)_PROG_SIZE) \
-		-DERASE_SIZE=$$($(U_$4)_ERASE_SIZE) \
-		-DREAD_TIME=$$($(U_$4)_READ_TIME) \
-		-DPROG_TIME=$$($(U_$4)_PROG_TIME) \
-		-DERASE_TIME=$$($(U_$4)_ERASE_TIME) \
-		-DBLOCK_SIZE=$$($(U_$4)_$(U_$3)_BLOCK_SIZE) \
+		-DREAD_SIZE=$($(U_$4)_READ_SIZE) \
+		-DPROG_SIZE=$($(U_$4)_PROG_SIZE) \
+		-DERASE_SIZE=$($(U_$4)_ERASE_SIZE) \
+		-DREAD_TIME=$($(U_$4)_READ_TIME) \
+		-DPROG_TIME=$($(U_$4)_PROG_TIME) \
+		-DERASE_TIME=$($(U_$4)_ERASE_TIME) \
+		-DBLOCK_SIZE=$($(U_$4)_$(U_$3)_BLOCK_SIZE) \
 		-o$$@)
 endef
 
@@ -1038,21 +1038,21 @@ $(foreach fs, $(BENCH_FSS),$\
 # $4 - sim type
 #
 define BENCH_P26_T_RULE
-$1: $$(BENCH_$(U_$3)_RUNNER)
-	$$(strip ./scripts/bench.py -R$$< -B $2 \
+$1: | $(BENCH_$(U_$3)_RUNNER)
+	$$(strip ./scripts/bench.py -R$$| -B $2 \
 		$(BENCHFLAGS) \
 		-DSIZE=$(P26_T_SIZES) \
 		-DCHUNK=$(P26_T_CHUNK) \
 		-DSIM_TIME=$(or $(P26_T_SIM_TIME),0) \
 		-DSIM_SIZE=$(or $(P26_T_SIM_SIZE),0) \
 		-DFS=$(N_$3) \
-		-DREAD_SIZE=$$($(U_$4)_READ_SIZE) \
-		-DPROG_SIZE=$$($(U_$4)_PROG_SIZE) \
-		-DERASE_SIZE=$$($(U_$4)_ERASE_SIZE) \
-		-DREAD_TIME=$$($(U_$4)_READ_TIME) \
-		-DPROG_TIME=$$($(U_$4)_PROG_TIME) \
-		-DERASE_TIME=$$($(U_$4)_ERASE_TIME) \
-		-DBLOCK_SIZE=$$($(U_$4)_$(U_$3)_BLOCK_SIZE) \
+		-DREAD_SIZE=$($(U_$4)_READ_SIZE) \
+		-DPROG_SIZE=$($(U_$4)_PROG_SIZE) \
+		-DERASE_SIZE=$($(U_$4)_ERASE_SIZE) \
+		-DREAD_TIME=$($(U_$4)_READ_TIME) \
+		-DPROG_TIME=$($(U_$4)_PROG_TIME) \
+		-DERASE_TIME=$($(U_$4)_ERASE_TIME) \
+		-DBLOCK_SIZE=$($(U_$4)_$(U_$3)_BLOCK_SIZE) \
 		-o$$@)
 endef
 
@@ -1131,9 +1131,9 @@ $(RESULTSDIR)/bench_%.tsim.csv: $(RESULTSDIR)/bench_%.csv
 # $3 - fs type/version
 #
 define BENCH_P26_RAM_RULE
-$1: $$(BENCH_$(U_$3)_RUNNER) $2
+$1: $2 | $(BENCH_$(U_$3)_RUNNER)
 	-$$(strip ./scripts/csv.py \
-		<(./scripts/csv.py $$(filter-out $$<,$$^) \
+		<(./scripts/csv.py $2 \
 			-fn \
 			-fbench_readed \
 			-fbench_proged \
@@ -1146,8 +1146,8 @@ $1: $$(BENCH_$(U_$3)_RUNNER) $2
 		-Bm=ram \
 		-fn \
 		-fbench_readed="bench_readed + $$$$( \
-			./scripts/data.py $(BENCH_$(U_$(fs))_RUNNER) -bfunction -o- \
-				| $(BENCH_$(U_$(fs))_FILTER) \
+			./scripts/data.py $$| -bfunction -o- \
+				| $(BENCH_$(U_$3)_FILTER) \
 				| ./scripts/csv.py - -fdata_size --total)" \
 		-fbench_proged=0 \
 		-fbench_erased=0 \

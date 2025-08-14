@@ -72,20 +72,20 @@ bench-p26-bs-logging: \
 # $7 - block sizes
 #
 define BENCH_P26_T_BS_RULE
-$1: $$(BENCH_$(U_$3)_RUNNER)
-	$$(strip ./scripts/bench.py -R$$< -B $2 \
+$1: | $(BENCH_$(U_$3)_RUNNER)
+	$$(strip ./scripts/bench.py -R$$| -B $2 \
 		$(BENCHFLAGS) \
 		-DDISK_SIZE=$(or $5,$(DISK_SIZE)) \
 		-DSIZE=$(or $6,$(P26_T_SIZE)) \
 		-DCHUNK=$(P26_T_CHUNK) \
 		-DSIM_TIME=$(P26_T_SIM_TIME) \
 		-DFS=$(N_$3) \
-		-DREAD_SIZE=$$($(U_$4)_READ_SIZE) \
-		-DPROG_SIZE=$$($(U_$4)_PROG_SIZE) \
-		-DERASE_SIZE=$$($(U_$4)_ERASE_SIZE) \
-		-DREAD_TIME=$$($(U_$4)_READ_TIME) \
-		-DPROG_TIME=$$($(U_$4)_PROG_TIME) \
-		-DERASE_TIME=$$($(U_$4)_ERASE_TIME) \
+		-DREAD_SIZE=$($(U_$4)_READ_SIZE) \
+		-DPROG_SIZE=$($(U_$4)_PROG_SIZE) \
+		-DERASE_SIZE=$($(U_$4)_ERASE_SIZE) \
+		-DREAD_TIME=$($(U_$4)_READ_TIME) \
+		-DPROG_TIME=$($(U_$4)_PROG_TIME) \
+		-DERASE_TIME=$($(U_$4)_ERASE_TIME) \
 		-DBLOCK_SIZE=$(or $7,$(P26_T_BLOCK_SIZES)) \
 		-o$$@)
 endef
