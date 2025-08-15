@@ -355,6 +355,7 @@ ifdef DEBUG
 CFLAGS += -O0
 else
 CFLAGS += -Os
+CFLAGS += -DNDEBUG
 endif
 ifdef TRACE
 CFLAGS += $(foreach fs,LFS LFS1 LFS2 LFS3,-D$(fs)_YES_TRACE)
