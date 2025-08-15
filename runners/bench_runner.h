@@ -181,7 +181,11 @@ size_t bench_heap(void);
     /*           name                value (overridable)                   */ \
     /* note FS must be explicitly defined to be included in output.csv,    */ \
     /* hacky, I know... TODO BENCH_EXPLICIT_DEFINES?                       */ \
-    BENCH_DEFINE(FS,                 0                                      ) \
+    BENCH_DEFINE(FS,                 BENCH_IFDEF_LFS3(                        \
+                                            LFS3_IFDEF_BMAP(3, 30),           \
+                                        BENCH_IFDEF_LFS2(2,                   \
+                                        BENCH_IFDEF_SPIFFS(4,                 \
+                                        BENCH_IFDEF_YAFFS2(5, 0))))         ) \
     BENCH_DEFINE(READ_SIZE,          (PAGE_SIZE) ? PAGE_SIZE : 1            ) \
     BENCH_DEFINE(PROG_SIZE,          (PAGE_SIZE) ? PAGE_SIZE : 1            ) \
     BENCH_DEFINE(BLOCK_SIZE,         4096                                   ) \
