@@ -41,9 +41,9 @@ void bench_helpers_simreset(const struct lfs3_cfg *cfg) {
 
 // is the current bench stuck? not making progress?
 bool bench_helpers_simstuck(const struct lfs3_cfg *cfg, uint64_t n) {
-    // ok if we've read/progged more than twice the runtime we're
+    // ok if we've read/progged more than 4x the runtime we're
     // definitely stuck, note these aren't even the same units
-    return (n > 2*bench_helpers_simtime(cfg));
+    return (n > 4*bench_helpers_simtime(cfg));
 }
 
 

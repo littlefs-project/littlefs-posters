@@ -177,7 +177,7 @@ code = '''
         }
 
         // bail if we get stuck
-        if (SIM_TIME && bench_helpers_simstuck(CFG, readed)) {
+        if (!SIM_SIZE && bench_helpers_simstuck(CFG, readed)) {
             return;
         }
     }
@@ -365,7 +365,7 @@ code = '''
         readed += CHUNK;
 
         // bail if we get stuck
-        if (SIM_TIME && bench_helpers_simstuck(CFG, readed)) {
+        if (!SIM_SIZE && bench_helpers_simstuck(CFG, readed)) {
             return;
         }
     }
@@ -400,13 +400,9 @@ code = '''
 
 [cases.bench_p26_rt_many]
 if = [
-    # spiffs simply doesn't scale well enough to create this many files
-    'BENCH_IFDEF_SPIFFS(SIZE <= 16*1024, true)',
-    # and surprisingly this was an issue for yaffs2 as well! but not on
-    # disk! the internal RAM-backed linked-list of on-disk files grows
-    # O(n), we aren't benchmarking this but it becomes a problem for
-    # actually running this bench
-    'BENCH_IFDEF_YAFFS2(SIZE <= 16*1024, true)',
+    # unfortunately the internal linked-list in yaffs2 scales
+    # O(n), which makes this difficult to benchmark
+    'BENCH_IFDEF_YAFFS2(SIZE <= 1024*1024, true)',
 ]
 code = '''
     // ok, one of these needs to be non-zero
@@ -564,7 +560,7 @@ code = '''
         readed += CHUNK;
 
         // bail if we get stuck
-        if (SIM_TIME && bench_helpers_simstuck(CFG, readed)) {
+        if (!SIM_SIZE && bench_helpers_simstuck(CFG, readed)) {
             return;
         }
     }
