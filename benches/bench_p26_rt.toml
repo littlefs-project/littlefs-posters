@@ -76,6 +76,9 @@ code = '''
     yaffs_sync("/") => 0;
     #endif
 
+    // reset our timer
+    bench_helpers_simreset(CFG);
+
     // create a file to read
     #if defined(LFS3)
     lfs3_file_t file;
@@ -126,9 +129,6 @@ code = '''
     }
     yaffs_close(fd) => 0;
     #endif
-
-    // reset our timer
-    bench_helpers_simreset(CFG);
 
     // open the file
     BENCH_START("read", 0);
@@ -264,6 +264,9 @@ code = '''
     yaffs_sync("/") => 0;
     #endif
 
+    // reset our timer
+    bench_helpers_simreset(CFG);
+
     // create a file to read
     #if defined(LFS3)
     lfs3_file_t file;
@@ -314,9 +317,6 @@ code = '''
     }
     yaffs_close(fd) => 0;
     #endif
-
-    // reset our timer
-    bench_helpers_simreset(CFG);
 
     // open the file
     BENCH_START("read", 0);
@@ -457,6 +457,9 @@ code = '''
     yaffs_sync("/") => 0;
     #endif
 
+    // reset our timer
+    bench_helpers_simreset(CFG);
+
     // create files to read
     #if defined(LFS3)
     for (lfs3_size_t i = 0; i < (SIZE+(CHUNK-1))/CHUNK; i++) {
@@ -514,9 +517,6 @@ code = '''
         yaffs_close(fd) => 0;
     }
     #endif
-
-    // reset our timer
-    bench_helpers_simreset(CFG);
 
     // open the files
     BENCH_START("read", 0);
