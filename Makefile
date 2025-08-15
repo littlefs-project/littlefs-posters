@@ -561,6 +561,8 @@ $(foreach fs, $(BENCH_FSS), \
 	$(eval -include $(BENCH_$(U_$(fs))_DEP)))
 .SUFFIXES:
 .SECONDARY:
+.PHONY: PHONY
+PHONY: ;
 , := ,
 
 
@@ -1088,6 +1090,53 @@ $(foreach fs, $(BENCH_FSS),$\
 				bench_p26_rt_$$*,$\
 				$(fs),$\
 				$(sim)))))
+
+## Quick summary of simtimes/simsizes to help debugging
+bench-%-simtime: PHONY
+	$(strip ./scripts/csv.py \
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(foreach csv, \
+						$(wildcard $(RESULTSDIR)/bench_$(subst -,_,$*)_*$\
+							.$(fs).$(sim).csv), \
+					<(./scripts/csv.py \
+						<(./scripts/csv.py $(csv) \
+							-fn \
+							-fbench_readed \
+							-fbench_proged \
+							-fbench_erased \
+							-Dbench_creaded='*' \
+							-Dbench_cproged='*' \
+							-Dbench_cerased='*' \
+							-o-) \
+						-bfs=$(fs) \
+						-bsim=$(sim) \
+						-bbench=$(patsubst $\
+							$(RESULTSDIR)/bench_$(subst -,_,$*)_%$\
+								.$(fs).$(sim).csv,%,$(csv)) \
+						-Dm=write,read \
+						-fminsimsize='min(n)' \
+						-fmaxsimsize='max(n)' \
+						-fminsimtime='min( \
+							(float(bench_readed)*float(READ_TIME) \
+								+ float(bench_proged)*float(PROG_TIME) \
+								+ float(bench_erased)*float(ERASE_TIME) \
+							) / 1.0e9)' \
+						-fmaxsimtime='max( \
+							(float(bench_readed)*float(READ_TIME) \
+								+ float(bench_proged)*float(PROG_TIME) \
+								+ float(bench_erased)*float(ERASE_TIME) \
+							) / 1.0e9)' \
+						-o-)))) \
+		-I \
+		-bfs \
+		-bsim \
+		-bbench \
+		-fminsimsize \
+		-fmaxsimsize \
+		-fminsimtime \
+		-fmaxsimtime \
+		-Q)
 
 
 # simulated/estimated results
