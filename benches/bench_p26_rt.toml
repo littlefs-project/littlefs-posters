@@ -90,6 +90,11 @@ code = '''
             wbuf[j] = 'a' + (BENCH_PRNG(&prng) % 26);
         }
         lfs3_file_write(&lfs3, &file, wbuf, CHUNK) => CHUNK;
+
+        // taking too long?
+        if (SIM_TIME && bench_helpers_simtime(CFG) >= (uint64_t)SIM_TIME) {
+            return;
+        }
     }
     lfs3_file_close(&lfs3, &file) => 0;
     #elif defined(LFS2)
@@ -102,6 +107,11 @@ code = '''
             wbuf[j] = 'a' + (BENCH_PRNG(&prng) % 26);
         }
         lfs2_file_write(&lfs2, &file, wbuf, CHUNK) => CHUNK;
+
+        // taking too long?
+        if (SIM_TIME && bench_helpers_simtime(CFG) >= (uint64_t)SIM_TIME) {
+            return;
+        }
     }
     lfs2_file_close(&lfs2, &file) => 0;
     #elif defined(SPIFFS)
@@ -114,6 +124,11 @@ code = '''
             wbuf[j] = 'a' + (BENCH_PRNG(&prng) % 26);
         }
         SPIFFS_write(&spiffs, fd, wbuf, CHUNK) => CHUNK;
+
+        // taking too long?
+        if (SIM_TIME && bench_helpers_simtime(CFG) >= (uint64_t)SIM_TIME) {
+            return;
+        }
     }
     SPIFFS_close(&spiffs, fd) => 0;
     #elif defined(YAFFS2)
@@ -126,9 +141,17 @@ code = '''
             wbuf[j] = 'a' + (BENCH_PRNG(&prng) % 26);
         }
         yaffs_write(fd, wbuf, CHUNK) => CHUNK;
+
+        // taking too long?
+        if (SIM_TIME && bench_helpers_simtime(CFG) >= (uint64_t)SIM_TIME) {
+            return;
+        }
     }
     yaffs_close(fd) => 0;
     #endif
+
+    // reset our timer
+    bench_helpers_simreset(CFG);
 
     // open the file
     BENCH_START("read", 0);
@@ -278,6 +301,11 @@ code = '''
             wbuf[j] = 'a' + (BENCH_PRNG(&prng) % 26);
         }
         lfs3_file_write(&lfs3, &file, wbuf, CHUNK) => CHUNK;
+
+        // taking too long?
+        if (SIM_TIME && bench_helpers_simtime(CFG) >= (uint64_t)SIM_TIME) {
+            return;
+        }
     }
     lfs3_file_close(&lfs3, &file) => 0;
     #elif defined(LFS2)
@@ -290,6 +318,11 @@ code = '''
             wbuf[j] = 'a' + (BENCH_PRNG(&prng) % 26);
         }
         lfs2_file_write(&lfs2, &file, wbuf, CHUNK) => CHUNK;
+
+        // taking too long?
+        if (SIM_TIME && bench_helpers_simtime(CFG) >= (uint64_t)SIM_TIME) {
+            return;
+        }
     }
     lfs2_file_close(&lfs2, &file) => 0;
     #elif defined(SPIFFS)
@@ -302,6 +335,11 @@ code = '''
             wbuf[j] = 'a' + (BENCH_PRNG(&prng) % 26);
         }
         SPIFFS_write(&spiffs, fd, wbuf, CHUNK) => CHUNK;
+
+        // taking too long?
+        if (SIM_TIME && bench_helpers_simtime(CFG) >= (uint64_t)SIM_TIME) {
+            return;
+        }
     }
     SPIFFS_close(&spiffs, fd) => 0;
     #elif defined(YAFFS2)
@@ -314,9 +352,17 @@ code = '''
             wbuf[j] = 'a' + (BENCH_PRNG(&prng) % 26);
         }
         yaffs_write(fd, wbuf, CHUNK) => CHUNK;
+
+        // taking too long?
+        if (SIM_TIME && bench_helpers_simtime(CFG) >= (uint64_t)SIM_TIME) {
+            return;
+        }
     }
     yaffs_close(fd) => 0;
     #endif
+
+    // reset our timer
+    bench_helpers_simreset(CFG);
 
     // open the file
     BENCH_START("read", 0);
@@ -474,6 +520,11 @@ code = '''
         }
         lfs3_file_write(&lfs3, &file, wbuf, CHUNK) => CHUNK;
         lfs3_file_close(&lfs3, &file) => 0;
+
+        // taking too long?
+        if (SIM_TIME && bench_helpers_simtime(CFG) >= (uint64_t)SIM_TIME) {
+            return;
+        }
     }
     #elif defined(LFS2)
     for (lfs3_size_t i = 0; i < (SIZE+(CHUNK-1))/CHUNK; i++) {
@@ -488,6 +539,11 @@ code = '''
         }
         lfs2_file_write(&lfs2, &file, wbuf, CHUNK) => CHUNK;
         lfs2_file_close(&lfs2, &file) => 0;
+
+        // taking too long?
+        if (SIM_TIME && bench_helpers_simtime(CFG) >= (uint64_t)SIM_TIME) {
+            return;
+        }
     }
     #elif defined(SPIFFS)
     for (lfs3_size_t i = 0; i < (SIZE+(CHUNK-1))/CHUNK; i++) {
@@ -502,6 +558,11 @@ code = '''
         }
         SPIFFS_write(&spiffs, fd, wbuf, CHUNK) => CHUNK;
         SPIFFS_close(&spiffs, fd) => 0;
+
+        // taking too long?
+        if (SIM_TIME && bench_helpers_simtime(CFG) >= (uint64_t)SIM_TIME) {
+            return;
+        }
     }
     #elif defined(YAFFS2)
     for (lfs3_size_t i = 0; i < (SIZE+(CHUNK-1))/CHUNK; i++) {
@@ -515,8 +576,16 @@ code = '''
         }
         yaffs_write(fd, wbuf, CHUNK) => CHUNK;
         yaffs_close(fd) => 0;
+
+        // taking too long?
+        if (SIM_TIME && bench_helpers_simtime(CFG) >= (uint64_t)SIM_TIME) {
+            return;
+        }
     }
     #endif
+
+    // reset our timer
+    bench_helpers_simreset(CFG);
 
     // open the files
     BENCH_START("read", 0);
