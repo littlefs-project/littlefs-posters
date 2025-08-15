@@ -169,8 +169,8 @@ code = '''
 defines.MODE = [0, 1, 2]
 # don't bother with litmus benchmarks for things that don't scale
 if = [
-    'BENCH_IFDEF_SPIFFS(SIZE < 16*1024, true)',
-    'BENCH_IFDEF_LFS2(SIZE < 16*1024, true)',
+    'BENCH_IFDEF_SPIFFS(SIZE <= 128*1024, true)',
+    'BENCH_IFDEF_LFS2(SIZE <= 128*1024, true)',
 ]
 code = '''
     #if defined(LFS3)
@@ -343,8 +343,8 @@ code = '''
 defines.MODE = [0, 1, 2]
 # don't bother with litmus benchmarks for things that don't scale
 if = [
-    'BENCH_IFDEF_SPIFFS(SIZE < 16*1024, true)',
-    'BENCH_IFDEF_LFS2(SIZE < 16*1024, true)',
+    'BENCH_IFDEF_SPIFFS(SIZE <= 128*1024, true)',
+    'BENCH_IFDEF_LFS2(SIZE <= 128*1024, true)',
 ]
 code = '''
     #if defined(LFS3)
