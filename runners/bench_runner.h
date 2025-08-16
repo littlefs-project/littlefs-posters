@@ -194,7 +194,7 @@ size_t bench_heap(void);
     /* default cache size, this doesn't necessarily need to be limited by  */ \
     /* read/prog, but doing so levels the playing field                    */ \
     BENCH_DEFINE(CACHE_SIZE,         LFS3_MAX(                                \
-                                        32,                                   \
+                                        256,                                  \
                                         LFS3_MAX(READ_SIZE, PROG_SIZE))     ) \
     /* total disk size                                                     */ \
     BENCH_DEFINE(DISK_SIZE,          8*1024*1024                            ) \
@@ -291,9 +291,9 @@ size_t bench_heap(void);
     BENCH_DEFINE(FD_COUNT,           1                                      ) \
     BENCH_DEFINE(FD_SIZE,            FD_COUNT*sizeof(spiffs_fd)             ) \
     /* spiffs's page cache is different from littlefs's cache, let's       */ \
-    /* default to max(2, 3*cache) pages to roughly match littlefs          */ \
+    /* default to max(3, 3*cache) pages to roughly match littlefs          */ \
     BENCH_DEFINE(SCACHE_COUNT,       LFS3_MAX(                                \
-                                        2,                                    \
+                                        3,                                    \
                                         (3*CACHE_SIZE)/SPAGE_SIZE)          ) \
     BENCH_DEFINE(SCACHE_SIZE,        sizeof(spiffs_cache)                     \
                                         + SCACHE_COUNT                        \
@@ -311,9 +311,9 @@ size_t bench_heap(void);
     BENCH_DEFINE(YPAGE_SIZE,         LFS3_MAX(PROG_SIZE, 512)               ) \
     BENCH_DEFINE(RESERVED_BLOCKS,    5                                      ) \
     /* yaffs2's page cache is different from littlefs's cache, let's       */ \
-    /* default to max(2, 3*cache) pages to roughly match littlefs          */ \
+    /* default to max(3, 3*cache) pages to roughly match littlefs          */ \
     BENCH_DEFINE(YCACHE_COUNT,       LFS3_MAX(                                \
-                                        2,                                    \
+                                        3,                                    \
                                         (3*CACHE_SIZE)/YPAGE_SIZE)          ) \
     BENCH_DEFINE(REFRESH_PERIOD,     1000                                   )
 #else
