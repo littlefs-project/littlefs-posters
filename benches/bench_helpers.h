@@ -23,6 +23,19 @@ void bench_helpers_simreset(const struct lfs3_cfg *cfg);
 bool bench_helpers_simstuck(const struct lfs3_cfg *cfg, uint64_t n);
 
 
+// clobber disk such that the filesystem thinks all blocks are unerased
+//
+// spiffs and yaffs2 assume a full disk erase during format, but this
+// hides erase costs on large disks, clobbering levels the playing field
+// a bit
+//
+// eventually littlefs3 will also support persistent erased-state
+// tracking, but we may want to clobber during benchmarking to avoid
+// weird performance biases on the first pass through disk
+//
+void bench_helpers_clobber(const struct lfs3_cfg *cfg);
+
+
 // find disk usage
 //
 // this is a bit different for each filesystem

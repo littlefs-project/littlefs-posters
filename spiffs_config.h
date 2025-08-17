@@ -40,7 +40,7 @@ typedef int8_t   s8_t;
 
 // Set generic spiffs debug output call.
 #ifndef SPIFFS_DBG
-#define SPIFFS_DBG(...) //printf(_f, ## __VA_ARGS__)
+#define SPIFFS_DBG(...) LFS3_DEBUG(__VA_ARGS__)
 #endif
 // Set spiffs debug output call for garbage collecting.
 #ifndef SPIFFS_GC_DBG
@@ -191,7 +191,7 @@ typedef int8_t   s8_t;
 // not on mount point. If not, SPIFFS_format must be called prior to mounting
 // again.
 #ifndef SPIFFS_USE_MAGIC
-#define SPIFFS_USE_MAGIC                (1)
+#define SPIFFS_USE_MAGIC                (0)
 #endif
 
 #if SPIFFS_USE_MAGIC

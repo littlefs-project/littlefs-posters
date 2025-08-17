@@ -43,7 +43,9 @@
 #define CONFIG_YAFFS_SHORT_NAMES_IN_RAM 1
 // TODO enable trace for non-codemaps?
 // disable trace for code size
+#ifdef LFS3_NO_LOG
 #define CONFIG_YAFFS_NO_TRACE
+#endif
 
 
 // yaffs2 compile-time config
@@ -107,8 +109,11 @@ static inline int yaffsfs_CheckMemRegion(const void *addr, size_t size,
     return 0;
 }
 
+// YAFFS_TRACE_ALWAYS + YAFFS_TRACE_CHECKPT
 __attribute__((weak))
-unsigned int yaffs_trace_mask = 0;
+unsigned int yaffs_trace_mask = 0xf0008000;
+//unsigned int yaffs_trace_mask = -1; // all trace flags
+//unsigned int yaffs_trace_mask = 0;  // no trace flags
 
 static inline void yaffs_bug_fn(const char *file_name, int line_no) {
     (void)file_name;

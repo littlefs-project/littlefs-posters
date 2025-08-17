@@ -309,7 +309,7 @@ size_t bench_heap(void);
     /*           name                value (overridable)                   */ \
     /* this is limited by struct yaffs_obj_hdr                             */ \
     BENCH_DEFINE(YPAGE_SIZE,         LFS3_MAX(PROG_SIZE, 512)               ) \
-    BENCH_DEFINE(RESERVED_BLOCKS,    5                                      ) \
+    BENCH_DEFINE(RESERVED_BLOCKS,    2                                      ) \
     /* yaffs2's page cache is different from littlefs's cache, let's       */ \
     /* default to max(3, 3*cache) pages to roughly match littlefs          */ \
     BENCH_DEFINE(YCACHE_COUNT,       LFS3_MAX(                                \

@@ -31,10 +31,16 @@ code = '''
     lfs3_t lfs3;
     lfs3_format(&lfs3, LFS3_F_RDWR, CFG) => 0;
     lfs3_mount(&lfs3, LFS3_M_RDWR, CFG) => 0;
+    // go ahead and make consistent to avoid lazy mount operations
+    // messing with the benchmark
+    lfs3_fs_mkconsistent(&lfs3) => 0;
     #elif defined(LFS2)
     lfs2_t lfs2;
     lfs2_format(&lfs2, CFG_LFS2) => 0;
     lfs2_mount(&lfs2, CFG_LFS2) => 0;
+    // go ahead and make consistent to avoid lazy mount operations
+    // messing with the benchmark
+    lfs2_fs_mkconsistent(&lfs2) => 0;
     #elif defined(SPIFFS)
     spiffs spiffs;
     spiffs.user_data = CFG;
@@ -42,17 +48,13 @@ code = '''
     uint8_t fd_buffer[FD_SIZE];
     uint8_t scache_buffer[SCACHE_SIZE];
     // yes we need this mount
-    int err = SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
+    SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
             fd_buffer, FD_SIZE,
             scache_buffer, SCACHE_SIZE,
-            NULL);
-    assert(err == SPIFFS_ERR_NOT_A_FS
-            || err == SPIFFS_ERR_MAGIC_NOT_POSSIBLE);
-    if (err == SPIFFS_ERR_MAGIC_NOT_POSSIBLE) {
-        printf("error: spiffs magic not possible\n");
-        return;
-    }
+            NULL) => SPIFFS_ERR_NOT_A_FS;
     SPIFFS_format(&spiffs) => 0;
+    // clobber storage so spiffs thinks everything is unerased
+    bench_helpers_clobber(CFG);
     SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
             fd_buffer, FD_SIZE,
             scache_buffer, SCACHE_SIZE,
@@ -66,21 +68,11 @@ code = '''
     };
     yaffs_add_device(&yaffs2);
     yaffs_format("/", false, false, false) => 0;
+    // clobber storage so yaffs thinks everything is unerased
+    bench_helpers_clobber(CFG);
     yaffs_mount("/") => 0;
     #endif
     uint32_t prng = SEED;
-
-    // go ahead and make consistent to avoid lazy mount operations
-    // messing with the benchmark
-    #if defined(LFS3)
-    lfs3_fs_mkconsistent(&lfs3) => 0;
-    #elif defined(LFS2)
-    lfs2_fs_mkconsistent(&lfs2) => 0;
-    #elif defined(SPIFFS)
-    SPIFFS_gc_quick(&spiffs, 0) => SPIFFS_ERR_NO_DELETED_BLOCKS;
-    #elif defined(YAFFS2)
-    yaffs_sync("/") => 0;
-    #endif
 
     // reset our timer
     bench_helpers_simreset(CFG);
@@ -205,10 +197,16 @@ code = '''
     lfs3_t lfs3;
     lfs3_format(&lfs3, LFS3_F_RDWR, CFG) => 0;
     lfs3_mount(&lfs3, LFS3_M_RDWR, CFG) => 0;
+    // go ahead and make consistent to avoid lazy mount operations
+    // messing with the benchmark
+    lfs3_fs_mkconsistent(&lfs3) => 0;
     #elif defined(LFS2)
     lfs2_t lfs2;
     lfs2_format(&lfs2, CFG_LFS2) => 0;
     lfs2_mount(&lfs2, CFG_LFS2) => 0;
+    // go ahead and make consistent to avoid lazy mount operations
+    // messing with the benchmark
+    lfs2_fs_mkconsistent(&lfs2) => 0;
     #elif defined(SPIFFS)
     spiffs spiffs;
     spiffs.user_data = CFG;
@@ -216,17 +214,13 @@ code = '''
     uint8_t fd_buffer[FD_SIZE];
     uint8_t scache_buffer[SCACHE_SIZE];
     // yes we need this mount
-    int err = SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
+    SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
             fd_buffer, FD_SIZE,
             scache_buffer, SCACHE_SIZE,
-            NULL);
-    assert(err == SPIFFS_ERR_NOT_A_FS
-            || err == SPIFFS_ERR_MAGIC_NOT_POSSIBLE);
-    if (err == SPIFFS_ERR_MAGIC_NOT_POSSIBLE) {
-        printf("error: spiffs magic not possible\n");
-        return;
-    }
+            NULL) => SPIFFS_ERR_NOT_A_FS;
     SPIFFS_format(&spiffs) => 0;
+    // clobber storage so spiffs thinks everything is unerased
+    bench_helpers_clobber(CFG);
     SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
             fd_buffer, FD_SIZE,
             scache_buffer, SCACHE_SIZE,
@@ -240,21 +234,11 @@ code = '''
     };
     yaffs_add_device(&yaffs2);
     yaffs_format("/", false, false, false) => 0;
+    // clobber storage so yaffs thinks everything is unerased
+    bench_helpers_clobber(CFG);
     yaffs_mount("/") => 0;
     #endif
     uint32_t prng = SEED;
-
-    // go ahead and make consistent to avoid lazy mount operations
-    // messing with the benchmark
-    #if defined(LFS3)
-    lfs3_fs_mkconsistent(&lfs3) => 0;
-    #elif defined(LFS2)
-    lfs2_fs_mkconsistent(&lfs2) => 0;
-    #elif defined(SPIFFS)
-    SPIFFS_gc_quick(&spiffs, 0) => SPIFFS_ERR_NO_DELETED_BLOCKS;
-    #elif defined(YAFFS2)
-    yaffs_sync("/") => 0;
-    #endif
 
     // reset our timer
     bench_helpers_simreset(CFG);
@@ -384,10 +368,16 @@ code = '''
     lfs3_t lfs3;
     lfs3_format(&lfs3, LFS3_F_RDWR, CFG) => 0;
     lfs3_mount(&lfs3, LFS3_M_RDWR, CFG) => 0;
+    // go ahead and make consistent to avoid lazy mount operations
+    // messing with the benchmark
+    lfs3_fs_mkconsistent(&lfs3) => 0;
     #elif defined(LFS2)
     lfs2_t lfs2;
     lfs2_format(&lfs2, CFG_LFS2) => 0;
     lfs2_mount(&lfs2, CFG_LFS2) => 0;
+    // go ahead and make consistent to avoid lazy mount operations
+    // messing with the benchmark
+    lfs2_fs_mkconsistent(&lfs2) => 0;
     #elif defined(SPIFFS)
     spiffs spiffs;
     spiffs.user_data = CFG;
@@ -395,17 +385,13 @@ code = '''
     uint8_t fd_buffer[FD_SIZE];
     uint8_t scache_buffer[SCACHE_SIZE];
     // yes we need this mount
-    int err = SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
+    SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
             fd_buffer, FD_SIZE,
             scache_buffer, SCACHE_SIZE,
-            NULL);
-    assert(err == SPIFFS_ERR_NOT_A_FS
-            || err == SPIFFS_ERR_MAGIC_NOT_POSSIBLE);
-    if (err == SPIFFS_ERR_MAGIC_NOT_POSSIBLE) {
-        printf("error: spiffs magic not possible\n");
-        return;
-    }
+            NULL) => SPIFFS_ERR_NOT_A_FS;
     SPIFFS_format(&spiffs) => 0;
+    // clobber storage so spiffs thinks everything is unerased
+    bench_helpers_clobber(CFG);
     SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
             fd_buffer, FD_SIZE,
             scache_buffer, SCACHE_SIZE,
@@ -419,21 +405,11 @@ code = '''
     };
     yaffs_add_device(&yaffs2);
     yaffs_format("/", false, false, false) => 0;
+    // clobber storage so yaffs thinks everything is unerased
+    bench_helpers_clobber(CFG);
     yaffs_mount("/") => 0;
     #endif
     uint32_t prng = SEED;
-
-    // go ahead and make consistent to avoid lazy mount operations
-    // messing with the benchmark
-    #if defined(LFS3)
-    lfs3_fs_mkconsistent(&lfs3) => 0;
-    #elif defined(LFS2)
-    lfs2_fs_mkconsistent(&lfs2) => 0;
-    #elif defined(SPIFFS)
-    SPIFFS_gc_quick(&spiffs, 0) => SPIFFS_ERR_NO_DELETED_BLOCKS;
-    #elif defined(YAFFS2)
-    yaffs_sync("/") => 0;
-    #endif
 
     // reset our timer
     bench_helpers_simreset(CFG);
@@ -556,10 +532,16 @@ code = '''
     lfs3_t lfs3;
     lfs3_format(&lfs3, LFS3_F_RDWR, CFG) => 0;
     lfs3_mount(&lfs3, LFS3_M_RDWR, CFG) => 0;
+    // go ahead and make consistent to avoid lazy mount operations
+    // messing with the benchmark
+    lfs3_fs_mkconsistent(&lfs3) => 0;
     #elif defined(LFS2)
     lfs2_t lfs2;
     lfs2_format(&lfs2, CFG_LFS2) => 0;
     lfs2_mount(&lfs2, CFG_LFS2) => 0;
+    // go ahead and make consistent to avoid lazy mount operations
+    // messing with the benchmark
+    lfs2_fs_mkconsistent(&lfs2) => 0;
     #elif defined(SPIFFS)
     spiffs spiffs;
     spiffs.user_data = CFG;
@@ -567,17 +549,13 @@ code = '''
     uint8_t fd_buffer[FD_SIZE];
     uint8_t scache_buffer[SCACHE_SIZE];
     // yes we need this mount
-    int err = SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
+    SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
             fd_buffer, FD_SIZE,
             scache_buffer, SCACHE_SIZE,
-            NULL);
-    assert(err == SPIFFS_ERR_NOT_A_FS
-            || err == SPIFFS_ERR_MAGIC_NOT_POSSIBLE);
-    if (err == SPIFFS_ERR_MAGIC_NOT_POSSIBLE) {
-        printf("error: spiffs magic not possible\n");
-        return;
-    }
+            NULL) => SPIFFS_ERR_NOT_A_FS;
     SPIFFS_format(&spiffs) => 0;
+    // clobber storage so spiffs thinks everything is unerased
+    bench_helpers_clobber(CFG);
     SPIFFS_mount(&spiffs, (spiffs_config*)CFG_SPIFFS, work_buffer,
             fd_buffer, FD_SIZE,
             scache_buffer, SCACHE_SIZE,
@@ -591,21 +569,11 @@ code = '''
     };
     yaffs_add_device(&yaffs2);
     yaffs_format("/", false, false, false) => 0;
+    // clobber storage so yaffs thinks everything is unerased
+    bench_helpers_clobber(CFG);
     yaffs_mount("/") => 0;
     #endif
     uint32_t prng = SEED;
-
-    // go ahead and make consistent to avoid lazy mount operations
-    // messing with the benchmark
-    #if defined(LFS3)
-    lfs3_fs_mkconsistent(&lfs3) => 0;
-    #elif defined(LFS2)
-    lfs2_fs_mkconsistent(&lfs2) => 0;
-    #elif defined(SPIFFS)
-    SPIFFS_gc_quick(&spiffs, 0) => SPIFFS_ERR_NO_DELETED_BLOCKS;
-    #elif defined(YAFFS2)
-    yaffs_sync("/") => 0;
-    #endif
 
     // reset our timer
     bench_helpers_simreset(CFG);

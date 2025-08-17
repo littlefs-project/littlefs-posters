@@ -48,6 +48,92 @@ bool bench_helpers_simstuck(const struct lfs3_cfg *cfg, uint64_t n) {
 
 
 
+// clobber disk such that the filesystem thinks all blocks are unerased
+//
+// spiffs and yaffs2 assume a full disk erase during format, but this
+// hides erase costs on large disks, clobbering levels the playing field
+// a bit
+//
+// eventually littlefs3 will also support persistent erased-state
+// tracking, but we may want to clobber during benchmarking to avoid
+// weird performance biases on the first pass through disk
+//
+void bench_helpers_clobber(const struct lfs3_cfg *cfg) {
+    #if defined(LFS3)
+    // do nothing, littlefs3 currently assumes unerased after format
+    (void)cfg;
+    #elif defined(LFS2)
+    // do nothing, littlefs2 currently assumes unerased after format
+    (void)cfg;
+    #elif defined(SPIFFS)
+    // zeroing everything clears spiffs's lookup tables and makes it think
+    // all pages have been deleted
+    //
+    // leave first three blocks erased to be fair
+    extern void bench_heap_pause(void);
+    bench_heap_pause();
+    uint8_t *buffer = malloc(BLOCK_SIZE);
+    memset(buffer, 0, BLOCK_SIZE);
+    for (lfs3_block_t i = 2; i < BLOCK_COUNT; i++) {
+        cfg->erase(cfg, i) => 0;
+        cfg->prog(cfg, i, 0, buffer, BLOCK_SIZE) => 0;
+    }
+    free(buffer);
+    extern void bench_heap_resume(void);
+    bench_heap_resume();
+    #elif defined(YAFFS2)
+    // for yaffs we have to be a bit more clever
+    //
+    // instead of zeroing, fill pages with redundant unused data, this
+    // matches the yaffs_packed_tags2_tags_only struct that gets written
+    // to the end of each page:
+    // - seq_number = 0x1001 (must be >=0x00001000,<=0xefffff00!)
+    //   (YAFFS_LOWEST_SEQUENCE_NUMBER, YAFFS_HIGHEST_SEQUENCE_NUMBER)
+    // - obj_id = 1
+    // - chunk_id = 1
+    // - n_bytes 0
+    //
+    // I think this might still end up with one data page that never gets
+    // fully gced, but that shouldn't interfere with our benchmarks
+    //
+    // leave first three blocks erased to be fair
+    extern void bench_heap_pause(void);
+    bench_heap_pause();
+    uint8_t *buffer = malloc(BLOCK_SIZE);
+    memset(buffer, 0, BLOCK_SIZE);
+    for (lfs3_size_t i = 0; i < BLOCK_SIZE / YPAGE_SIZE; i++) {
+        buffer[i*YPAGE_SIZE+YPAGE_SIZE-16+0]  = 0x01;
+        buffer[i*YPAGE_SIZE+YPAGE_SIZE-16+1]  = 0x10;
+        buffer[i*YPAGE_SIZE+YPAGE_SIZE-16+2]  = 0;
+        buffer[i*YPAGE_SIZE+YPAGE_SIZE-16+3]  = 0;
+
+        buffer[i*YPAGE_SIZE+YPAGE_SIZE-16+4]  = 0x01;
+        buffer[i*YPAGE_SIZE+YPAGE_SIZE-16+5]  = 0;
+        buffer[i*YPAGE_SIZE+YPAGE_SIZE-16+6]  = 0;
+        buffer[i*YPAGE_SIZE+YPAGE_SIZE-16+7]  = 0;
+
+        buffer[i*YPAGE_SIZE+YPAGE_SIZE-16+8]  = 0x01;
+        buffer[i*YPAGE_SIZE+YPAGE_SIZE-16+9]  = 0;
+        buffer[i*YPAGE_SIZE+YPAGE_SIZE-16+10] = 0;
+        buffer[i*YPAGE_SIZE+YPAGE_SIZE-16+11] = 0;
+
+        buffer[i*YPAGE_SIZE+YPAGE_SIZE-16+12] = 0;
+        buffer[i*YPAGE_SIZE+YPAGE_SIZE-16+13] = 0;
+        buffer[i*YPAGE_SIZE+YPAGE_SIZE-16+14] = 0;
+        buffer[i*YPAGE_SIZE+YPAGE_SIZE-16+15] = 0;
+    }
+    for (lfs3_block_t i = 2; i < BLOCK_COUNT; i++) {
+        cfg->erase(cfg, i) => 0;
+        cfg->prog(cfg, i, 0, buffer, BLOCK_SIZE) => 0;
+    }
+    free(buffer);
+    extern void bench_heap_resume(void);
+    bench_heap_resume();
+    #endif
+}
+
+
+
 // needed to find disk usage for littlefs2
 #if defined(LFS2)
 static int bench_helpers_usage_cb(void *ctx, lfs3_block_t block) {
