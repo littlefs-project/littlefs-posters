@@ -1008,6 +1008,8 @@ bench-p26-rt-many: \
 				$(RESULTSDIR)/bench_p26_rt_many.$(fs).$(sim).csv))
 
 
+
+
 # p26 bench rules!
 
 # p26 litmus bench rule
@@ -1099,6 +1101,7 @@ $(foreach fs, $(BENCH_FSS),$\
 				$(fs),$\
 				$(sim)))))
 
+
 ## Quick summary of simtimes/simsizes to help debugging
 simtime-%: PHONY
 	$(strip ./scripts/csv.py \
@@ -1123,14 +1126,14 @@ simtime-%: PHONY
 							$(RESULTSDIR)/bench_$(subst -,_,$*)_%$\
 								.$(fs).$(sim).csv,%,$(csv)) \
 						-Dm=write,read \
-						-fminsimsize='min(n)' \
-						-fmaxsimsize='max(n)' \
-						-fminsimtime='min( \
+						-fminn='min(n)' \
+						-fmaxn='max(n)' \
+						-fmint='min( \
 							(float(bench_readed)*float(READ_TIME) \
 								+ float(bench_proged)*float(PROG_TIME) \
 								+ float(bench_erased)*float(ERASE_TIME) \
 							) / 1.0e9)' \
-						-fmaxsimtime='max( \
+						-fmaxt='max( \
 							(float(bench_readed)*float(READ_TIME) \
 								+ float(bench_proged)*float(PROG_TIME) \
 								+ float(bench_erased)*float(ERASE_TIME) \
@@ -1140,11 +1143,213 @@ simtime-%: PHONY
 		-bfs \
 		-bsim \
 		-bbench \
-		-fminsimsize \
-		-fmaxsimsize \
-		-fminsimtime \
-		-fmaxsimtime \
 		-Q)
+
+
+# quick throughput results recipe
+#
+# $1 - benchmark
+# $2 - fs types/versions
+# $3 - sim types
+# $4 - benches
+#
+BENCH_T_RESULT_RECIPE = $(strip ./scripts/csv.py \
+		$(foreach fs, $(or $2,$(BENCH_FSS)), \
+			$(foreach sim, $(or $3, $(BENCH_SIMS)), \
+				$(foreach bench, $4, \
+					<(./scripts/csv.py \
+						<(./scripts/csv.py \
+							$(RESULTSDIR)/bench_$1_$(bench).$(fs).$(sim).csv \
+							-fn \
+							-fbench_readed \
+							-fbench_proged \
+							-fbench_erased \
+							-Dbench_creaded='*' \
+							-Dbench_cproged='*' \
+							-Dbench_cerased='*' \
+							-o-) \
+						-bfs=$(fs) \
+						-bsim=$(sim) \
+						-bbench=$(bench) \
+						-Dm=write,read \
+						-DSIZE=$(shell python -c '$\
+							print(max([$(P26_T_SIZES)]))') \
+						-fthroughput=' \
+							float(n) / max( \
+								(float(bench_readed)*float(READ_TIME) \
+									+ float(bench_proged)*float(PROG_TIME) \
+									+ float(bench_erased)*float(ERASE_TIME) \
+									) / 1.0e9, \
+								1.0e-9)' \
+						-fn \
+						-ft=' \
+							(float(bench_readed)*float(READ_TIME) \
+								+ float(bench_proged)*float(PROG_TIME) \
+								+ float(bench_erased)*float(ERASE_TIME) \
+							) / 1.0e9' \
+						-o-)))) \
+		-I \
+		-bfs \
+		-bsim \
+		-bbench \
+		-Q)
+
+# quick throughput ops recipe
+#
+# $1 - benchmark
+# $2 - fs types/versions
+# $3 - sim types
+# $4 - benches
+#
+BENCH_T_RESULT_OPS_RECIPE = $(strip ./scripts/csv.py \
+		$(foreach fs, $(or $2,$(BENCH_FSS)), \
+			$(foreach sim, $(or $3,$(BENCH_SIMS)), \
+				$(foreach bench, $4, \
+					<(./scripts/csv.py \
+						<(./scripts/csv.py \
+							$(RESULTSDIR)/bench_$1_$(bench).$(fs).$(sim).csv \
+							-fn \
+							-fbench_readed \
+							-fbench_proged \
+							-fbench_erased \
+							-Dbench_creaded='*' \
+							-Dbench_cproged='*' \
+							-Dbench_cerased='*' \
+							-o-) \
+						-bfs=$(fs) \
+						-bsim=$(sim) \
+						-bbench=$(bench) \
+						-Dm=write,read \
+						-DSIZE=$(shell python -c '$\
+							print(max([$(P26_T_SIZES)]))') \
+						-freaded=bench_readed \
+						-fproged=bench_proged \
+						-ferased=bench_erased \
+						-o-)))) \
+		-I \
+		-bfs \
+		-bsim \
+		-bbench \
+		-Q)
+
+# quick throughput ram recipe
+#
+# $1 - benchmark
+# $2 - fs types/versions
+# $3 - sim types
+# $4 - benches
+#
+BENCH_T_RESULT_RAM_RECIPE = $(strip ./scripts/csv.py \
+		$(foreach fs, $(or $2,$(BENCH_FSS)), \
+			$(foreach sim, $(or $3,$(BENCH_SIMS)), \
+				$(foreach bench, $4, \
+					<(./scripts/csv.py \
+						<(./scripts/data.py $(BENCH_$(U_$(fs))_RUNNER) \
+								-bfunction -o- \
+							| $(BENCH_$(U_$(fs))_FILTER) \
+							| ./scripts/csv.py - \
+								-bfs=$(fs) \
+								-bsim=$(sim) \
+								-bbench=$(bench) \
+								-bSIZE=all \
+								-fdata=data_size \
+								-o-) \
+						<(./scripts/csv.py \
+							$(RESULTSDIR)/bench_$1_$(bench).$(fs).$(sim).csv \
+							-Dm=stack \
+							-fstack=bench_readed \
+							-fn \
+							-Dbench_readed='*' \
+							-Dbench_proged='*' \
+							-Dbench_erased='*' \
+							-Dbench_creaded='*' \
+							-Dbench_cproged='*' \
+							-Dbench_cerased='*' \
+							-o-) \
+						<(./scripts/csv.py \
+							$(RESULTSDIR)/bench_$1_$(bench).$(fs).$(sim).csv \
+							-Dm=heap \
+							-fheap=bench_readed \
+							-fn \
+							-Dbench_readed='*' \
+							-Dbench_proged='*' \
+							-Dbench_erased='*' \
+							-Dbench_creaded='*' \
+							-Dbench_cproged='*' \
+							-Dbench_cerased='*' \
+							-o-) \
+						-bfs=$(fs) \
+						-bsim=$(sim) \
+						-bbench=$(bench) \
+						-DSIZE=all,$(shell python -c '$\
+							print(max([$(P26_T_SIZES)]))') \
+						-fdata \
+						-fstack \
+						-fheap \
+						-ftotal='data+stack+heap' \
+						-o-)))) \
+		-I \
+		-bfs \
+		-bsim \
+		-bbench \
+		-Q)
+
+## Quick write-throughput results
+.PHONY: results-p26-wt
+results-p26-wt:
+	$(call BENCH_T_RESULT_RECIPE,$\
+		p26_wt,$\
+		$(BENCH_FSS),$\
+		$(BENCH_SIMS),$\
+		linear random many logging)
+
+## Quick write-throughput ops
+.PHONY: results-p26-wt-ops
+results-p26-wt-ops:
+	$(call BENCH_T_RESULT_OPS_RECIPE,$\
+		p26_wt,$\
+		$(BENCH_FSS),$\
+		$(BENCH_SIMS),$\
+		linear random many logging)
+
+## Quick write-throughput ram
+.PHONY: results-p26-wt-ram
+results-p26-wt-ram:
+	$(call BENCH_T_RESULT_RAM_RECIPE,$\
+		p26_wt,$\
+		$(BENCH_FSS),$\
+		$(BENCH_SIMS),$\
+		linear random many logging)
+
+## Quick write-throughput results
+.PHONY: results-p26-rt
+results-p26-rt:
+	$(call BENCH_T_RESULT_RECIPE,$\
+		p26_rt,$\
+		$(BENCH_FSS),$\
+		$(BENCH_SIMS),$\
+		linear random many)
+
+## Quick write-throughput ops
+.PHONY: results-p26-rt-ops
+results-p26-rt-ops:
+	$(call BENCH_T_RESULT_OPS_RECIPE,$\
+		p26_rt,$\
+		$(BENCH_FSS),$\
+		$(BENCH_SIMS),$\
+		linear random many)
+
+# NOTE the way we measure ram includes the overhead of writing the
+# initial filesystem, so rt-ram results is probably not useful as-is
+#
+### Quick write-throughput ram
+#.PHONY: results-p26-rt-ram
+#results-p26-rt-ram:
+#	$(call BENCH_T_RESULT_RAM_RECIPE,$\
+#		p26_rt,$\
+#		$(BENCH_FSS),$\
+#		$(BENCH_SIMS),$\
+#		linear random many)
 
 
 # simulated/estimated results
