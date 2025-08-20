@@ -2114,20 +2114,20 @@ tikz tikz-all: $(TIKZ_RULES)
 ## Generate write-throughput tikz results
 .PHONY: tikz-p26-wt
 tikz-p26-wt: \
-	$(TIKZDIR)/tikz_p26_wt.csv \
-	$(foreach sim, $(BENCH_SIMS),$\
-		$(foreach bench, linear random many logging,$\
-			$(TIKZDIR)/tikz_p26_wt_$(sim)_$(bench).csv)) \
-	$(TIKZDIR)/tikz_p26_wt_ops.csv \
-	$(foreach sim, $(BENCH_SIMS),$\
-		$(foreach bench, linear random many logging,$\
-			$(TIKZDIR)/tikz_p26_wt_ops_$(sim)_$(bench).csv)) \
-	$(TIKZDIR)/tikz_p26_wt_ram.csv \
-	$(foreach sim, $(BENCH_SIMS),$\
-		$(foreach bench, linear random many logging,$\
-			$(TIKZDIR)/tikz_p26_wt_ram_$(sim)_$(bench).csv)) \
-	$(foreach sim, $(BENCH_SIMS),$\
-		$(TIKZDIR)/tikz_p26_wt_ram_$(sim).csv)
+		$(TIKZDIR)/tikz_p26_wt.csv \
+		$(foreach sim, $(BENCH_SIMS),$\
+			$(foreach bench, linear random many logging,$\
+				$(TIKZDIR)/tikz_p26_wt_$(sim)_$(bench).csv)) \
+		$(TIKZDIR)/tikz_p26_wt_ops.csv \
+		$(foreach sim, $(BENCH_SIMS),$\
+			$(foreach bench, linear random many logging,$\
+				$(TIKZDIR)/tikz_p26_wt_ops_$(sim)_$(bench).csv)) \
+		$(TIKZDIR)/tikz_p26_wt_ram.csv \
+		$(foreach sim, $(BENCH_SIMS),$\
+			$(foreach bench, linear random many logging,$\
+				$(TIKZDIR)/tikz_p26_wt_ram_$(sim)_$(bench).csv)) \
+		$(foreach sim, $(BENCH_SIMS),$\
+			$(TIKZDIR)/tikz_p26_wt_ram_$(sim).csv)
 
 # write-throughput tikz results
 $(TIKZDIR)/tikz_p26_wt.csv: \
@@ -2361,7 +2361,7 @@ $(TIKZDIR)/tikz_p26_wt_ram.csv: \
 						-fdata \
 						-fstack \
 						-fheap \
-						-fram='data+stack+heap' \
+						-fram=data+stack+heap \
 						-o-)))) \
 		-bfs \
 		-bsim \
