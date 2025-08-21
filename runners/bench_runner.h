@@ -287,7 +287,11 @@ size_t bench_heap(void);
 #ifdef SPIFFS
 #define BENCH_SPIFFS_DEFINES \
     /*           name                value (overridable)                   */ \
-    BENCH_DEFINE(SPAGE_SIZE,         LFS3_MAX(PROG_SIZE, 256)               ) \
+    /* things break below 64 byte pages, but while spiffs technically      */ \
+    /* works with <256 byte pages, it performs very poorly                 */ \
+    BENCH_DEFINE(SPAGE_SIZE,         (PAGE_SIZE)                              \
+                                        ? LFS3_MAX(PAGE_SIZE, 64)             \
+                                        : LFS3_MAX(PROG_SIZE, 256)          ) \
     BENCH_DEFINE(FD_COUNT,           1                                      ) \
     BENCH_DEFINE(FD_SIZE,            FD_COUNT*sizeof(spiffs_fd)             ) \
     /* spiffs's page cache is different from littlefs's cache, let's       */ \
