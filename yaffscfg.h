@@ -30,7 +30,7 @@
 #include <dirent.h>
 
 
-// yaffs2 compile-time flags
+// yaffs2 compile-time config
 
 #define CONFIG_YAFFS_DIRECT 1
 #define CONFIG_YAFFS_YAFFS2 1
@@ -38,19 +38,18 @@
 #define CONFIG_YAFFS_NO_YAFFS1 1
 // well yes use less RAM
 #define CONFIG_YAFFS_SMALL_RAM 1
+// 32-bit time
 #define CONFIG_YAFFS_USE_32_BIT_TIME_T 1
-// TODO caches short names in RAM, test without this?
-#define CONFIG_YAFFS_SHORT_NAMES_IN_RAM 1
-// TODO enable trace for non-codemaps?
 // disable trace for code size
 #ifdef LFS3_NO_LOG
 #define CONFIG_YAFFS_NO_TRACE
 #endif
 
-
-// yaffs2 compile-time config
+// 32-bit Y_LOFF_T
+#define Y_LOFF_T int32_t
 
 // number of statically allocated file handles
+// we only need one file for benchmarking
 #define YAFFSFS_N_HANDLES 1
 // number of statically allocated dirents for readdir
 #define YAFFSFS_N_DSC 1
@@ -66,8 +65,6 @@ typedef int64_t  s64;
 typedef int32_t  s32;
 typedef int16_t  s16;
 typedef int8_t   s8;
-
-typedef off_t loff_t;
 
 
 // take over os glue (yaffs_osglue.h)

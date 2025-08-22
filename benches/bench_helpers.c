@@ -275,11 +275,11 @@ uintmax_t bench_helpers_usage(const struct lfs3_cfg *cfg, void *fs) {
     // we rely on yaffs2's internal bookkeeping here
     //
     // watch out for integer overflow!
-    loff_t free = yaffs_freespace("/");
+    Y_LOFF_T free = yaffs_freespace("/");
     assert(free >= 0);
 
     // note used is already in bytes
-    loff_t used = (BLOCK_COUNT*BLOCK_SIZE) - free;
+    Y_LOFF_T used = (BLOCK_COUNT*BLOCK_SIZE) - free;
     return used;
     #endif
 }
