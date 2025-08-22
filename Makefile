@@ -326,7 +326,8 @@ BENCH_YAFFS2_CI   := $(BENCH_YAFFS2_OBJ:.o=.ci)
 
 # thumb mode!!? cross compile time!
 ifdef THUMB
-CC = arm-linux-gnueabi-gcc -mthumb -march=armv7-m
+CC = arm-linux-gnueabi-gcc -mthumb -march=armv7 --static
+BENCHFLAGS += --exec=qemu-arm
 endif
 
 
