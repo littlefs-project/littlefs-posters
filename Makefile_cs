@@ -78,6 +78,7 @@ ifndef NO_BENCH
 $1: $(BENCH_$(U_$3)_RUNNER)
 	$$(strip ./scripts/bench.py -R$$< -B $2 \
 		$(BENCHFLAGS) \
+		-DDISK_SIZE=$(DISK_SIZE) \
 		$(if $(SKIP_WARMUP),-DSKIP_WARMUP=$(SKIP_WARMUP)) \
 		-DDISK_SIZE=$(or $5,$(DISK_SIZE)) \
 		-DSIZE=$(or $6,$(P26_T_SIZE)) \

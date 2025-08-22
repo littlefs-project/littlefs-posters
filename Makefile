@@ -865,7 +865,6 @@ BENCHFLAGS += -d$(DISK_PATH)
 DISK_BIG = 1
 endif
 # give us a big disk
-BENCHFLAGS += -DDISK_SIZE=$(DISK_SIZE)
 BENCHFLAGS += -b
 # note the presence of a physical disk means we CAN NOT run in parallel
 ifndef DISK_BIG
@@ -1030,6 +1029,7 @@ ifndef NO_BENCH
 $1: $(BENCH_$(U_$3)_RUNNER)
 	$$(strip ./scripts/bench.py -R$$< -B $2 \
 		$(BENCHFLAGS) \
+		-DDISK_SIZE=$(DISK_SIZE) \
 		$(if $(SKIP_WARMUP),-DSKIP_WARMUP=$(SKIP_WARMUP)) \
 		-DSIZE=$(P26_LITMUS_SIZE) \
 		-DCHUNK=$(P26_LITMUS_CHUNK) \
@@ -1071,6 +1071,7 @@ ifndef NO_BENCH
 $1: $(BENCH_$(U_$3)_RUNNER)
 	$$(strip ./scripts/bench.py -R$$< -B $2 \
 		$(BENCHFLAGS) \
+		-DDISK_SIZE=$(DISK_SIZE) \
 		$(if $(SKIP_WARMUP),-DSKIP_WARMUP=$(SKIP_WARMUP)) \
 		-DSIZE=$(P26_T_SIZES) \
 		-DCHUNK=$(P26_T_CHUNK) \
