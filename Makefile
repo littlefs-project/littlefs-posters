@@ -1,5 +1,9 @@
 # overrideable build dir, default to ./build
+ifdef DEBUG
+BUILDDIR ?= build_dbg
+else
 BUILDDIR ?= build
+endif
 # overrideable codemaps dir, defaults to ./codemaps
 CODEMAPSDIR ?= codemaps
 # overrideable results dir, default to ./results
