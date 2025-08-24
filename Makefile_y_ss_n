@@ -13,7 +13,7 @@ P26_T_SIZES ?= $\
 		65536,131072,262144,524288,1048576
 
 # limit the affect of caching
-P26_T_CACHE_SIZE ?= 8
+P26_T_CACHE_SIZE ?= 64
 
 # some other tweaks
 P26_T_SIZE ?= 1048576 # 1 MiB
