@@ -920,8 +920,8 @@ BENCH_RULES ?= \
 bench bench-all: $(BENCH_RULES)
 
 ## Mark current results as up-to-date to prevent reruns
-.PHONY: reuse-results
-reuse-results:
+.PHONY: reuse-results touch-results
+reuse-results touch-results:
 	find $(RESULTSDIR) -name '*.csv' -execdir touch '{}' ';'
 
 ## Run p26 litmus benchmarks
@@ -2461,4 +2461,10 @@ clean-results:
 .PHONY: clean-plots
 clean-plots:
 	rm -rf $(PLOTSDIR)
+
+## Touch benches, triggering a rebench, but don't clean
+.PHONY: touch touch-benches
+touch touch-benches:
+	touch $(BENCHES)
+
 
