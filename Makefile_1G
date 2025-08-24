@@ -55,9 +55,11 @@ TIKZ_RULES ?= \
 include Makefile
 
 
-
-
-## Generate write-throughput 1G tikz results
+## Generate write-throughput 1G SIZE=n tikz results
+#
+# these are the same SIZE=n results the default Makefile generates, but
+# renamed to avoid conflicts when merging results
+#
 .PHONY: tikz-p26-wt-1G
 tikz-p26-wt-1G: \
 		$(foreach fs, $(BENCH_FSS), \
@@ -65,55 +67,16 @@ tikz-p26-wt-1G: \
 				$(foreach bench, linear random many logging, \
 					$(TIKZDIR)/tikz_p26_wt_1G_$(bench).$(fs).$(sim).csv)))
 
-# tikz write-throughput 1G rule
+# tikz 1G write-throughput SIZE=n rule
 #
-# $1 - target
-# $2 - source
-# $3 - fs type/version
-# $4 - sim
-# $5 - bench
+# TIKZ_T_WT_N_RULE is defined in the default Makefile
 #
-define TIKZ_T_WT_1G_RULE
-$1: $2
-	$$(strip ./scripts/csv.py \
-		<(./scripts/csv.py $$^ \
-			-fn \
-			-fbench_readed \
-			-fbench_proged \
-			-fbench_erased \
-			-Dbench_creaded='*' \
-			-Dbench_cproged='*' \
-			-Dbench_cerased='*' \
-			-o-) \
-		-bfs=$3 \
-		-bsim=$4 \
-		-bbench=$5 \
-		-Dm=write,read \
-		-bSIZE \
-		-Si=SIZE \
-		-fthroughput=' \
-			float(n) / max( \
-				(float(bench_readed)*float(READ_TIME) \
-					+ float(bench_proged)*float(PROG_TIME) \
-					+ float(bench_erased)*float(ERASE_TIME) \
-					) / 1.0e9, \
-				1.0e-9)' \
-		-fn \
-		-ft=' \
-			(float(bench_readed)*float(READ_TIME) \
-				+ float(bench_proged)*float(PROG_TIME) \
-				+ float(bench_erased)*float(ERASE_TIME) \
-			) / 1.0e9' \
-		-o$$@)
-endef
-
 $(foreach fs, $(BENCH_FSS), \
 	$(foreach sim, $(BENCH_SIMS), \
 		$(foreach bench, linear random many logging, \
-			$(eval $(call TIKZ_T_WT_1G_RULE,$\
+			$(eval $(call TIKZ_T_WT_N_RULE,$\
 				$(TIKZDIR)/tikz_p26_wt_1G_$(bench).$(fs).$(sim).csv,$\
 				$(RESULTSDIR)/bench_p26_wt_$(bench).$(fs).$(sim).csv,$\
 				$(fs),$\
 				$(sim),$\
 				$(bench))))))
-
