@@ -125,6 +125,7 @@ CODEMAP_RDONLY_FSS ?= lfs3 lfs3nb lfs2 spiffs
 
 # filesystems/sims to benchmark
 BENCH_FSS ?= lfs3 lfs3nb lfs2 spiffs yaffs2
+BENCH_RUNNER_FSS ?= lfs3 lfs3nb lfs2 spiffs yaffs2
 BENCH_SIMS ?= emmc nor nand
 
 # poor man's uppercase
@@ -418,7 +419,7 @@ $(if $(findstring n,$(MAKEFLAGS)),, $(shell mkdir -p \
     $(dir \
 		$(foreach fs, $(CODEMAP_FSS), \
 			$(CODEMAP_$(U_$(fs))_OBJ) \
-		$(foreach fs, $(BENCH_FSS), \
+		$(foreach fs, $(BENCH_RUNNER_FSS), \
 			$(BENCH_$(U_$(fs))_OBJ))))))
 endif
 
@@ -434,7 +435,7 @@ build bench-runner build-benches: CFLAGS+=$(BENCH_CFLAGS)
 # note we remove some binary dependent files during compilation,
 # otherwise it's way to easy to end up with outdated results
 build bench-runner build-benches: \
-		$(foreach fs, $(BENCH_FSS), \
+		$(foreach fs, $(BENCH_RUNNER_FSS), \
 			$(BENCH_$(U_$(fs))_RUNNER))
 
 ## Generate a ctags file
@@ -445,7 +446,7 @@ tags ctags:
 		$(shell find -H -name '*.h'))
 	$(strip $(CTAGS) \
 		--totals --append --fields=+n \
-		$(foreach fs, $(BENCH_FSS), \
+		$(foreach fs, $(BENCH_RUNNER_FSS), \
 			$(BENCH_$(U_$(fs))_SRC)))
 
 ## Show this help text
@@ -475,7 +476,7 @@ all: \
 ## Find total section sizes
 .PHONY: size
 size: \
-		$(foreach fs, $(BENCH_FSS), \
+		$(foreach fs, $(BENCH_RUNNER_FSS), \
 			$(BENCH_$(U_$(fs))_RUNNER))
 	$(SIZE) -t $^
 
@@ -548,10 +549,10 @@ sizes-rdonly sizes-rdonly-prelink: \
 #
 .PHONY: sizes-postlink bench-sizes
 sizes-postlink bench-sizes: \
-		$(foreach fs, $(BENCH_FSS), \
+		$(foreach fs, $(BENCH_RUNNER_FSS), \
 			$(BENCH_$(U_$(fs))_RUNNER))
 	$(strip ./scripts/csv.py \
-		$(foreach fs, $(BENCH_FSS), \
+		$(foreach fs, $(BENCH_RUNNER_FSS), \
 			<(./scripts/csv.py \
 				<(./scripts/code.py $(BENCH_$(U_$(fs))_RUNNER) \
 					-bfunction -o- \
@@ -578,7 +579,7 @@ sizes-postlink bench-sizes: \
 # low-level rules
 $(foreach fs, $(CODEMAP_FSS), \
 	$(eval -include $(CODEMAP_$(U_$(fs))_DEP)))
-$(foreach fs, $(BENCH_FSS), \
+$(foreach fs, $(BENCH_RUNNER_FSS), \
 	$(eval -include $(BENCH_$(U_$(fs))_DEP)))
 .SUFFIXES:
 .SECONDARY:
@@ -599,7 +600,7 @@ $1: $2
 	$(CC) $(CFLAGS) $(BENCH_$(U_$3)_CFLAGS) $$^ $(LFLAGS) -o$$@
 endef
 
-$(foreach fs, $(BENCH_FSS), \
+$(foreach fs, $(BENCH_RUNNER_FSS), \
 	$(eval $(call BENCH_RUNNER_RULE,$\
 		$(BENCH_$(U_$(fs))_RUNNER),$\
 		$(BENCH_$(U_$(fs))_OBJ),$\
@@ -631,25 +632,25 @@ $(foreach fs, $(CODEMAP_FSS), \
 		$(BUILDDIR)/%.c,$\
 		$(fs))))
 
-$(foreach fs, $(BENCH_FSS), \
+$(foreach fs, $(BENCH_RUNNER_FSS), \
 	$(eval $(call BENCH_O_RULE,$\
 		$(BUILDDIR)/%.$(fs).b.o $(BUILDDIR)/%.$(fs).b.ci,$\
 		%.b.c,$\
 		$(fs))))
 
-$(foreach fs, $(BENCH_FSS), \
+$(foreach fs, $(BENCH_RUNNER_FSS), \
 	$(eval $(call BENCH_O_RULE,$\
 		$(BUILDDIR)/%.$(fs).b.o $(BUILDDIR)/%.$(fs).b.ci,$\
 		$(BUILDDIR)/%.b.c,$\
 		$(fs))))
 
-$(foreach fs, $(BENCH_FSS), \
+$(foreach fs, $(BENCH_RUNNER_FSS), \
 	$(eval $(call BENCH_O_RULE,$\
 		$(BUILDDIR)/%.$(fs).b.a.o $(BUILDDIR)/%.$(fs).b.a.ci,$\
 		%.b.a.c,$\
 		$(fs))))
 
-$(foreach fs, $(BENCH_FSS), \
+$(foreach fs, $(BENCH_RUNNER_FSS), \
 	$(eval $(call BENCH_O_RULE,$\
 		$(BUILDDIR)/%.$(fs).b.a.o $(BUILDDIR)/%.$(fs).b.a.ci,$\
 		$(BUILDDIR)/%.b.a.c,$\
