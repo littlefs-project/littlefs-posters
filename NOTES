@@ -32,3 +32,17 @@ Bugs:
   extremely slow and doesn't trigger an early exit because we ignore CPU
   time.
 
+Runtime:
+
+- time ( THUMB=1 make -f Makefile_1M plot-p26-wt )
+
+  real    547m4.922s
+  user    4644m37.692s
+  sys     2m22.246s
+
+- time ( THUMB=1 make -f Makefile_1M plot-p26-wt )
+
+  real    560m46.904s
+  user    4736m33.792s
+  sys     2m29.099s
+
