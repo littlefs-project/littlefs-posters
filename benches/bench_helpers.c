@@ -90,6 +90,8 @@ int bench_helpers_warmup(const struct lfs3_cfg *cfg, void *fs) {
     }
     lfs3_file_close(lfs3, &file) => 0;
 
+    lfs3_remove(lfs3, "warmup") => 0;
+
     #elif defined(LFS2)
     (void)cfg;
     lfs2_t *lfs2 = fs;
@@ -103,6 +105,8 @@ int bench_helpers_warmup(const struct lfs3_cfg *cfg, void *fs) {
         lfs2_file_sync(lfs2, &file) => 0;
     }
     lfs2_file_close(lfs2, &file) => 0;
+
+    lfs2_remove(lfs2, "warmup") => 0;
 
     #elif defined(SPIFFS)
     spiffs *spiffs = fs;
@@ -134,6 +138,8 @@ int bench_helpers_warmup(const struct lfs3_cfg *cfg, void *fs) {
     }
     SPIFFS_close(spiffs, fd) => 0;
 
+    SPIFFS_remove(spiffs, "warmup") => 0;
+
     #elif defined(YAFFS2)
     (void)cfg;
     (void)fs;
@@ -159,6 +165,8 @@ int bench_helpers_warmup(const struct lfs3_cfg *cfg, void *fs) {
         yaffs_fsync(fd) => 0;
     }
     yaffs_close(fd) => 0;
+
+    yaffs_unlink("warmup") => 0;
     #endif
 
     extern void bench_heap_pause(void);
