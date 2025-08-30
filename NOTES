@@ -46,3 +46,20 @@ Runtime:
   user    4736m33.792s
   sys     2m29.099s
 
+- time ( make -f Makefile_y_ls_1G plot )
+
+  real    406m37.655s
+  user    399m54.279s
+  sys     8m15.947s
+
+- time ( make -f Makefile_y_bt_1G plot )
+
+  real    333m10.509s
+  user    328m1.621s
+  sys     6m32.032s
+
+- time ( make -f Makefile_1G plot-p26-rt )
+
+  real    1047m7.833s
+  user    1038m27.485s
+  sys     11m48.744s

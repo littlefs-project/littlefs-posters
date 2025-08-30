@@ -1,15 +1,15 @@
 # overrideable results dir
-RESULTSDIR ?= results_y_ct
+RESULTSDIR ?= results_y_ls
 # overrideable plots dir
-PLOTSDIR ?= plots_y_ct
+PLOTSDIR ?= plots_y_ls
 # overrideable tikz dir
-TIKZDIR ?= tikz_y_ct
+TIKZDIR ?= tikz_y_ls
 
 
 # range of erase sizes to test for throughput testing
-P26_T_CRYSTAL_THRESHS ?= 1,4,8,16,32,64,128,256,$\
-		512,1024,2048,4096,8192,16384,32768,65536,131072,$\
-		262144
+# note 1024 = 128MiB/128KiB (NAND)
+# note 32768 = 128MiB/4KiB (NOR)
+P26_T_LOOKAHEAD_SIZES ?= 1,2,4,8,16,32,64,128,256,512,1024
 # some other tweaks
 P26_T_SIZE ?= 1048576 # 1 MiB
 DISK_SIZE ?= 134217728 # 128 MiB
@@ -23,70 +23,70 @@ endif
 
 # this only makes sense for littlefs3
 BENCH_FSS ?= lfs3 lfs3nb
-# we only care about NAND here
-BENCH_SIMS ?= nand
+# we mostly care about NAND, but NOR has higher block counts
+BENCH_SIMS ?= nor nand
 
 # use our bench rules
 BENCH_RULES ?= \
-	bench-p26-y-ct
+	bench-p26-y-ls
 # use our plot rules
 PLOT_RULES ?= \
-	plot-p26-y-ct
+	plot-p26-y-ls
 # use our tikz rules
 TIKZ_RULES ?= \
-	tikz-p26-y-ct
+	tikz-p26-y-ls
 
 # default Makefile does most of the work
 include Makefile
 
 
 
-## Run p26 crystal thresh benchmarks
-.PHONY: bench-p26-y-ct
-bench-p26-y-ct: \
-		bench-p26-y-ct-linear \
-		bench-p26-y-ct-random \
-		bench-p26-y-ct-many \
-		bench-p26-y-ct-logging
+## Run p26 lookahead size benchmarks
+.PHONY: bench-p26-y-ls
+bench-p26-y-ls: \
+		bench-p26-y-ls-linear \
+		bench-p26-y-ls-random \
+		bench-p26-y-ls-many \
+		bench-p26-y-ls-logging
 
-## Run p26 crystal thresh linear benchmarks
-.PHONY: bench-p26-y-ct-linear
-bench-p26-y-ct-linear: \
+## Run p26 lookahead size linear benchmarks
+.PHONY: bench-p26-y-ls-linear
+bench-p26-y-ls-linear: \
 		$(foreach fs, $(BENCH_FSS), \
 			$(foreach sim, $(BENCH_SIMS), \
-				$(RESULTSDIR)/bench_p26_y_ct_linear.$(fs).$(sim).csv))
+				$(RESULTSDIR)/bench_p26_y_ls_linear.$(fs).$(sim).csv))
 
-## Run p26 crystal thresh random benchmarks
-.PHONY: bench-p26-y-ct-random
-bench-p26-y-ct-random: \
+## Run p26 lookahead size random benchmarks
+.PHONY: bench-p26-y-ls-random
+bench-p26-y-ls-random: \
 		$(foreach fs, $(BENCH_FSS), \
 			$(foreach sim, $(BENCH_SIMS), \
-				$(RESULTSDIR)/bench_p26_y_ct_random.$(fs).$(sim).csv))
+				$(RESULTSDIR)/bench_p26_y_ls_random.$(fs).$(sim).csv))
 
-## Run p26 crystal thresh many benchmarks
-.PHONY: bench-p26-y-ct-many
-bench-p26-y-ct-many: \
+## Run p26 lookahead size many benchmarks
+.PHONY: bench-p26-y-ls-many
+bench-p26-y-ls-many: \
 		$(foreach fs, $(BENCH_FSS), \
 			$(foreach sim, $(BENCH_SIMS), \
-				$(RESULTSDIR)/bench_p26_y_ct_many.$(fs).$(sim).csv))
+				$(RESULTSDIR)/bench_p26_y_ls_many.$(fs).$(sim).csv))
 
-## Run p26 crystal thresh logging benchmarks
-.PHONY: bench-p26-y-ct-logging
-bench-p26-y-ct-logging: \
+## Run p26 lookahead size logging benchmarks
+.PHONY: bench-p26-y-ls-logging
+bench-p26-y-ls-logging: \
 		$(foreach fs, $(BENCH_FSS), \
 			$(foreach sim, $(BENCH_SIMS), \
-				$(RESULTSDIR)/bench_p26_y_ct_logging.$(fs).$(sim).csv))
+				$(RESULTSDIR)/bench_p26_y_ls_logging.$(fs).$(sim).csv))
 
 
-# p26 crystal thresh bench rule
+# p26 lookahead size bench rule
 #
 # $1 - target
 # $2 - bench case
 # $3 - fs type/version
 # $4 - sim type
-# $5 - crystal threshes
+# $5 - lookahead sizees
 #
-define BENCH_P26_T_Y_CT_RULE
+define BENCH_P26_T_Y_LS_RULE
 ifndef NO_BENCH
 $1: $(BENCH_$(U_$3)_RUNNER)
 	$$(strip ./scripts/bench.py -R$$< -B $2 \
@@ -105,7 +105,7 @@ $1: $(BENCH_$(U_$3)_RUNNER)
 		-DPROG_TIME=$($(U_$4)_PROG_TIME) \
 		-DERASE_TIME=$($(U_$4)_ERASE_TIME) \
 		-DBLOCK_SIZE=$($(U_$4)_$(U_$3)_BLOCK_SIZE) \
-		-DCRYSTAL_THRESH=$(or $5,$(P26_T_CRYSTAL_THRESHS)) \
+		-DLOOKAHEAD_SIZE=$(or $5,$(P26_T_LOOKAHEAD_SIZES)) \
 		-o$$@)
 else
 $1:
@@ -113,48 +113,52 @@ $1:
 endif
 endef
 
-# p26 crystal thresh bench rules
+# p26 lookahead size bench rules
 $(foreach fs, $(BENCH_FSS),$\
 	$(foreach sim, $(BENCH_SIMS),$\
-		$(eval $(call BENCH_P26_T_Y_CT_RULE,$\
-				$(RESULTSDIR)/bench_p26_y_ct_%.$(fs).$(sim).csv,$\
+		$(eval $(call BENCH_P26_T_Y_LS_RULE,$\
+				$(RESULTSDIR)/bench_p26_y_ls_%.$(fs).$(sim).csv,$\
 				bench_p26_wt_$$*,$\
 				$(fs),$\
 				$(sim)))))
 
 
 
-## Plot p26 crystal thresh benchmarks
-.PHONY: plot-p26-y-ct
-plot-p26-y-ct: \
-		plot-p26-y-ct-linear \
-		plot-p26-y-ct-random \
-		plot-p26-y-ct-many \
-		plot-p26-y-ct-logging
+## Plot p26 lookahead size benchmarks
+.PHONY: plot-p26-y-ls
+plot-p26-y-ls: \
+		plot-p26-y-ls-linear \
+		plot-p26-y-ls-random \
+		plot-p26-y-ls-many \
+		plot-p26-y-ls-logging
 
-## Plot p26 crystal thresh linear benchmarks
-.PHONY: plot-p26-y-ct-linear
-plot-p26-y-ct-linear: \
-		$(PLOTSDIR)/bench_p26_y_ct_linear.svg
+## Plot p26 lookahead size linear benchmarks
+.PHONY: plot-p26-y-ls-linear
+plot-p26-y-ls-linear: \
+		$(foreach sim, $(BENCH_SIMS), \
+			$(PLOTSDIR)/bench_p26_y_ls_$(sim)_linear.svg)
 
-## Plot p26 crystal thresh random benchmarks
-.PHONY: plot-p26-y-ct-random
-plot-p26-y-ct-random: \
-		$(PLOTSDIR)/bench_p26_y_ct_random.svg
+## Plot p26 lookahead size random benchmarks
+.PHONY: plot-p26-y-ls-random
+plot-p26-y-ls-random: \
+		$(foreach sim, $(BENCH_SIMS), \
+			$(PLOTSDIR)/bench_p26_y_ls_$(sim)_random.svg)
 
-## Plot p26 crystal thresh many benchmarks
-.PHONY: plot-p26-y-ct-many
-plot-p26-y-ct-many: \
-		$(PLOTSDIR)/bench_p26_y_ct_many.svg
+## Plot p26 lookahead size many benchmarks
+.PHONY: plot-p26-y-ls-many
+plot-p26-y-ls-many: \
+		$(foreach sim, $(BENCH_SIMS), \
+			$(PLOTSDIR)/bench_p26_y_ls_$(sim)_many.svg)
 
-## Plot p26 crystal thresh logging benchmarks
-.PHONY: plot-p26-y-ct-logging
-plot-p26-y-ct-logging: \
-		$(PLOTSDIR)/bench_p26_y_ct_logging.svg
+## Plot p26 lookahead size logging benchmarks
+.PHONY: plot-p26-y-ls-logging
+plot-p26-y-ls-logging: \
+		$(foreach sim, $(BENCH_SIMS), \
+			$(PLOTSDIR)/bench_p26_y_ls_$(sim)_logging.svg)
 
 
 
-# p26 crystal threshs plot rule
+# p26 lookahead sizes plot rule
 #
 # $1 - target
 # $2 - sources
@@ -163,7 +167,7 @@ plot-p26-y-ct-logging: \
 # $5 - x-ticks
 # $6 - extra plotmpl.py flags
 #
-define PLOT_P26_Y_CT_RULE
+define PLOT_P26_Y_LS_RULE
 $1: $2
 	$$(strip ./scripts/plotmpl.py $$^ \
 		-W1500 -H350 \
@@ -198,36 +202,38 @@ $1: $2
 			$$(shell python -c 'b=max([$5]); print(b+b/4)')" \
 		--x2 --xunits=B \
 		$$(shell python -c '$\
-			for n in [$5][::2]: $\
+			for n in [$5]: $\
 				print("--add-xticklabel=%d=\"%%(x)IB\"" % n)') \
 		$6 \
 		$$(PLOTFLAGS) \
 		-o$$@)
 endef
 
-# p26 crystal thresh plot rules
-$(eval $(call PLOT_P26_Y_CT_RULE,$\
-		$(PLOTSDIR)/bench_p26_y_ct_%.svg,$\
-		$(foreach fs, $(BENCH_FSS),$\
-			$(RESULTSDIR)/bench_p26_y_ct_%.$(fs).nand.tsim.csv \
-			$(RESULTSDIR)/bench_p26_y_ct_%.$(fs).nand.ram.csv \
-			$(RESULTSDIR)/bench_p26_y_ct_%.$(fs).nand.csv),$\
-		"crystal threshs - NAND - $$* - simulated throughput",$\
-		CRYSTAL_THRESH,$\
-		$(P26_T_CRYSTAL_THRESHS),$\
-		--xlabel="crystal thresh"))
+# p26 lookahead size plot rules
+$(foreach sim, $(BENCH_SIMS), \
+	$(eval $(call PLOT_P26_Y_LS_RULE,$\
+			$(PLOTSDIR)/bench_p26_y_ls_$(sim)_%.svg,$\
+			$(foreach fs, $(BENCH_FSS),$\
+				$(RESULTSDIR)/bench_p26_y_ls_%.$(fs).$(sim).tsim.csv \
+				$(RESULTSDIR)/bench_p26_y_ls_%.$(fs).$(sim).ram.csv \
+				$(RESULTSDIR)/bench_p26_y_ls_%.$(fs).$(sim).csv),$\
+			"lookahead sizes - $(sim) - $$* - simulated throughput",$\
+			LOOKAHEAD_SIZE,$\
+			$(P26_T_LOOKAHEAD_SIZES),$\
+			--xlabel="lookahead size")))
 
 
 
 
-## Generate crystal thresh tikz results
-.PHONY: tikz-p26-y-ct
-tikz-p26-y-ct: \
+## Generate lookahead size tikz results
+.PHONY: tikz-p26-y-ls
+tikz-p26-y-ls: \
 		$(foreach fs, $(BENCH_FSS), \
-			$(foreach bench, linear random many logging, \
-				$(TIKZDIR)/tikz_p26_y_ct_$(bench).$(fs).nand.csv))
+			$(foreach sim, $(BENCH_SIMS), \
+				$(foreach bench, linear random many logging, \
+					$(TIKZDIR)/tikz_p26_y_ls_$(bench).$(fs).$(sim).csv)))
 
-# tikz crystal thresh rule
+# tikz lookahead size rule
 #
 # $1 - target
 # $2 - source
@@ -235,7 +241,7 @@ tikz-p26-y-ct: \
 # $4 - sim
 # $5 - bench
 #
-define TIKZ_T_Y_CT_RULE
+define TIKZ_T_Y_LS_RULE
 $1: $2
 	$$(strip ./scripts/csv.py \
 		<(./scripts/csv.py $$^ \
@@ -251,8 +257,8 @@ $1: $2
 		-bsim=$4 \
 		-bbench=$5 \
 		-Dm=write,read \
-		-bCRYSTAL_THRESH \
-		-Si=CRYSTAL_THRESH \
+		-bLOOKAHEAD_SIZE \
+		-Si=LOOKAHEAD_SIZE \
 		-fthroughput=' \
 			float(n) / max( \
 				(float(bench_readed)*float(READ_TIME) \
@@ -272,9 +278,9 @@ endef
 $(foreach fs, $(BENCH_FSS), \
 	$(foreach sim, $(BENCH_SIMS), \
 		$(foreach bench, linear random many logging, \
-			$(eval $(call TIKZ_T_Y_CT_RULE,$\
-				$(TIKZDIR)/tikz_p26_y_ct_$(bench).$(fs).$(sim).csv,$\
-				$(RESULTSDIR)/bench_p26_y_ct_$(bench).$(fs).$(sim).csv,$\
+			$(eval $(call TIKZ_T_Y_LS_RULE,$\
+				$(TIKZDIR)/tikz_p26_y_ls_$(bench).$(fs).$(sim).csv,$\
+				$(RESULTSDIR)/bench_p26_y_ls_$(bench).$(fs).$(sim).csv,$\
 				$(fs),$\
 				$(sim),$\
 				$(bench))))))
