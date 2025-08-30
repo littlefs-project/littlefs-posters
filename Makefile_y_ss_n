@@ -28,9 +28,9 @@ P26_T_SIM_TIME ?= 600000000000 # 10 minutes
 endif
 
 # bench several configurations
-BENCH_FSS ?= lfs3s0 lfs3s8 $\
+BENCH_FSS ?= lfs3s0 $\
 	lfs3s64 lfs3s128 lfs3s256 lfs3s512 lfs3s1024 lfs3s2048 $\
-	lfs3s8192 lfs3s32768
+	lfs3s4096 lfs3s8192 lfs3s16384 lfs3s32768
 # we've tuned things for NAND
 BENCH_SIMS ?= nand
 
