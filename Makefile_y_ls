@@ -231,7 +231,23 @@ tikz-p26-y-ls: \
 		$(foreach fs, $(BENCH_FSS), \
 			$(foreach sim, $(BENCH_SIMS), \
 				$(foreach bench, linear random many logging, \
-					$(TIKZDIR)/tikz_p26_y_ls_$(bench).$(fs).$(sim).csv)))
+					$(TIKZDIR)/tikz_p26_y_ls_$(bench)$\
+						.$(fs).$(sim).csv))) \
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(foreach bench, linear random many logging, \
+					$(TIKZDIR)/tikz_p26_y_ls_ram_$(bench)$\
+						.$(fs).$(sim).csv))) \
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(foreach bench, linear random many logging, \
+					$(TIKZDIR)/tikz_p26_y_ls_l16_$(bench)$\
+						.$(fs).$(sim).csv))) \
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(foreach bench, linear random many logging, \
+					$(TIKZDIR)/tikz_p26_y_ls_ram_l16_$(bench)$\
+						.$(fs).$(sim).csv)))
 
 # tikz lookahead size rule
 #
@@ -281,6 +297,132 @@ $(foreach fs, $(BENCH_FSS), \
 			$(eval $(call TIKZ_T_Y_LS_RULE,$\
 				$(TIKZDIR)/tikz_p26_y_ls_$(bench).$(fs).$(sim).csv,$\
 				$(RESULTSDIR)/bench_p26_y_ls_$(bench).$(fs).$(sim).csv,$\
+				$(fs),$\
+				$(sim),$\
+				$(bench))))))
+
+# tikz lookahead size rule
+#
+# $1 - target
+# $2 - source
+# $3 - fs type/version
+# $4 - sim
+# $5 - bench
+#
+define TIKZ_T_Y_LS_RAM_RULE
+$1: $(BENCH_$(U_$3)_RUNNER) $2
+	$$(strip ./scripts/csv.py \
+		<(./scripts/csv.py $$(wordlist 2,$$(words $$^),$$^) \
+			-Dm=stack \
+			-fdata="$$$$( \
+				./scripts/data.py $$< -bfunction -o- \
+					| $(BENCH_$(U_$3)_FILTER) \
+					| ./scripts/csv.py - -fdata_size --total)" \
+			-fstack=bench_readed \
+			-Dn='*' \
+			-Dbench_readed='*' \
+			-Dbench_proged='*' \
+			-Dbench_erased='*' \
+			-Dbench_creaded='*' \
+			-Dbench_cproged='*' \
+			-Dbench_cerased='*' \
+			-o-) \
+		<(./scripts/csv.py $$(wordlist 2,$$(words $$^),$$^) \
+			-Dm=heap \
+			-fheap=bench_readed \
+			-Dn='*' \
+			-Dbench_readed='*' \
+			-Dbench_proged='*' \
+			-Dbench_erased='*' \
+			-Dbench_creaded='*' \
+			-Dbench_cproged='*' \
+			-Dbench_cerased='*' \
+			-o-) \
+		-bfs=$3 \
+		-bsim=$4 \
+		-bbench=$5 \
+		-bLOOKAHEAD_SIZE \
+		-Si=LOOKAHEAD_SIZE \
+		-fdata \
+		-fstack \
+		-fheap \
+		-fram=data+stack+heap \
+		-o$$@)
+endef
+
+$(foreach fs, $(BENCH_FSS), \
+	$(foreach sim, $(BENCH_SIMS), \
+		$(foreach bench, linear random many logging, \
+			$(eval $(call TIKZ_T_Y_LS_RAM_RULE,$\
+				$(TIKZDIR)/tikz_p26_y_ls_ram_$(bench).$(fs).$(sim).csv,$\
+				$(RESULTSDIR)/bench_p26_y_ls_$(bench).$(fs).$(sim).csv,$\
+				$(fs),$\
+				$(sim),$\
+				$(bench))))))
+
+
+# tikz lookahead size fixed l=16B rule
+#
+# $1 - target
+# $2 - source
+# $3 - fs type/version
+# $4 - sim
+# $5 - bench
+#
+define TIKZ_T_Y_LS_L16_RULE
+$1: $2
+	$$(strip ./scripts/csv.py $$^ \
+		-bLOOKAHEAD_SIZE \
+		-Si=LOOKAHEAD_SIZE \
+		-fthroughput="$$$$(./scripts/csv.py $$^ \
+			-DLOOKAHEAD_SIZE=16 -fthroughput --total)" \
+		-fn="$$$$(./scripts/csv.py $$^ \
+			-DLOOKAHEAD_SIZE=16 -fn --total)" \
+		-ft="$$$$(./scripts/csv.py $$^ \
+			-DLOOKAHEAD_SIZE=16 -ft --total)" \
+		-o$$@)
+endef
+
+$(foreach fs, $(BENCH_FSS), \
+	$(foreach sim, $(BENCH_SIMS), \
+		$(foreach bench, linear random many logging, \
+			$(eval $(call TIKZ_T_Y_LS_L16_RULE,$\
+				$(TIKZDIR)/tikz_p26_y_ls_l16_$(bench).$(fs).$(sim).csv,$\
+				$(TIKZDIR)/tikz_p26_y_ls_$(bench).$(fs).$(sim).csv,$\
+				$(fs),$\
+				$(sim),$\
+				$(bench))))))
+
+# tikz lookahead size fixed l=16B rule
+#
+# $1 - target
+# $2 - source
+# $3 - fs type/version
+# $4 - sim
+# $5 - bench
+#
+define TIKZ_T_Y_LS_RAM_L16_RULE
+$1: $2
+	$$(strip ./scripts/csv.py $$^ \
+		-bLOOKAHEAD_SIZE \
+		-Si=LOOKAHEAD_SIZE \
+		-fdata="$$$$(./scripts/csv.py $$^ \
+			-DLOOKAHEAD_SIZE=16 -fdata --total)" \
+		-fstack="$$$$(./scripts/csv.py $$^ \
+			-DLOOKAHEAD_SIZE=16 -fstack --total)" \
+		-fheap="$$$$(./scripts/csv.py $$^ \
+			-DLOOKAHEAD_SIZE=16 -fheap --total)" \
+		-fram="$$$$(./scripts/csv.py $$^ \
+			-DLOOKAHEAD_SIZE=16 -fram --total)" \
+		-o$$@)
+endef
+
+$(foreach fs, $(BENCH_FSS), \
+	$(foreach sim, $(BENCH_SIMS), \
+		$(foreach bench, linear random many logging, \
+			$(eval $(call TIKZ_T_Y_LS_RAM_L16_RULE,$\
+				$(TIKZDIR)/tikz_p26_y_ls_ram_l16_$(bench).$(fs).$(sim).csv,$\
+				$(TIKZDIR)/tikz_p26_y_ls_ram_$(bench).$(fs).$(sim).csv,$\
 				$(fs),$\
 				$(sim),$\
 				$(bench))))))
