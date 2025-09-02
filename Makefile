@@ -1,8 +1,16 @@
 # overrideable build dir, default to ./build
-ifdef DEBUG
-BUILDDIR ?= build_dbg
+ifdef THUMB
+ ifdef DEBUG
+  BUILDDIR ?= build_thumb_dbg
+ else
+  BUILDDIR ?= build_thumb
+ endif
 else
-BUILDDIR ?= build
+ ifdef DEBUG
+  BUILDDIR ?= build_dbg
+ else
+  BUILDDIR ?= build
+ endif
 endif
 # overrideable codemaps dir, defaults to ./codemaps
 CODEMAPSDIR ?= codemaps
