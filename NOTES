@@ -76,3 +76,9 @@ Runtime:
   user    909m15.368s
   sys     1m51.596s
 
+- time ( make -f Makefile_x_n_1G plot )
+
+  387m31.579s
+  381m17.568s
+  7m30.933s
+

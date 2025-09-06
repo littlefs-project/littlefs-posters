@@ -1,19 +1,23 @@
 # overrideable results dir
-RESULTSDIR ?= results_x_ds
+RESULTSDIR ?= results_x_n_1G
 # overrideable plots dir
-PLOTSDIR ?= plots_x_ds
+PLOTSDIR ?= plots_x_n_1G
 # overrideable tikz dir
-TIKZDIR ?= tikz_x_ds
+TIKZDIR ?= tikz_x_n_1G
 
 
-# range of disk sizes to test for throughput testing
-P26_T_DISK_SIZES ?= 8388608,16777216,33554432,67108864,134217728,268435456,$\
-		536870912,1073741824,2147483648,4294967296,8589934592
+# give us more space for activities
+DISK_SIZE ?= 8589934592 # 8 GiB
 # prevent parallel benches because of how big disk is
 DISK_BIG = 1
-# some other tweaks
-P26_T_SIZE ?= 1048576
-#P26_T_SIZE ?= 32768
+
+# 64B -> 1GiB
+P26_T_SIZES ?= $\
+	64,128,256,512,$\
+	1024,2048,4096,8192,16384,32768,$\
+		65536,131072,262144,524288,$\
+	1048576,2097152,4194304,8388608,16777216,33554432,$\
+		67108864,134217728,268435456,536870912,1073741824
 
 # increase simtime for more reliable results
 ifdef PRECISE
@@ -22,53 +26,58 @@ else
 P26_T_SIM_TIME ?= 3600000000000 # 1 hour
 endif
 
+# we DO test all filesystems, this is the main difference between
+# other 1G benchmarks, however we only bench logging
+#
+# this avoids linked-list scaling issues with yaffs2
+
 # we only care about NOR and NAND really
 BENCH_SIMS ?= nor nand
 
 # use our bench rules
 BENCH_RULES ?= \
-	bench-p26-x-ds
+	bench-p26-x-n-1G
 # use our plot rules
 PLOT_RULES ?= \
-	plot-p26-x-ds
+	plot-p26-x-n-1G
 # use our tikz rules
 TIKZ_RULES ?= \
-	tikz-p26-x-ds
+	tikz-p26-x-n-1G
 
 # default Makefile does most of the work
 include Makefile
 
 
 
-## Run p26 disk size benchmarks
-.PHONY: bench-p26-x-ds
-bench-p26-x-ds: \
-		bench-p26-x-ds-logging
+## Run p26 target size benchmarks
+.PHONY: bench-p26-x-n-1G
+bench-p26-x-n-1G: \
+		bench-p26-x-n-1G-logging
 
-## Run p26 disk size logging benchmarks
-.PHONY: bench-p26-x-ds-logging
-bench-p26-x-ds-logging: \
+## Run p26 target size logging benchmarks
+.PHONY: bench-p26-x-n-1G-logging
+bench-p26-x-n-1G-logging: \
 		$(foreach fs, $(BENCH_FSS), \
 			$(foreach sim, $(BENCH_SIMS), \
-				$(RESULTSDIR)/bench_p26_x_ds_logging.$(fs).$(sim).csv))
+				$(RESULTSDIR)/bench_p26_x_n_1G_logging.$(fs).$(sim).csv))
 
 
-# p26 disk size bench rule
+# p26 target size bench rule
 #
 # $1 - target
 # $2 - bench case
 # $3 - fs type/version
 # $4 - sim type
-# $5 - disk sizes
+# $5 - target sizes
 #
-define BENCH_P26_T_X_DS_RULE
+define BENCH_P26_T_X_N_1G_RULE
 ifndef NO_BENCH
 $1: $(BENCH_$(U_$3)_RUNNER)
 	$$(strip ./scripts/bench.py -R$$< -B $2 \
 		$(BENCHFLAGS) \
-		-DDISK_SIZE=$(or $5,$(P26_T_DISK_SIZES)) \
+		-DDISK_SIZE=$(DISK_SIZE) \
 		$(if $(SKIP_WARMUP),-DSKIP_WARMUP=$(SKIP_WARMUP)) \
-		-DSIZE=$(P26_T_SIZE) \
+		-DSIZE=$(or $5,$(P26_T_SIZES)) \
 		-DCHUNK=$(P26_T_CHUNK) \
 		-DSIM_TIME=$(or $(P26_T_SIM_TIME),0) \
 		-DSIM_SIZE=$(or $(P26_T_SIM_SIZE),0) \
@@ -87,36 +96,36 @@ $1:
 endif
 endef
 
-# p26 disk size bench rules
+# p26 target size bench rules
 $(foreach fs, $(BENCH_FSS),$\
 	$(foreach sim, $(BENCH_SIMS),$\
-		$(eval $(call BENCH_P26_T_X_DS_RULE,$\
-				$(RESULTSDIR)/bench_p26_x_ds_%.$(fs).$(sim).csv,$\
+		$(eval $(call BENCH_P26_T_X_N_1G_RULE,$\
+				$(RESULTSDIR)/bench_p26_x_n_1G_%.$(fs).$(sim).csv,$\
 				bench_p26_wt_$$*,$\
 				$(fs),$\
 				$(sim)))))
 
 
 
-## Plot p26 disk size benchmarks
-.PHONY: plot-p26-x-ds
-plot-p26-x-ds: \
-		plot-p26-x-ds-nor \
-		plot-p26-x-ds-nand
+## Plot p26 target size benchmarks
+.PHONY: plot-p26-x-n-1G
+plot-p26-x-n-1G: \
+		plot-p26-x-n-1G-nor \
+		plot-p26-x-n-1G-nand
 
-## Plot p26 disk size nor benchmarks
-.PHONY: plot-p26-x-ds-nor
-plot-p26-x-ds-nor: \
-		$(PLOTSDIR)/bench_p26_x_ds_nor.svg
+## Plot p26 target size nor benchmarks
+.PHONY: plot-p26-x-n-1G-nor
+plot-p26-x-n-1G-nor: \
+		$(PLOTSDIR)/bench_p26_x_n_1G_nor.svg
 
-## Plot p26 disk size nand benchmarks
-.PHONY: plot-p26-x-ds-nand
-plot-p26-x-ds-nand: \
-		$(PLOTSDIR)/bench_p26_x_ds_nand.svg
+## Plot p26 target size nand benchmarks
+.PHONY: plot-p26-x-n-1G-nand
+plot-p26-x-n-1G-nand: \
+		$(PLOTSDIR)/bench_p26_x_n_1G_nand.svg
 
 
 
-# p26 disk sizes plot rule
+# p26 target sizes plot rule
 #
 # $1 - target
 # $2 - sources
@@ -125,7 +134,7 @@ plot-p26-x-ds-nand: \
 # $5 - x-ticks
 # $6 - extra plotmpl.py flags
 #
-define PLOT_P26_X_DS_RULE
+define PLOT_P26_X_N_1G_RULE
 $1: $2
 	$$(strip ./scripts/plotmpl.py $$^ \
 		-W1500 -H350 \
@@ -170,33 +179,33 @@ $1: $2
 		-o$$@)
 endef
 
-# p26 disk size plot rules
-$(eval $(call PLOT_P26_X_DS_RULE,$\
-		$(PLOTSDIR)/bench_p26_x_ds_%.svg,$\
+# p26 target size plot rules
+$(eval $(call PLOT_P26_X_N_1G_RULE,$\
+		$(PLOTSDIR)/bench_p26_x_n_1G_%.svg,$\
 		$(foreach fs, $(BENCH_FSS),$\
-			$(RESULTSDIR)/bench_p26_x_ds_logging.$(fs).%.tsim.csv \
-			$(RESULTSDIR)/bench_p26_x_ds_logging.$(fs).%.ram.csv),$\
-		"disk sizes - $$* - logging - simulated throughput",$\
-		DISK_SIZE,$\
-		$(P26_T_DISK_SIZES),$\
-		--xlabel="disk size"))
+			$(RESULTSDIR)/bench_p26_x_n_1G_logging.$(fs).%.tsim.csv \
+			$(RESULTSDIR)/bench_p26_x_n_1G_logging.$(fs).%.ram.csv),$\
+		"target sizes - $$* - logging - simulated throughput",$\
+		SIZE,$\
+		$(P26_T_SIZES),$\
+		--xlabel="target size"))
 
 
 
 
-## Generate disk size tikz results
-.PHONY: tikz-p26-x-ds
-tikz-p26-x-ds: \
+## Generate target size tikz results
+.PHONY: tikz-p26-x-n-1G
+tikz-p26-x-n-1G: \
 		$(foreach fs, $(BENCH_FSS), \
 			$(foreach sim, $(BENCH_SIMS), \
 				$(foreach bench, logging, \
-					$(TIKZDIR)/tikz_p26_x_ds_$(bench).$(fs).$(sim).csv))) \
+					$(TIKZDIR)/tikz_p26_x_n_1G_$(bench).$(fs).$(sim).csv))) \
 		$(foreach fs, $(BENCH_FSS), \
 			$(foreach sim, $(BENCH_SIMS), \
 				$(foreach bench, logging, \
-					$(TIKZDIR)/tikz_p26_x_ds_ram_$(bench).$(fs).$(sim).csv)))
+					$(TIKZDIR)/tikz_p26_x_n_1G_ram_$(bench).$(fs).$(sim).csv)))
 
-# tikz disk size rule
+# tikz target size rule
 #
 # $1 - target
 # $2 - source
@@ -204,7 +213,7 @@ tikz-p26-x-ds: \
 # $4 - sim
 # $5 - bench
 #
-define TIKZ_T_X_DS_RULE
+define TIKZ_T_X_N_1G_RULE
 $1: $2
 	$$(strip ./scripts/csv.py \
 		<(./scripts/csv.py $$^ \
@@ -220,8 +229,8 @@ $1: $2
 		-bsim=$4 \
 		-bbench=$5 \
 		-Dm=write,read \
-		-bDISK_SIZE \
-		-Si=DISK_SIZE \
+		-bSIZE \
+		-Si=SIZE \
 		-fthroughput=' \
 			float(n) / max( \
 				(float(bench_readed)*float(READ_TIME) \
@@ -241,14 +250,14 @@ endef
 $(foreach fs, $(BENCH_FSS), \
 	$(foreach sim, $(BENCH_SIMS), \
 		$(foreach bench, logging, \
-			$(eval $(call TIKZ_T_X_DS_RULE,$\
-				$(TIKZDIR)/tikz_p26_x_ds_$(bench).$(fs).$(sim).csv,$\
-				$(RESULTSDIR)/bench_p26_x_ds_$(bench).$(fs).$(sim).csv,$\
+			$(eval $(call TIKZ_T_X_N_1G_RULE,$\
+				$(TIKZDIR)/tikz_p26_x_n_1G_$(bench).$(fs).$(sim).csv,$\
+				$(RESULTSDIR)/bench_p26_x_n_1G_$(bench).$(fs).$(sim).csv,$\
 				$(fs),$\
 				$(sim),$\
 				$(bench))))))
 
-# tikz disk size ram rule
+# tikz target size ram rule
 #
 # $1 - target
 # $2 - source
@@ -256,7 +265,7 @@ $(foreach fs, $(BENCH_FSS), \
 # $4 - sim
 # $5 - bench
 #
-define TIKZ_T_X_DS_RAM_RULE
+define TIKZ_T_X_N_1G_RAM_RULE
 $1: $(BENCH_$(U_$3)_RUNNER) $2
 	$$(strip ./scripts/csv.py \
 		<(./scripts/csv.py $$(wordlist 2,$$(words $$^),$$^) \
@@ -288,8 +297,8 @@ $1: $(BENCH_$(U_$3)_RUNNER) $2
 		-bfs=$3 \
 		-bsim=$4 \
 		-bbench=$5 \
-		-bDISK_SIZE \
-		-Si=DISK_SIZE \
+		-bSIZE \
+		-Si=SIZE \
 		-fdata \
 		-fstack \
 		-fheap \
@@ -300,9 +309,9 @@ endef
 $(foreach fs, $(BENCH_FSS), \
 	$(foreach sim, $(BENCH_SIMS), \
 		$(foreach bench, logging, \
-			$(eval $(call TIKZ_T_X_DS_RAM_RULE,$\
-				$(TIKZDIR)/tikz_p26_x_ds_ram_$(bench).$(fs).$(sim).csv,$\
-				$(RESULTSDIR)/bench_p26_x_ds_$(bench).$(fs).$(sim).csv,$\
+			$(eval $(call TIKZ_T_X_N_1G_RAM_RULE,$\
+				$(TIKZDIR)/tikz_p26_x_n_1G_ram_$(bench).$(fs).$(sim).csv,$\
+				$(RESULTSDIR)/bench_p26_x_n_1G_$(bench).$(fs).$(sim).csv,$\
 				$(fs),$\
 				$(sim),$\
 				$(bench))))))
