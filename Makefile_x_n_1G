@@ -215,7 +215,7 @@ tikz-p26-x-n-1G: \
 #
 define TIKZ_T_X_N_1G_RULE
 $1: $2
-	$$(strip ./scripts/csv.py \
+	-$$(strip ./scripts/csv.py \
 		<(./scripts/csv.py $$^ \
 			-fn \
 			-fbench_readed \
@@ -267,7 +267,7 @@ $(foreach fs, $(BENCH_FSS), \
 #
 define TIKZ_T_X_N_1G_RAM_RULE
 $1: $(BENCH_$(U_$3)_RUNNER) $2
-	$$(strip ./scripts/csv.py \
+	-$$(strip ./scripts/csv.py \
 		<(./scripts/csv.py $$(wordlist 2,$$(words $$^),$$^) \
 			-Dm=stack \
 			-fdata="$$$$( \
