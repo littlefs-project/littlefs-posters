@@ -246,8 +246,8 @@ size_t bench_heap(void);
 #define BENCH_LFS3_DEFINES \
     BENCH_DEFINE(BLOCK_RECYCLES,     100                                    ) \
     /* NOTE this was expanded to match littlefs2                           */ \
-    BENCH_DEFINE(RCACHE_SIZE,        LFS3_MAX(CACHE_SIZE, READ_SIZE)        ) \
-    BENCH_DEFINE(PCACHE_SIZE,        LFS3_MAX(CACHE_SIZE, PROG_SIZE)        ) \
+    BENCH_DEFINE(RCACHE_SIZE,        LFS3_MAX(256, READ_SIZE)               ) \
+    BENCH_DEFINE(PCACHE_SIZE,        LFS3_MAX(256, PROG_SIZE)               ) \
     /* NOTE this was expanded to match littlefs2                           */ \
     BENCH_DEFINE(FILE_CACHE_SIZE,    CACHE_SIZE                             ) \
     BENCH_DEFINE(LOOKAHEAD_SIZE,     16                                     ) \
