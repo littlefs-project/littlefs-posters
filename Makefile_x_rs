@@ -1,13 +1,13 @@
 # overrideable results dir
-RESULTSDIR ?= results_x_gs
+RESULTSDIR ?= results_x_rs
 # overrideable plots dir
-PLOTSDIR ?= plots_x_gs
+PLOTSDIR ?= plots_x_rs
 # overrideable tikz dir
-TIKZDIR ?= tikz_x_gs
+TIKZDIR ?= tikz_x_rs
 
 
-# range of page sizes to test for throughput testing
-P26_T_PAGE_SIZES ?= 1,4,8,16,32,64,128,256,512,1024,2048,4096,8192
+# range of read sizes to test for throughput testing
+P26_T_READ_SIZES ?= 1,4,8,16,32,64,128,256,512,1024,2048,4096,8192
 # some other tweaks
 P26_T_SIZE ?= 1048576 # 1 MiB
 DISK_SIZE ?= 134217728 # 128 MiB
@@ -42,41 +42,41 @@ NAND_SPIFFSTP_BLOCK_SIZE ?= $(NAND_SPIFFS_BLOCK_SIZE)
 
 # use our bench rules
 BENCH_RULES ?= \
-	bench-p26-x-gs
+	bench-p26-x-rs
 # use our plot rules
 PLOT_RULES ?= \
-	plot-p26-x-gs
+	plot-p26-x-rs
 # use our tikz rules
 TIKZ_RULES ?= \
-	tikz-p26-x-gs
+	tikz-p26-x-rs
 
 # default Makefile does most of the work
 include Makefile
 
 
 
-## Run p26 page size benchmarks
-.PHONY: bench-p26-x-gs
-bench-p26-x-gs: \
-		bench-p26-x-gs-logging
+## Run p26 read size benchmarks
+.PHONY: bench-p26-x-rs
+bench-p26-x-rs: \
+		bench-p26-x-rs-logging
 
-## Run p26 page size logging benchmarks
-.PHONY: bench-p26-x-gs-logging
-bench-p26-x-gs-logging: \
+## Run p26 read size logging benchmarks
+.PHONY: bench-p26-x-rs-logging
+bench-p26-x-rs-logging: \
 		$(foreach fs, $(BENCH_FSS), \
 			$(foreach sim, $(BENCH_SIMS), \
-				$(RESULTSDIR)/bench_p26_x_gs_logging.$(fs).$(sim).csv))
+				$(RESULTSDIR)/bench_p26_x_rs_logging.$(fs).$(sim).csv))
 
 
-# p26 page size bench rule
+# p26 read size bench rule
 #
 # $1 - target
 # $2 - bench case
 # $3 - fs type/version
 # $4 - sim type
-# $5 - page sizes
+# $5 - read sizes
 #
-define BENCH_P26_T_X_GS_RULE
+define BENCH_P26_T_X_RS_RULE
 ifndef NO_BENCH
 $1: $(BENCH_$(U_$3)_RUNNER)
 	$$(strip ./scripts/bench.py -R$$< -B $2 \
@@ -88,9 +88,10 @@ $1: $(BENCH_$(U_$3)_RUNNER)
 		-DSIM_TIME=$(or $(P26_T_SIM_TIME),0) \
 		-DSIM_SIZE=$(or $(P26_T_SIM_SIZE),0) \
 		-DFS=$(N_$3) \
-		-DPAGE_SIZE=$$(shell python -c '$\
-			print(",".join(str(x) for x in [$(or $5,$(P26_T_PAGE_SIZES))] $\
+		-DREAD_SIZE=$$(shell python -c '$\
+			print(",".join(str(x) for x in [$(or $5,$(P26_T_READ_SIZES))] $\
 				if x < $($(U_$4)_ERASE_SIZE)))') \
+		-DPROG_SIZE=$($(U_$4)_PROG_SIZE) \
 		$(if $(filter spiffstp,$3), -DSPAGE_TIGHT=1) \
 		-DERASE_SIZE=$($(U_$4)_ERASE_SIZE) \
 		-DREAD_TIME=$($(U_$4)_READ_TIME) \
@@ -104,36 +105,36 @@ $1:
 endif
 endef
 
-# p26 page size bench rules
+# p26 read size bench rules
 $(foreach fs, $(BENCH_FSS),$\
 	$(foreach sim, $(BENCH_SIMS),$\
-		$(eval $(call BENCH_P26_T_X_GS_RULE,$\
-				$(RESULTSDIR)/bench_p26_x_gs_%.$(fs).$(sim).csv,$\
+		$(eval $(call BENCH_P26_T_X_RS_RULE,$\
+				$(RESULTSDIR)/bench_p26_x_rs_%.$(fs).$(sim).csv,$\
 				bench_p26_wt_$$*,$\
 				$(fs),$\
 				$(sim)))))
 
 
 
-## Plot p26 page size benchmarks
-.PHONY: plot-p26-x-gs
-plot-p26-x-gs: \
-		plot-p26-x-gs-nor \
-		plot-p26-x-gs-nand
+## Plot p26 read size benchmarks
+.PHONY: plot-p26-x-rs
+plot-p26-x-rs: \
+		plot-p26-x-rs-nor \
+		plot-p26-x-rs-nand
 
-## Plot p26 page size nor benchmarks
-.PHONY: plot-p26-x-gs-nor
-plot-p26-x-gs-nor: \
-		$(PLOTSDIR)/bench_p26_x_gs_nor.svg
+## Plot p26 read size nor benchmarks
+.PHONY: plot-p26-x-rs-nor
+plot-p26-x-rs-nor: \
+		$(PLOTSDIR)/bench_p26_x_rs_nor.svg
 
-## Plot p26 page size nand benchmarks
-.PHONY: plot-p26-x-gs-nand
-plot-p26-x-gs-nand: \
-		$(PLOTSDIR)/bench_p26_x_gs_nand.svg
+## Plot p26 read size nand benchmarks
+.PHONY: plot-p26-x-rs-nand
+plot-p26-x-rs-nand: \
+		$(PLOTSDIR)/bench_p26_x_rs_nand.svg
 
 
 
-# p26 page sizes plot rule
+# p26 read sizes plot rule
 #
 # $1 - target
 # $2 - sources
@@ -142,7 +143,7 @@ plot-p26-x-gs-nand: \
 # $5 - x-ticks
 # $6 - extra plotmpl.py flags
 #
-define PLOT_P26_X_GS_RULE
+define PLOT_P26_X_RS_RULE
 $1: $2
 	$$(strip ./scripts/plotmpl.py $$^ \
 		-W1500 -H350 \
@@ -187,33 +188,33 @@ $1: $2
 		-o$$@)
 endef
 
-# p26 page size plot rules
-$(eval $(call PLOT_P26_X_GS_RULE,$\
-		$(PLOTSDIR)/bench_p26_x_gs_%.svg,$\
+# p26 read size plot rules
+$(eval $(call PLOT_P26_X_RS_RULE,$\
+		$(PLOTSDIR)/bench_p26_x_rs_%.svg,$\
 		$(foreach fs, $(BENCH_FSS),$\
-			$(RESULTSDIR)/bench_p26_x_gs_logging.$(fs).%.tsim.csv \
-			$(RESULTSDIR)/bench_p26_x_gs_logging.$(fs).%.ram.csv),$\
-		"page sizes - $$* - logging - simulated throughput",$\
-		PAGE_SIZE,$\
-		$(P26_T_PAGE_SIZES),$\
-		--xlabel="page size"))
+			$(RESULTSDIR)/bench_p26_x_rs_logging.$(fs).%.tsim.csv \
+			$(RESULTSDIR)/bench_p26_x_rs_logging.$(fs).%.ram.csv),$\
+		"read sizes - $$* - logging - simulated throughput",$\
+		READ_SIZE,$\
+		$(P26_T_READ_SIZES),$\
+		--xlabel="read size"))
 
 
 
 
-## Generate page size tikz results
-.PHONY: tikz-p26-x-gs
-tikz-p26-x-gs: \
+## Generate read size tikz results
+.PHONY: tikz-p26-x-rs
+tikz-p26-x-rs: \
 		$(foreach fs, $(BENCH_FSS), \
 			$(foreach sim, $(BENCH_SIMS), \
 				$(foreach bench, logging, \
-					$(TIKZDIR)/tikz_p26_x_gs_$(bench).$(fs).$(sim).csv))) \
+					$(TIKZDIR)/tikz_p26_x_rs_$(bench).$(fs).$(sim).csv))) \
 		$(foreach fs, $(BENCH_FSS), \
 			$(foreach sim, $(BENCH_SIMS), \
 				$(foreach bench, logging, \
-					$(TIKZDIR)/tikz_p26_x_gs_ram_$(bench).$(fs).$(sim).csv)))
+					$(TIKZDIR)/tikz_p26_x_rs_ram_$(bench).$(fs).$(sim).csv)))
 
-# tikz page size rule
+# tikz read size rule
 #
 # $1 - target
 # $2 - source
@@ -221,7 +222,7 @@ tikz-p26-x-gs: \
 # $4 - sim
 # $5 - bench
 #
-define TIKZ_T_X_GS_RULE
+define TIKZ_T_X_RS_RULE
 $1: $2
 	$$(strip ./scripts/csv.py \
 		<(./scripts/csv.py $$^ \
@@ -237,8 +238,8 @@ $1: $2
 		-bsim=$4 \
 		-bbench=$5 \
 		-Dm=write,read \
-		-bPAGE_SIZE \
-		-Si=PAGE_SIZE \
+		-bREAD_SIZE \
+		-Si=READ_SIZE \
 		-fthroughput=' \
 			float(n) / max( \
 				(float(bench_readed)*float(READ_TIME) \
@@ -258,14 +259,14 @@ endef
 $(foreach fs, $(BENCH_FSS), \
 	$(foreach sim, $(BENCH_SIMS), \
 		$(foreach bench, logging, \
-			$(eval $(call TIKZ_T_X_GS_RULE,$\
-				$(TIKZDIR)/tikz_p26_x_gs_$(bench).$(fs).$(sim).csv,$\
-				$(RESULTSDIR)/bench_p26_x_gs_$(bench).$(fs).$(sim).csv,$\
+			$(eval $(call TIKZ_T_X_RS_RULE,$\
+				$(TIKZDIR)/tikz_p26_x_rs_$(bench).$(fs).$(sim).csv,$\
+				$(RESULTSDIR)/bench_p26_x_rs_$(bench).$(fs).$(sim).csv,$\
 				$(fs),$\
 				$(sim),$\
 				$(bench))))))
 
-# tikz page size ram rule
+# tikz read size ram rule
 #
 # $1 - target
 # $2 - source
@@ -273,7 +274,7 @@ $(foreach fs, $(BENCH_FSS), \
 # $4 - sim
 # $5 - bench
 #
-define TIKZ_T_X_GS_RAM_RULE
+define TIKZ_T_X_RS_RAM_RULE
 $1: $(BENCH_$(U_$3)_RUNNER) $2
 	$$(strip ./scripts/csv.py \
 		<(./scripts/csv.py $$(wordlist 2,$$(words $$^),$$^) \
@@ -305,8 +306,8 @@ $1: $(BENCH_$(U_$3)_RUNNER) $2
 		-bfs=$3 \
 		-bsim=$4 \
 		-bbench=$5 \
-		-bPAGE_SIZE \
-		-Si=PAGE_SIZE \
+		-bREAD_SIZE \
+		-Si=READ_SIZE \
 		-fdata \
 		-fstack \
 		-fheap \
@@ -317,9 +318,9 @@ endef
 $(foreach fs, $(BENCH_FSS), \
 	$(foreach sim, $(BENCH_SIMS), \
 		$(foreach bench, logging, \
-			$(eval $(call TIKZ_T_X_GS_RAM_RULE,$\
-				$(TIKZDIR)/tikz_p26_x_gs_ram_$(bench).$(fs).$(sim).csv,$\
-				$(RESULTSDIR)/bench_p26_x_gs_$(bench).$(fs).$(sim).csv,$\
+			$(eval $(call TIKZ_T_X_RS_RAM_RULE,$\
+				$(TIKZDIR)/tikz_p26_x_rs_ram_$(bench).$(fs).$(sim).csv,$\
+				$(RESULTSDIR)/bench_p26_x_rs_$(bench).$(fs).$(sim).csv,$\
 				$(fs),$\
 				$(sim),$\
 				$(bench))))))
