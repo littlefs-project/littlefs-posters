@@ -87,3 +87,10 @@ Runtime:
   real    1191m21.465s
   user    5460m34.353s
 
+- time ( make -f Makefile_1M plot-p26-wt )
+
+  real    59m9.258s
+  user    468m45.978s
+  sys     2m15.132s
+
+
