@@ -299,8 +299,8 @@ size_t bench_heap(void);
     /* spiffs's page cache is different from littlefs's cache, let's       */ \
     /* default to max(3, 3*cache) pages to roughly match littlefs          */ \
     BENCH_DEFINE(SCACHE_COUNT,       LFS3_MAX(                                \
-                                        3,                                    \
-                                        (3*CACHE_SIZE)/SPAGE_SIZE)          ) \
+                                        2,                                    \
+                                        (2*CACHE_SIZE)/SPAGE_SIZE)          ) \
     BENCH_DEFINE(SCACHE_SIZE,        sizeof(spiffs_cache)                     \
                                         + SCACHE_COUNT                        \
                                             * (sizeof(spiffs_cache_page)      \
@@ -319,8 +319,8 @@ size_t bench_heap(void);
     /* yaffs2's page cache is different from littlefs's cache, let's       */ \
     /* default to max(3, 3*cache) pages to roughly match littlefs          */ \
     BENCH_DEFINE(YCACHE_COUNT,       LFS3_MAX(                                \
-                                        3,                                    \
-                                        (3*CACHE_SIZE)/YPAGE_SIZE)          ) \
+                                        2,                                    \
+                                        (2*CACHE_SIZE)/YPAGE_SIZE)          ) \
     BENCH_DEFINE(REFRESH_PERIOD,     1000                                   )
 #else
 #define BENCH_YAFFS2_DEFINES
