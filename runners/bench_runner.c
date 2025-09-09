@@ -1653,7 +1653,7 @@ static s32_t bench_bd_spiffs_write(struct spiffs_t *spiffs,
     lfs3_block_t block = addr / cfg->cfg.block_size;
     lfs3_size_t off = addr % cfg->cfg.block_size;
     // spiffs expect byte reads, so we may need to read into a buffer
-    if (cfg->cfg.read_size == 1) {
+    if (cfg->cfg.prog_size == 1) {
         return bench_bd_prog(&cfg->cfg, block, off, src, size);
     } else {
         // bit of a hack here to cache the allocated buffer without
