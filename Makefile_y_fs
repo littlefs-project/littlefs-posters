@@ -45,7 +45,6 @@ include Makefile
 bench-p26-y-fs: \
 		bench-p26-y-fs-linear \
 		bench-p26-y-fs-random \
-		bench-p26-y-fs-many \
 		bench-p26-y-fs-logging
 
 ## Run p26 fragment size linear benchmarks
@@ -128,7 +127,6 @@ $(foreach fs, $(BENCH_FSS),$\
 plot-p26-y-fs: \
 		plot-p26-y-fs-linear \
 		plot-p26-y-fs-random \
-		plot-p26-y-fs-many \
 		plot-p26-y-fs-logging
 
 ## Plot p26 fragment size linear benchmarks
@@ -223,7 +221,7 @@ $(eval $(call PLOT_P26_Y_FS_RULE,$\
 .PHONY: tikz-p26-y-fs
 tikz-p26-y-fs: \
 		$(foreach fs, $(BENCH_FSS), \
-			$(foreach bench, linear random many logging, \
+			$(foreach bench, linear random logging, \
 				$(TIKZDIR)/tikz_p26_y_fs_$(bench).$(fs).nand.csv))
 
 # tikz fragment size rule
@@ -270,7 +268,7 @@ endef
 
 $(foreach fs, $(BENCH_FSS), \
 	$(foreach sim, $(BENCH_SIMS), \
-		$(foreach bench, linear random many logging, \
+		$(foreach bench, linear random logging, \
 			$(eval $(call TIKZ_T_Y_FS_RULE,$\
 				$(TIKZDIR)/tikz_p26_y_fs_$(bench).$(fs).$(sim).csv,$\
 				$(RESULTSDIR)/bench_p26_y_fs_$(bench).$(fs).$(sim).csv,$\
