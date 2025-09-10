@@ -291,9 +291,9 @@ size_t bench_heap(void);
     /* things break below 64 byte pages, but while spiffs technically      */ \
     /* works with <256 byte pages, it performs very poorly                 */ \
     BENCH_DEFINE(SPAGE_TIGHT,        false                                  ) \
-    BENCH_DEFINE(SPAGE_SIZE,         (PAGE_SIZE && SPAGE_TIGHT)               \
-                                        ? LFS3_MAX(PAGE_SIZE, 64)             \
-                                        : LFS3_MAX(PROG_SIZE, 256)          ) \
+    BENCH_DEFINE(SPAGE_SIZE,         LFS3_MAX(                                \
+                                        PROG_SIZE,                            \
+                                        (SPAGE_TIGHT) ? 64 : 256)           ) \
     BENCH_DEFINE(FD_COUNT,           1                                      ) \
     BENCH_DEFINE(FD_SIZE,            FD_COUNT*sizeof(spiffs_fd)             ) \
     /* spiffs's page cache is different from littlefs's cache, let's       */ \
@@ -313,8 +313,11 @@ size_t bench_heap(void);
 #ifdef YAFFS2
 #define BENCH_YAFFS2_DEFINES \
     /*           name                value (overridable)                   */ \
-    /* this is limited by struct yaffs_obj_hdr                             */ \
-    BENCH_DEFINE(YPAGE_SIZE,         LFS3_MAX(PROG_SIZE, 512)               ) \
+    /* this is limited to 512B by struct yaffs_obj_hdr                     */ \
+    BENCH_DEFINE(YPAGE_TIGHT,        false                                  ) \
+    BENCH_DEFINE(YPAGE_SIZE,         LFS3_MAX(                                \
+                                        PROG_SIZE,                            \
+                                        (YPAGE_TIGHT) ? 512 : 512)          ) \
     BENCH_DEFINE(RESERVED_BLOCKS,    2                                      ) \
     /* yaffs2's page cache is different from littlefs's cache, let's       */ \
     /* default to max(3, 3*cache) pages to roughly match littlefs          */ \
