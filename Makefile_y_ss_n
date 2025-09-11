@@ -65,9 +65,6 @@ include Makefile
 ## Run p26 shrub size benchmarks
 .PHONY: bench-p26-y-ss-n
 bench-p26-y-ss-n: \
-		bench-p26-y-ss-n-linear \
-		bench-p26-y-ss-n-random \
-		bench-p26-y-ss-n-many \
 		bench-p26-y-ss-n-logging
 
 ## Run p26 shrub size linear benchmarks
@@ -83,6 +80,13 @@ bench-p26-y-ss-n-random: \
 		$(foreach fs, $(BENCH_FSS), \
 			$(foreach sim, $(BENCH_SIMS), \
 				$(RESULTSDIR)/bench_p26_y_ss_n_random.$(fs).$(sim).csv))
+
+## Run p26 shrub size many benchmarks
+.PHONY: bench-p26-y-ss-n-many
+bench-p26-y-ss-n-many: \
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_y_ss_n_many.$(fs).$(sim).csv))
 
 ## Run p26 shrub size logging benchmarks
 .PHONY: bench-p26-y-ss-n-logging
@@ -141,9 +145,6 @@ $(foreach fs, $(BENCH_FSS),$\
 ## Plot p26 shrub size benchmarks
 .PHONY: plot-p26-y-ss-n
 plot-p26-y-ss-n: \
-		plot-p26-y-ss-n-linear \
-		plot-p26-y-ss-n-random \
-		plot-p26-y-ss-n-many \
 		plot-p26-y-ss-n-logging
 
 ## Plot p26 shrub size linear benchmarks

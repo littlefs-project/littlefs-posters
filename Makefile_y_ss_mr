@@ -82,6 +82,13 @@ bench-p26-y-ss-mr-random: \
 			$(foreach sim, $(BENCH_SIMS), \
 				$(RESULTSDIR)/bench_p26_y_ss_mr_random.$(fs).$(sim).csv))
 
+## Run p26 shrub size many benchmarks
+.PHONY: bench-p26-y-ss-mr-many
+bench-p26-y-ss-mr-many: \
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(RESULTSDIR)/bench_p26_y_ss_mr_many.$(fs).$(sim).csv))
+
 ## Run p26 shrub size logging benchmarks
 .PHONY: bench-p26-y-ss-mr-logging
 bench-p26-y-ss-mr-logging: \
