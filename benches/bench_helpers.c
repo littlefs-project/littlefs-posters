@@ -293,3 +293,23 @@ uintmax_t bench_helpers_usage(const struct lfs3_cfg *cfg, void *fs) {
 }
 
 
+
+// find the bench stack usage
+//
+// in theory this is just the top level stack frame
+//
+// note the most important part of this is the noinline attribute,
+// which forces a new stack frame
+__attribute__((noinline))
+size_t bench_helpers_bench_stack(void) {
+    // bit of a hack, but this should be the stack when entering the bench
+    extern uint8_t *bench_stack_watermark_enter;
+    uint8_t *watermark = __builtin_frame_address(0);
+    ssize_t depth = watermark - bench_stack_watermark_enter;
+    if (depth < 0) {
+        depth = -depth;
+    }
+    return depth;
+}
+
+

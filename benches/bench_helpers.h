@@ -40,4 +40,14 @@ int bench_helpers_warmup(const struct lfs3_cfg *cfg, void *fs);
 uintmax_t bench_helpers_usage(const struct lfs3_cfg *cfg, void *fs);
 
 
+// find the bench stack usage
+//
+// in theory this is just the top level stack frame
+//
+// note the most important part of this is the noinline attribute,
+// which forces a new stack frame
+__attribute__((noinline))
+size_t bench_helpers_bench_stack(void);
+
+
 #endif
