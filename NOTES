@@ -99,3 +99,8 @@ Runtime:
   user    5343m54.006s
   sys     2m29.721s
 
+- time ( make -f Makefile_y_ls_1G plot )
+
+  real    1100m30.094s
+  user    1091m3.210s
+  sys     13m1.059s
