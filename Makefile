@@ -1297,6 +1297,18 @@ BENCH_T_RESULT_RAM_RECIPE = $(strip ./scripts/csv.py \
 							-o-) \
 						<(./scripts/csv.py \
 							$(RESULTSDIR)/bench_$1_$(bench).$(fs).$(sim).csv \
+							-Dm=ctx \
+							-fctx=bench_readed \
+							-fn \
+							-Dbench_readed='*' \
+							-Dbench_proged='*' \
+							-Dbench_erased='*' \
+							-Dbench_creaded='*' \
+							-Dbench_cproged='*' \
+							-Dbench_cerased='*' \
+							-o-) \
+						<(./scripts/csv.py \
+							$(RESULTSDIR)/bench_$1_$(bench).$(fs).$(sim).csv \
 							-Dm=heap \
 							-fheap=bench_readed \
 							-fn \
@@ -1313,7 +1325,8 @@ BENCH_T_RESULT_RAM_RECIPE = $(strip ./scripts/csv.py \
 						-DSIZE=all,$(shell python -c '$\
 							print(max([$(P26_T_SIZES)]))') \
 						-fdata \
-						-fstack \
+						-fstack=stack-ctx \
+						-fctx \
 						-fheap \
 						-ftotal='data+stack+heap' \
 						-o-)))) \
@@ -1448,7 +1461,7 @@ $1: $(BENCH_$(U_$3)_RUNNER) $2
 			-Dbench_cproged='*' \
 			-Dbench_cerased='*' \
 			-o-) \
-		-Dm=heap,stack \
+		-Dm=stack,ctx,heap \
 		-Bm=ram \
 		-fn \
 		-fbench_readed="bench_readed + $$$$( \
@@ -2154,7 +2167,10 @@ tikz-p26-wt: \
 			$(foreach bench, linear random many logging,$\
 				$(TIKZDIR)/tikz_p26_wt_ram_$(sim)_$(bench).csv)) \
 		$(foreach sim, $(BENCH_SIMS),$\
-			$(TIKZDIR)/tikz_p26_wt_ram_$(sim).csv)
+			$(TIKZDIR)/tikz_p26_wt_ram_$(sim).csv) \
+		$(foreach sim, $(BENCH_SIMS),$\
+			$(foreach fs, $(BENCH_FSS),$\
+				$(TIKZDIR)/tikz_p26_wt_ram_$(sim)_$(fs).csv))
 
 ## Generate write-throughput SIZE=n tikz results
 .PHONY: tikz-p26-wt-n
@@ -2244,7 +2260,7 @@ $(foreach sim, $(BENCH_SIMS),$\
 			$(sim),$\
 			$(bench)))))
 
-# write-throughput SIZE=max per-n ops tikz results
+# write-throughput SIZE=max ops tikz results
 $(TIKZDIR)/tikz_p26_wt_ops.csv: \
 		$(foreach fs, $(BENCH_FSS), \
 			$(foreach sim, $(BENCH_SIMS), \
@@ -2285,40 +2301,13 @@ $(TIKZDIR)/tikz_p26_wt_ops.csv: \
 							/ (float(n)/float(SIZE))' \
 						-ferasetime='float(ERASE_TIME) * float(bench_erased) $\
 							/ (float(n)/float(SIZE))' \
-						-fnorm_readed='float(bench_readed) $\
-							/ (float(bench_readed) $\
-								+ float(bench_proged) $\
-								+ float(bench_erased))' \
-						-fnorm_proged='float(bench_proged) $\
-							/ (float(bench_readed) $\
-								+ float(bench_proged) $\
-								+ float(bench_erased))' \
-						-fnorm_erased='float(bench_erased) $\
-							/ (float(bench_readed) $\
-								+ float(bench_proged) $\
-								+ float(bench_erased))' \
-						-fnorm_readtime='$\
-							(float(READ_TIME) * float(bench_readed)) $\
-								/ (float(READ_TIME)*float(bench_readed) $\
-									+ float(PROG_TIME)*float(bench_proged) $\
-									+ float(ERASE_TIME)*float(bench_erased))' \
-						-fnorm_progtime='$\
-							(float(PROG_TIME) * float(bench_proged)) $\
-								/ (float(READ_TIME)*float(bench_readed) $\
-									+ float(PROG_TIME)*float(bench_proged) $\
-									+ float(ERASE_TIME)*float(bench_erased))' \
-						-fnorm_erasetime='$\
-							(float(ERASE_TIME) * float(bench_erased)) $\
-								/ (float(READ_TIME)*float(bench_readed) $\
-									+ float(PROG_TIME)*float(bench_proged) $\
-									+ float(ERASE_TIME)*float(bench_erased))' \
 						-o-)))) \
 		-bfs \
 		-bsim \
 		-bbench \
 		-o$@)
 
-# tikz write-throughput SIZE=max per-n ops transposition rule
+# tikz write-throughput SIZE=max ops transposition rule
 #
 # $1 - target
 # $2 - source
@@ -2352,7 +2341,7 @@ $(foreach sim, $(BENCH_SIMS),$\
 			,$\
 			$(fs)))))
 
-# write-throughput SIZE=max per-n ram tikz results
+# write-throughput SIZE=max ram tikz results
 $(TIKZDIR)/tikz_p26_wt_ram.csv: \
 		$(foreach fs, $(BENCH_FSS), \
 			$(foreach sim, $(BENCH_SIMS), \
@@ -2390,6 +2379,19 @@ $(TIKZDIR)/tikz_p26_wt_ram.csv: \
 						<(./scripts/csv.py \
 							$(RESULTSDIR)/bench_p26_wt_$(bench)$\
 								.$(fs).$(sim).csv \
+							-Dm=ctx \
+							-fctx=bench_readed \
+							-fn \
+							-Dbench_readed='*' \
+							-Dbench_proged='*' \
+							-Dbench_erased='*' \
+							-Dbench_creaded='*' \
+							-Dbench_cproged='*' \
+							-Dbench_cerased='*' \
+							-o-) \
+						<(./scripts/csv.py \
+							$(RESULTSDIR)/bench_p26_wt_$(bench)$\
+								.$(fs).$(sim).csv \
 							-Dm=heap \
 							-fheap=bench_readed \
 							-fn \
@@ -2406,7 +2408,8 @@ $(TIKZDIR)/tikz_p26_wt_ram.csv: \
 						-DSIZE=all,$(shell python -c '$\
 							print(max([$(P26_T_SIZES)]))') \
 						-fdata \
-						-fstack \
+						-fstack=stack-ctx \
+						-fctx \
 						-fheap \
 						-fram=data+stack+heap \
 						-o-)))) \
@@ -2415,7 +2418,7 @@ $(TIKZDIR)/tikz_p26_wt_ram.csv: \
 		-bbench \
 		-o$@)
 
-# tikz write-throughput SIZE=max per-n ram transposition rule
+# tikz write-throughput SIZE=max ram transposition rule
 #
 # $1 - target
 # $2 - source
@@ -2450,6 +2453,32 @@ $(foreach sim, $(BENCH_SIMS),$\
 		$(TIKZDIR)/tikz_p26_wt_ram_$(sim).csv,$\
 		$(TIKZDIR)/tikz_p26_wt_ram.csv,$\
 		$(sim))))
+
+# another tikz write-throughput SIZE=max ops transposition rule
+#
+# $1 - target
+# $2 - source
+# $3 - sim
+# $4 - bench
+# $5 - fs type/version
+#
+define TIKZ_T_WT_RAM_FS_RULE
+$1: $2
+	$$(strip ./scripts/csv.py $$^ \
+		-bsim -Dsim=$3 \
+		-bbench $(if $4,-Dbench=$4) \
+		-bfs $(if $5,-Dfs=$5) \
+		-o$$@)
+endef
+
+$(foreach sim, $(BENCH_SIMS),$\
+	$(foreach fs, $(BENCH_FSS),$\
+		$(eval $(call TIKZ_T_WT_RAM_FS_RULE,$\
+			$(TIKZDIR)/tikz_p26_wt_ram_$(sim)_$(fs).csv,$\
+			$(TIKZDIR)/tikz_p26_wt_ram.csv,$\
+			$(sim),$\
+			,$\
+			$(fs)))))
 
 
 # SIZE=n tikz results
