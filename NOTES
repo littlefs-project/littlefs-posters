@@ -104,3 +104,24 @@ Runtime:
   real    1100m30.094s
   user    1091m3.210s
   sys     13m1.059s
+
+# this is the minimum we need for 1M
+- time ( THUMB=1 BENCH_SIMS='nor nand' P26_T_SIZES=1048576 make -f Makefile_1M plot-p26-wt )
+
+  real    149m44.224s
+  user    150m12.181s
+  sys     0m46.952s
+
+# this one was killed after multiple days to limit to just
+# lfs3/lfs3nb/lfs2 :/
+- time ( BENCHFLAGS=-j5 BENCH_SIMS='nor nand' DISK_SIZE=2147483648 PRECISE=1 make -f Makefile_x_n_1G plot )
+
+# what I _should_ have run
+- time ( BENCHFLAGS=-j5 BENCH_SIMS='nor nand' BENCH_FSS='lfs3 lfs3nb lfs2' DISK_SIZE=2147483648 PRECISE=1 make -f Makefile_x_n_1G plot )
+
+# trying 2GiB
+- time ( RESULTSDIR=results_x_n_2G PLOTSDIR=plots_x_n_2G TIKZDIR=tikz_x_n_2G BENCH_SIMS='nor nand' BENCH_FSS='lfs3 lfs3nb lfs2' DISK_SIZE=4294967296 P26_T_SIZES=2147483648 PRECISE=1 make -f Makefile_x_n_1G plot )
+
+  real    437m31.105s
+  user    438m17.043s
+  sys     0m36.526s  
