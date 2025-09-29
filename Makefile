@@ -230,7 +230,7 @@ CODEMAP_LFS1_CI  := $(CODEMAP_LFS1_SRC:%.c=$(BUILDDIR)/%.lfs1.ci)
 
 # spiffs bench-runner and sources
 BENCH_SPIFFS_RUNNER ?= $(BUILDDIR)/bench_spiffs_runner
-BENCH_SPIFFS_FILTER ?= sed -n -e'1p' -e'/\<SPIFFS/p'
+BENCH_SPIFFS_FILTER ?= sed -n -e'1p' -e'/\<SPIFFS/p' -e'/\<spiffs/p'
 BENCH_SPIFFS_CFLAGS += -DSPIFFS=1
 CODEMAP_SPIFFS_SRC ?= \
 		$(filter-out %.t.c %.b.c %.a.c,$(wildcard spiffs/src/*.c))
