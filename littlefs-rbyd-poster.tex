@@ -375,17 +375,30 @@ B-tree with the following constraints:
 % \item Support for sparse keys, e.g. file names
 % \item Support for order-statistic keys, e.g. compressable ranges
 % \end{enumerate}
+These constraints rule out traditional array-backed
+B-trees~\cite{ubiquitous-btree}, which rewrite full blocks,
+% during updates,
+and
+% rely on rewriting full blocks during updates, and
+the log-backed B-trees found in bcachefs~\cite{bcachefs}, which rely on
+%bcachefs's log-backed B-trees~\cite{bcachefs}, which rely on
+reconstructing logs in-RAM.
+% log-backed
+% B-trees, such as those found in bcachefs~\cite{bcachefs}, which rely on
+% reconstructing logs in-RAM.
+% which support
+% incremental updates, but rely on reconstructing logs in RAM.
 
-These constraints rule out existing B-tree designs.
-Traditional B-trees~\cite{ubiquitous-btree}
-implement inner nodes using dense arrays, and while
-this may be optimal in terms of branching-factor and storage usage,
-updates require rewriting full blocks.
-Log-backed B-trees, such as those found in bcachefs~\cite{bcachefs},
-support incremental updates, but rely on reconstructing logs in RAM.
+% These constraints rule out existing B-tree designs.
+% Traditional B-trees~\cite{ubiquitous-btree}
+% implement inner nodes using dense arrays, and while
+% this may be optimal in terms of branching-factor and storage usage,
+% updates require rewriting full blocks.
+% Log-backed B-trees, such as those found in bcachefs~\cite{bcachefs},
+% support incremental updates, but rely on reconstructing logs in RAM.
 
 Previous versions of \lfs+ avoided B-trees for this reason~\cite{littlefs2},
-however this proved problematic for performance.
+however this has proven problematic for performance.
 % Fortunately, the Dhara FTL~\cite{dhara}
 % %---a lightweight FTL also targeting microcontrollers---
 % has shown it's possible to encode
@@ -525,18 +538,19 @@ B-trees~\cite{ubiquitous-btree} with rbyd trees---%
 a self-balancing order-statistic variant of the Dhara tree implemented in the
 Dhara FTL~\cite{dhara}.
 The result is a flexible B-tree, with inner nodes that can be
-manipulated incrementally without reading into RAM.
+manipulated incrementally without being read into RAM.
 
 The original Dhara tree implements a radix tree, and while it is
-possible to extend the emulated array into a B-tree, the resulting
+possible to extend the radix tree into a B-tree, the resulting
 B-tree is relatively inflexible.
-Extend a traditional B-tree with sparse keys and order-statistic ranges
+Augmenting a traditional B-tree with sparse keys and order-statistic ranges
 does not change the $O(b) \rightarrow O(b)$ runtime for block size $b$,
-but attempting the same transformation on a Dhara B-tree increases the
+but attempting the same transformation on the emulated arrays in a Dhara
+B-tree increases the
 runtime $O(\log b) \rightarrow O(b \log b)$.
 
 To solve this, we need to extend the sparse and order-statistic
-properties in to the Dhara tree itself.
+properties into the Dhara tree itself.
 Our solution is a \emph{red-black-yellow Dhara (rbyd) tree}, %\footnotemark,
 in which we use colors to emulate the inner branches of a 2-3-4 tree,
 mimicking a traditional red-black tree~\cite{rbtree}.
@@ -564,8 +578,11 @@ Rbyds contain either leaf data or indirect B-tree pointers, and most
 updates require only a cheap log append. When a log is full, we \emph{compact}
 the relevant rbyd into a new block, at which point the CoW
 semantics of B-trees take over.
-To avoid runaway compactions, we split when half-full, but we only check
-merge/split conditions during compactions.
+To avoid compacting too frequently, we split when a node is half-full, but
+only when the node needs compaction.
+% but only check for this condition when the log is full-full.
+% To avoid runaway compactions, we split when half-full, but we only check
+% merge/split conditions during compactions.
 This
 %We wait until compaction to check
 %merge/split conditions, which
@@ -577,17 +594,30 @@ better
 leaf distribution during
 sequential updates.
 
-We also implement tail-recursive tree rebalancing during compactions,
-which brings the compacted storage cost down
+% We also implement tail-recursive tree rebalancing during compactions,
+% which brings the compacted storage cost down
+% $O(b \log b) \rightarrow O(b)$.
+% In practice, the overhead of rbyds divides the branching-factor by
+% {$\sim$}8
+% %when compared to dense arrays.
+% over dense arrays.
+% %of dense
+% %arrays by {$\sim$}8.
+% % divides the branching-factor by
+% % {$\sim$}8.
+
+The main downside of rbyds is increased storage overhead, however a
+tail-recursive rebalancing algorithm brings compacted cost down
 $O(b \log b) \rightarrow O(b)$.
-In practice, the overhead of rbyds divides the branching-factor by
-{$\sim$}8
-%when compared to dense arrays.
-over dense arrays.
-%of dense
-%arrays by {$\sim$}8.
-% divides the branching-factor by
-% {$\sim$}8.
+% thanks to tail-recursive rebalancing algorithm, this is only a
+% constant.
+% brings the compacted overhead down
+% to a constant, $O(b \log b) \rightarrow O(b)$.
+% Rbyds have a higher storage overhead than dense arrays. However,
+% tail-recursive rebalancing during compactions brings this down
+% $O(b \log b) \rightarrow O(b)$.
+In our current implementation, the overhead of rbyds divides the
+branching-factor by {$\sim$}8 over dense arrays.
 
 % Each leaf in a given rbyd points to either a child B-tree node
 % Instead of checking for merge/split conditions every commit, 
@@ -683,7 +713,9 @@ Rbyd B-trees are currently implemented as primary file data-structure in
 over the rbyd color-invariants---and simulated measurements show the
 expected logarithmic runtimes.
 
-Measuring simulated file write throughput shows improved performance
+Measuring simulated
+% file
+write throughput shows improved performance
 characteristics around larger block sizes in \lfsiii+ when compared to
 \lfsii+.
 While \lfsii+'s performance degrades as block size increases, \lfsiii+'s
@@ -693,8 +725,10 @@ However, the more complex file data-structure is not without downsides.
 Static analysis shows \lfsiii+'s code increasing from
 16.9KiB {$\rightarrow$} 35.8KiB, and RAM increasing from
 2.0KiB {$\rightarrow$} 2.9KiB.
-This includes unrelated changes in the filesystem, but we believe the
-added file complexity and advanced file operations are major culprits.
+This includes unrelated changes, but we believe the added file
+complexity is the main culprit.
+% This includes unrelated changes in the filesystem, but we believe the
+% added file complexity and advanced file operations are major culprits.
 
 For future work, we will be looking to better understand overall
 filesystem performance---focusing on throughput and latency, comparing 
