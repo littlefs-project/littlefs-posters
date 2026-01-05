@@ -341,8 +341,8 @@
 
 \lfs+ is a little filesystem targeting microcontrollers---small devices with
 %{$\sim$}256KiB--1MiB of ROM, {$\sim$}32KiB--128KiB of RAM, but---thanks to
-MiBs of ROM, KiBs of RAM, and---thanks to
-increasing storage density---potentially GiBs of storage with
+MiBs of ROM, KiBs of RAM, and, thanks to
+increasing storage density, potentially GiBs of storage with
 proportionally large block sizes.
 With block sizes in the range of {$\sim$}128KiB--1MiB,
 block-based CoW algorithms are slow, and
@@ -397,7 +397,7 @@ reconstructing logs in-RAM.
 % Log-backed B-trees, such as those found in bcachefs~\cite{bcachefs},
 % support incremental updates, but rely on reconstructing logs in RAM.
 
-Previous versions of \lfs+ avoided B-trees for this reason~\cite{littlefs2},
+Previous versions of \lfs+ avoided B-trees for these reasons~\cite{littlefs2},
 however this has proven problematic for performance.
 % Fortunately, the Dhara FTL~\cite{dhara}
 % %---a lightweight FTL also targeting microcontrollers---
@@ -579,7 +579,9 @@ updates require only a cheap log append. When a log is full, we \emph{compact}
 the relevant rbyd into a new block, at which point the CoW
 semantics of B-trees take over.
 To avoid compacting too frequently, we split when a node is half-full, but
-only when the node needs compaction.
+only when the
+% relevant
+log needs compaction.
 % but only check for this condition when the log is full-full.
 % To avoid runaway compactions, we split when half-full, but we only check
 % merge/split conditions during compactions.
@@ -708,7 +710,9 @@ branching-factor by {$\sim$}8 over dense arrays.
 \label{sec:discussion}
 %-------------------------------------------------------------------------------
 
-Rbyd B-trees are currently implemented as primary file data-structure in
+Rbyd B-trees are currently implemented as
+% primary
+the main file data-structure in
 \lfsiii+. They have survived significant testing---including assertion
 over the rbyd color-invariants---and simulated measurements show the
 expected logarithmic runtimes.
