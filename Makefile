@@ -9,6 +9,8 @@ ABSTRACT ?= $(BUILDDIR)/littlefs-btree-abstract.pdf
 TARGET ?= $(POSTER) $(ABSTRACT)
 SRC += $(POSTER:$(BUILDDIR)/%.pdf=%.tex) $(ABSTRACT:$(BUILDDIR)/%.pdf=%.tex)
 SRC += littlefs-btree-abstract.bib
+SRC += littlefs-poster.cls
+SRC += littlefs-ico.tex
 SRC += usenix-2020-09.sty
 
 # where are our benchmarks?
