@@ -33,6 +33,7 @@
 
 \usepackage{booktabs}
 \usepackage{multirow}
+\usepackage{enumitem}
 
 \usetikzlibrary{positioning,calc}
 
@@ -82,10 +83,10 @@
 
     How do you build a B-tree if you can't fit a block in RAM?
 
-    \begin{enumerate}
+    \begin{itemize}
     \item Traditional B-trees read a full block into RAM.
     \item Log-backed B-trees usually reconstruct logs in RAM.
-    \end{enumerate}
+    \end{itemize}
 }
 \column{0.5}
 \block[bodyinnersep=0pt]{}{\Large
@@ -115,13 +116,152 @@
 \end{columns}
 
 
+% small Dhara tree example
+\def\dharanodewidth{(1/8)*\linewidth}
+\def\dharanodeheight{\dharanodewidth}
+\def\dharanoderatio{0.6}
+
+\newcommand{\dhara}[1]{
+    \begin{scope}[
+        x=\dharanodewidth,
+        y=\dharanodeheight,
+        node distance=1,
+        on grid,
+        % dhara tag/alt styles
+        dharatag/.style={
+            draw,
+            ultra thick,
+            minimum width=\dharanoderatio*\dharanodewidth,
+            minimum height=\dharanoderatio*\dharanodeheight,
+            inner sep=0,
+            outer sep=0,
+            fill=bg,
+            font=\large,
+        },
+        dharaalt/.style={dharatag, circle, font=\small},
+        dharaaltptr/.style={-{To[scale=2]}, ultra thick},
+        unreachable/.style={
+            draw opacity=0.5,
+            text opacity=0.5,
+        },
+    ]
+        % trunk 0
+        \begin{scope}[on above layer]
+        \node (#1_d0_0) [dharatag] {$0$};
+        \end{scope}
+
+        % trunk 1
+        \begin{scope}[on above layer]
+        \node (#1_d1_0) [dharatag, right=1 of #1_d0_0] {$1$};
+        \node (#1_d1_1) [dharaalt, above=1 of #1_d1_0] {$001$};
+        \end{scope}
+        \draw[dharaaltptr] (#1_d1_1) -- (#1_d1_0);
+        \draw[dharaaltptr] (#1_d1_1) -- (#1_d0_0);
+
+        % trunk 2
+        \begin{scope}[on above layer]
+        \node (#1_d2_0) [dharatag, right=2 of #1_d0_0] {$2$};
+        \end{scope}
+        \node (#1_d2_2) [dharaalt, above=2 of #1_d2_0, unreachable] {$010$};
+        \draw[dharaaltptr, unreachable] (#1_d2_2) -- (#1_d2_0);
+        \draw[dharaaltptr, unreachable] (#1_d2_2) -- (#1_d0_0);
+
+        % trunk 3
+        \begin{scope}[on above layer]
+        \node (#1_d3_0) [dharatag, right=3 of #1_d0_0] {$2$};
+        \node (#1_d3_1) [dharaalt, above=1 of #1_d3_0] {$001$};
+        \node (#1_d3_2) [dharaalt, above=2 of #1_d3_0] {$010$};
+        \end{scope}
+        \draw[dharaaltptr] (#1_d3_1) -- (#1_d3_0);
+        \draw[dharaaltptr] (#1_d3_1) -- (#1_d2_0);
+        \draw[dharaaltptr] (#1_d3_2) -- (#1_d3_1);
+        \draw[dharaaltptr] (#1_d3_2) -- (#1_d1_1);
+
+        % trunk 4
+        \begin{scope}[on above layer]
+        \node (#1_d4_0) [dharatag, right=4 of #1_d0_0] {$2$};
+        \end{scope}
+        \node (#1_d4_3) [dharaalt, above=3 of #1_d4_0, unreachable] {$100$};
+        \draw[dharaaltptr, unreachable] (#1_d4_3) -- (#1_d4_0);
+        \draw[dharaaltptr, unreachable] (#1_d4_3) -- (#1_d3_2);
+
+        % trunk 5
+        \begin{scope}[on above layer]
+        \node (#1_d5_0) [dharatag, right=5 of #1_d0_0] {$2$};
+        \node (#1_d5_1) [dharaalt, above=1 of #1_d5_0] {$001$};
+        \end{scope}
+        \node (#1_d5_3) [dharaalt, above=3 of #1_d5_0, unreachable] {$100$};
+        \draw[dharaaltptr] (#1_d5_1) -- (#1_d5_0);
+        \draw[dharaaltptr] (#1_d5_1) -- (#1_d4_0);
+        \draw[dharaaltptr, unreachable] (#1_d5_3) -- (#1_d5_1);
+        \draw[dharaaltptr, unreachable] (#1_d5_3) -- (#1_d3_2);
+
+        % trunk 6
+        \begin{scope}[on above layer]
+        \node (#1_d6_0) [dharatag, right=6 of #1_d0_0] {$2$};
+        \node (#1_d6_2) [dharaalt, above=2 of #1_d6_0] {$010$};
+        \node (#1_d6_3) [dharaalt, above=3 of #1_d6_0, alias=#1_droot] {$100$};
+        \end{scope}
+        \draw[dharaaltptr] (#1_d6_2) -- (#1_d6_0);
+        \draw[dharaaltptr] (#1_d6_2) -- (#1_d5_1);
+        \draw[dharaaltptr] (#1_d6_3) -- (#1_d6_2);
+        \draw[dharaaltptr] (#1_d6_3) -- (#1_d3_2);
+    \end{scope}
+}
+
 % Dhara and red-black-yellow Dhara trees
 \begin{columns}
 \column{0.5}
 \block{Dhara trees \vphantom{y}}{\Large
+    \begin{minipage}[t]{0.55\linewidth}
+        Implemented in the Dhara FTL, Dhara trees provide a bounded-RAM
+        log-encoded radix tree.
+    \end{minipage}%
+    \quad
+    \begin{minipage}{0.45\linewidth}
+        \begin{tikzfigure}
+        \begin{tikzpicture}
+            \dhara{dhara}
+            \pgfresetboundingbox
+            \useasboundingbox
+                ($(dhara_d0_0 |- dhara_droot.south west)$)
+                rectangle (dhara_droot.north east);
+            %\draw
+            %    ($(dhara_d0_0 |- dhara_droot.south west)$)
+            %    rectangle (dhara_droot.north east);
+        \end{tikzpicture}
+        \end{tikzfigure}
+    \end{minipage}
+    \\\\\\
+    Limitations:
+    \begin{itemize}
+    \item Limited to radix trees (implicitly balanced).
+    \item Radix B-tree nodes with sparse/order-statistic keys perform poorly:
+        \begin{itemize}
+            \item Naive array update{$\rightarrow$}insert:
+                $O(b) \rightarrow O(b)$
+            \item Radix array update{$\rightarrow$}insert:
+                $O(\log b) \rightarrow O(b \log b)$
+            %\item Rbyd array update{$\rightarrow$}insert:
+            %    $O(\log b) \rightarrow O(\log b)$
+        \end{itemize}
+    \end{itemize}
 }
 \column{0.5}
 \block{Red-black-yellow Dhara (rbyd) trees}{\Large
+    Extends Dhara trees with self-balancing operations.
+    \begin{itemize}
+    \item Based on red-black trees which are tail-recursive,
+        i.e. bounded-RAM.
+    \item Slightly different coloring rules to avoid rotations.
+    \item % Instead of rotating,
+        2-3-4 splits point into history, outdated branches become unreachable.
+    \item Rbyd B-tree nodes support efficient sparse/order-statistic keys:
+        \begin{itemize}
+            \item Rbyd array update{$\rightarrow$}insert:
+                $O(\log b) \rightarrow O(\log b)$
+        \end{itemize}
+    \end{itemize}
 }
 \end{columns}
 
@@ -1469,12 +1609,37 @@
 \begin{columns}
 \column{0.33}
 \block{Rbyd B-trees}{\Large
-}
-\column{0.33}
-\block{Deferred splits/merges}{\Large
+    \begin{itemize}
+        \item Rbyd leaves recursively point to B-tree nodes.
+        \item B-tree inherits sparse/order-statistic properties.
+        \item Most updates rely on cheap log appends.
+        \item When logs are full, logs are compacted into new blocks.
+            Compaction cost amortized $O(b \log b) \rightarrow O(\log b)$.
+        \item When full, logs are compacted into new blocks.
+        \item To avoid runaway compactions, nodes are split when $\gt b/2$.
+    \end{itemize}
 }
 \column{0.33}
 \block{Rebalancing compactions}{\Large
+    \begin{itemize}
+        \item Naively rewriting rbyds uses $O(b \log b)$ storage.
+        \item Instead, a tail-recursive rebalancing algorithm brings
+            compacted storage cost down to $O(b)$.
+        \item Divides branching factor by a constant, currently {$\sim$}8.
+    \end{itemize}
+}
+\column{0.33}
+\block{Deferred splits/merges}{\Large
+    No reason to check split/merge conditions before compaction.
+    \begin{itemize}
+        \item Amortizes split/merge checks.
+        \item Introduces hysterisis, no split{$\leftrightarrow$}merge
+            oscillation.
+        \item Minimizes split{$\leftrightarrow$}merge oscillation.
+        \item Results in optimal B-tree distribution after sequential
+            writes.
+        \item Better B-tree distribution after sequential writes.
+    \end{itemize}
 }
 \end{columns}
 
