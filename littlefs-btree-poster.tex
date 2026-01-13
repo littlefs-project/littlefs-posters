@@ -317,7 +317,7 @@
 \end{columns}
 
 
-% rbyd/B-tree tables
+% rbyd table
 \newcommand{\rbydtable}{
     \begin{tabular}{l@{\quad}l@{\quad}r}
         \toprule
@@ -332,6 +332,21 @@
             & $O(b \log b)$ \\
         & compacted
             & $O(b)$ \\
+        \bottomrule
+    \end{tabular}
+}
+
+% B-tree table
+\newcommand{\btreetable}{
+    \begin{tabular}{l@{\quad}r}
+        \toprule
+            & B-tree runtime \\
+        \midrule
+            lookup & $O((\log b)(\log_b n))$ \\
+            append & $O((\log b)(\log_b^2 n))$ \\
+        \cmidrule(r){1-1}
+            storage & $O(nb)$ \\
+            branching factor & $O(b)$ \\
         \bottomrule
     \end{tabular}
 }
@@ -1685,6 +1700,17 @@
         \draw ($(magnifyer_b)!{(1/2)*9.5*\rnodewidth}!-110:(magnifyer_a)$)
             -- ($(magnifyer_a)!{(1/2)*9.5*\rbydnodewidth}!70:(magnifyer_b)$);
         \end{scope}
+
+        % add B-tree table
+        \node [
+            above left=0.5*\bnodeheight
+                and 3*\bnodewidth
+                of btree_broot.center,
+            anchor=center,
+            overlay,
+        ] {
+            \btreetable
+        };
 
         % B-tree commit/compact/split examples
         \btreecommit{bcommit}
