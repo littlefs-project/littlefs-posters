@@ -12,7 +12,26 @@
 \NeedsTeXFormat{LaTeX2e}%[1999/12/01]
 \ProvidesClass{littlefs-poster}[2026/01/08 simple littlefs poster template]
 
+% pass options to tikzposter
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{tikzposter}}
+% https://tex.stackexchange.com/a/674459
+\newcommand*{\ExecuteOptionsOrUseFallback}[1]{%
+  \edef\@fortmp{\zap@space#1 \@empty}%
+  \def\reserved@a##1\@nil{%
+    \@for\CurrentOption:=\@fortmp\do
+            {\@ifundefined{ds@\CurrentOption}%
+                {\default@ds}%
+                {\csname ds@\CurrentOption\endcsname}}%
+    \edef\CurrentOption{##1}}%
+  \expandafter\reserved@a\CurrentOption\@nil%
+}
+% default options if not overridden
+\ExecuteOptionsOrUseFallback{margin=0pt} % was 0mm
+\ExecuteOptionsOrUseFallback{innermargin=48pt} % was 15mm
+\ExecuteOptionsOrUseFallback{colspace=48pt} % was 15mm
+\ExecuteOptionsOrUseFallback{subcolspace=24pt} % was 8mm
+%\ExecuteOptionsOrUseFallback{blockverticalspace=24pt} % was 15mm
+\ExecuteOptionsOrUseFallback{blockverticalspace=0pt} % was 15mm
 \ProcessOptions\relax
 \LoadClass{tikzposter}
 \tikzposterlatexaffectionproofoff
@@ -111,15 +130,16 @@
     %titletotopverticalspace=25mm,
     %titletoblockverticalspace=15mm,
     titletoblockverticalspace=48pt,
+    %titletoblockverticalspace=24pt,
     titletotopverticalspace=0mm,
     %titletoblockverticalspace=0mm,
     %titlegraphictotitledistance=-100pt,
     titletextscale=20,
 }{
     \fill[
-            %color=framecolor,
-            fill=titlebgcolor,
-            rounded corners=\titleroundedcorners]
+        titlebgcolor,
+        rounded corners=\titleroundedcorners,
+    ]
         (\titleposleft,\titleposbottom)
         rectangle
         (\titleposright,\titlepostop);
@@ -129,8 +149,8 @@
 
 \definebackgroundstyle{littlefsbackgroundstyle}{
     \fill[
-            %color=framecolor,
-            fill=titlebgcolor]
+        titlebgcolor,
+    ]
         (-0.5\paperwidth,-0.5\paperheight)
         rectangle
         %(0.5\paperwidth,-0.5\paperheight+120pt);
@@ -154,15 +174,18 @@
     bodyinnersep=24pt,
 }{
     \fill[
-            %color=framecolor,
             fill=blockbodybgcolor,
-            rounded corners=\blockroundedcorners]
-        (blockbody.south west) rectangle (blockbody.north east);
+            rounded corners=\blockroundedcorners,
+            %draw,
+    ]
+        (blockbody.south west)
+        rectangle
+        (blockbody.north east);
     \ifBlockHasTitle
         \fill[
-                %color=framecolor,
-                fill=blocktitlebgcolor,
-                rounded corners=\blockroundedcorners]
+            fill=blocktitlebgcolor,
+            rounded corners=\blockroundedcorners,
+        ]
             (blocktitle.south west) rectangle (blocktitle.north east);
     \fi
 }
@@ -170,29 +193,33 @@
 
 
 \defineinnerblockstyle{littlefsinnerblockstyle}{
-%    titlewidthscale=1,
-%    bodywidthscale=1,
+    %titlewidthscale=1,
+    %bodywidthscale=1,
     titleleft,
     titleoffsetx=0pt, titleoffsety=0pt,
     bodyoffsetx=0mm, bodyoffsety=0mm,
     bodyverticalshift=0mm,
     roundedcorners=0,
     linewidth=0pt,
-%    titleinnersep=8mm,
-%    titleinnersep=24pt,
+    %titleinnersep=8mm,
+    %titleinnersep=24pt,
     %bodyinnersep=1cm
 }{
     \fill[
-            %color=framecolor,
-            fill=innerblockbodybgcolor,
-            rounded corners=\blockroundedcorners]
-        (innerblockbody.south west) rectangle (innerblockbody.north east);
+        fill=innerblockbodybgcolor,
+        rounded corners=\blockroundedcorners,
+    ]
+        (innerblockbody.south west)
+        rectangle
+        (innerblockbody.north east);
     \ifInnerblockHasTitle
         \fill[
-                %color=framecolor,
-                fill=innerblocktitlebgcolor,
-                rounded corners=\blockroundedcorners]
-            (innerblocktitle.south west) rectangle (innerblocktitle.north east);
+            fill=innerblocktitlebgcolor,
+            rounded corners=\blockroundedcorners,
+        ]
+            (innerblocktitle.south west)
+            rectangle
+            (innerblocktitle.north east);
     \fi
 }
 \useinnerblockstyle{littlefsinnerblockstyle}
