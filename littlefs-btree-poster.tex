@@ -1637,14 +1637,15 @@
 \column{0.3}
 \block{Rebalancing compactions}{\Large
     %Naively copying rbyds results in $O(b \log b)$ storage.
-    Naively, rbyds results in $O(b \log b)$ storage.
+    Naively, rbyds result in $O(b \log b)$ storage.
 
     Instead, trees are copied with a tail-recursive rebalancing algorithm:
     \begin{itemize}
         %\item Brings compacted storage cost down
         %    $O(b \log b) \rightarrow O(b)$.
         \item Brings compacted storage cost down to $O(b)$.
-        \item Divides branching factor by a constant, currently {$\sim$}8.
+        %\item Divides branching factor by a constant, currently {$\sim$}8.
+        \item Divides branching factor by a constant ${\sim}1/8$.
     \end{itemize}
 }
 \column{0.3}
