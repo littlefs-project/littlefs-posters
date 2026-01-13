@@ -1743,11 +1743,11 @@
 
 % B-tree details
 \begin{columns}
-\column{0.4}
+\column{0.38}
 \block{Rbyd B-trees}{\Large
     \begin{itemize}
         \item Rbyd leaves point to B-tree nodes, inherting
-            rbyd's sparse/order-statistic properties.
+            rbyd's sparse\slash order-statistic properties.
         \item Most updates are cheap $O(\log b)$ rbyd appends.
         %\item When logs are full, logs are compacted into new blocks.
         %    Compaction cost amortized $O(b \log b) \rightarrow O(\log b)$.
@@ -1757,13 +1757,15 @@
             amortizing compaction cost $O(b \log b) \rightarrow O(\log b)$.
     \end{itemize}
 }
-\column{0.3}
+\column{0.31}
 \block{Rebalancing compactions}{\Large
     \begin{hackize}
         %Naively copying rbyds results in $O(b \log b)$ storage.
-        \item Naively, rbyds result in $O(b \log b)$ storage.
-        \item Instead, trees are copied with a tail-recursive rebalancing
-            algorithm:
+        \item Naively, rbyd appends result in $O(b \log b)$ storage.
+        \item To avoid this, rbyds are compacted using a tail-recursive
+            rebalancing algorithm:
+        %\item Instead, rbyds are compacted using a tail-recursive
+        %    rebalancing algorithm:
         \begin{itemize}
             %\item Brings compacted storage cost down
             %    $O(b \log b) \rightarrow O(b)$.
@@ -1773,7 +1775,7 @@
         \end{itemize}
     \end{hackize}
 }
-\column{0.3}
+\column{0.31}
 \block{Deferred splits/merges}{\Large
     No reason to split/merge until compaction.
     \begin{itemize}
