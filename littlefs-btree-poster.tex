@@ -49,6 +49,11 @@
 \def\lt{<}
 \def\gt{>}
 
+% some list settings
+\setlist[itemize]{label=\normalfont\bfseries\textendash}
+\newlist{hackize}{itemize}{4}
+\setlist[hackize]{label={}, afterlabel={}, leftmargin=0pt, rightmargin=0pt}
+
 
 
 
@@ -91,14 +96,14 @@
 \begin{columns}
 \column{0.5}
 \block{Problem}{\Large
-    Microcontrollers are very small---flash increasingly dense.
-
-    How do you build a B-tree if you can't fit a block in RAM?
-
-    \begin{itemize}
-    \item Traditional B-trees read a full block into RAM.
-    \item Log-backed B-trees usually reconstruct logs in RAM.
-    \end{itemize}
+    \begin{hackize}
+        \item Microcontrollers are very small---flash increasingly dense.
+        \item How do you build a B-tree if you can't fit a block in RAM?
+        \begin{itemize}
+            \item Traditional B-trees read a full block into RAM.
+            \item Log-backed B-trees usually reconstruct logs in RAM.
+        \end{itemize}
+    \end{hackize}
 }
 \column{0.5}
 \block[bodyinnersep=0pt]{}{\Large
@@ -267,7 +272,8 @@
     \begin{itemize}
         \item Based on red-black trees, but with slightly different coloring
             rules to avoid rotations.
-        \item Instead of rotating, 2-3-4 splits point to nodes in the history.
+        \item Instead of rotating, 2-3-4 splits point to existing branches in
+            history.
         \item Unreachable branches are pruned during later appends.
     \end{itemize}
     Rbyd B-tree nodes support efficient sparse\slash order-statistic keys:
@@ -1636,17 +1642,19 @@
 }
 \column{0.3}
 \block{Rebalancing compactions}{\Large
-    %Naively copying rbyds results in $O(b \log b)$ storage.
-    Naively, rbyds result in $O(b \log b)$ storage.
-
-    Instead, trees are copied with a tail-recursive rebalancing algorithm:
-    \begin{itemize}
-        %\item Brings compacted storage cost down
-        %    $O(b \log b) \rightarrow O(b)$.
-        \item Brings compacted storage cost down to $O(b)$.
-        %\item Divides branching factor by a constant, currently {$\sim$}8.
-        \item Divides branching factor by a constant ${\sim}1/8$.
-    \end{itemize}
+    \begin{hackize}
+        %Naively copying rbyds results in $O(b \log b)$ storage.
+        \item Naively, rbyds result in $O(b \log b)$ storage.
+        \item Instead, trees are copied with a tail-recursive rebalancing
+            algorithm:
+        \begin{itemize}
+            %\item Brings compacted storage cost down
+            %    $O(b \log b) \rightarrow O(b)$.
+            \item Brings compacted storage cost down to $O(b)$.
+            %\item Divides branching factor by a constant, currently {$\sim$}8.
+            \item Divides branching factor by a constant ${\sim}1/8$.
+        \end{itemize}
+    \end{hackize}
 }
 \column{0.3}
 \block{Deferred splits/merges}{\Large
