@@ -243,35 +243,30 @@
         \end{tikzpicture}
         \end{tikzfigure}
     \end{minipage}
-    \\\\\\
+    \\[48pt]
     Limitations:
     \begin{itemize}
     \item Limited to radix trees (implicitly balanced).
     \item Radix B-tree nodes with sparse/order-statistic keys perform poorly:
         \begin{itemize}
-            \item Naive array update{$\rightarrow$}insert:
-                $O(b) \rightarrow O(b)$
-            \item Radix array update{$\rightarrow$}insert:
-                $O(\log b) \rightarrow O(b \log b)$
-            %\item Rbyd array update{$\rightarrow$}insert:
-            %    $O(\log b) \rightarrow O(\log b)$
+            \item Naive array insertion: $O(b)$
+            \item Radix array insertion: $O(b \log b)$
+            %\item Rbyd array insertion: $O(\log b)$
         \end{itemize}
     \end{itemize}
 }
 \column{0.5}
 \block{Red-black-yellow Dhara (rbyd) trees}{\Large
-    Extends Dhara trees with self-balancing operations.
+    Extends Dhara trees with self-balancing operations:
     \begin{itemize}
-    \item Based on red-black trees which are tail-recursive,
-        i.e. bounded-RAM.
-    \item Slightly different coloring rules to avoid rotations.
-    \item % Instead of rotating,
-        2-3-4 splits point into history, outdated branches become unreachable.
-    \item Rbyd B-tree nodes support efficient sparse/order-statistic keys:
-        \begin{itemize}
-            \item Rbyd array update{$\rightarrow$}insert:
-                $O(\log b) \rightarrow O(\log b)$
-        \end{itemize}
+        \item Based on red-black trees, but with slightly different coloring
+            rules to avoid rotations.
+        \item Instead of rotating, 2-3-4 splits point to nodes in the history.
+        \item Unreachable branches are pruned during later appends.
+    \end{itemize}
+    Rbyd B-tree nodes support efficient sparse/order-statistic keys:
+    \begin{itemize}
+        \item Order-statistic rbyd array insertion: $O(\log b)$
     \end{itemize}
 }
 \end{columns}
@@ -441,6 +436,7 @@
             rbydtag,
             draw,
             fill=fglightblue!50!bg,
+            %fill=fglightblue,
         },
         rlogdata/.style={
             rbydtag,
@@ -1618,38 +1614,44 @@
 
 % B-tree details
 \begin{columns}
-\column{0.33}
+\column{0.4}
 \block{Rbyd B-trees}{\Large
     \begin{itemize}
-        \item Rbyd leaves recursively point to B-tree nodes.
-        \item B-tree inherits sparse/order-statistic properties.
-        \item Most updates rely on cheap log appends.
-        \item When logs are full, logs are compacted into new blocks.
-            Compaction cost amortized $O(b \log b) \rightarrow O(\log b)$.
-        \item When full, logs are compacted into new blocks.
-        \item To avoid runaway compactions, nodes are split when $\gt b/2$.
+        \item Rbyd leaves point to B-tree nodes, inherting
+            rbyd's sparse/order-statistic properties.
+        \item Most updates are cheap $O(\log b)$ rbyd appends.
+        %\item When logs are full, logs are compacted into new blocks.
+        %    Compaction cost amortized $O(b \log b) \rightarrow O(\log b)$.
+        \item When full, %logs
+            rbyds are compacted into new blocks in $O(b \log b)$.
+        \item To avoid runaway compactions, nodes split when $\gt b/2$,
+            amortizing compaction cost $O(b \log b) \rightarrow O(\log b)$.
     \end{itemize}
 }
-\column{0.33}
+\column{0.3}
 \block{Rebalancing compactions}{\Large
+    %Naively copying rbyds results in $O(b \log b)$ storage.
+    Naively, rbyds results in $O(b \log b)$ storage.
+
+    Instead, trees are copied with a tail-recursive rebalancing algorithm:
     \begin{itemize}
-        \item Naively rewriting rbyds uses $O(b \log b)$ storage.
-        \item Instead, a tail-recursive rebalancing algorithm brings
-            compacted storage cost down to $O(b)$.
+        %\item Brings compacted storage cost down
+        %    $O(b \log b) \rightarrow O(b)$.
+        \item Brings compacted storage cost down to $O(b)$.
         \item Divides branching factor by a constant, currently {$\sim$}8.
     \end{itemize}
 }
-\column{0.33}
+\column{0.3}
 \block{Deferred splits/merges}{\Large
-    No reason to check split/merge conditions before compaction.
+    No reason to split/merge until compaction.
     \begin{itemize}
         \item Amortizes split/merge checks.
-        \item Introduces hysterisis, no split{$\leftrightarrow$}merge
-            oscillation.
+        % \item Introduces hysterisis, no split{$\leftrightarrow$}merge
+        %     oscillation.
         \item Minimizes split{$\leftrightarrow$}merge oscillation.
         \item Results in optimal B-tree distribution after sequential
             writes.
-        \item Better B-tree distribution after sequential writes.
+        % \item Optimal B-tree distribution after sequential writes.
     \end{itemize}
 }
 \end{columns}
