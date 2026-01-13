@@ -314,7 +314,8 @@
 % Main rbyd B-tree graphic!
 
 % some defines
-\def\rbydnodewidth{(1/8)*(1/4)*\linewidth}
+\def\rbydscale{(1/4)}
+\def\rbydnodewidth{(1/8)*\rbydscale*\linewidth}
 \def\rbydnodeheight{\rbydnodewidth}
 \def\rbydnoderatio{0.6}
 \def\bnodewidth{(1/(1.5*7-0.5))*(1/2)*\linewidth}
@@ -502,7 +503,7 @@
         \node (#1) [
             #2,
             anchor=center,
-            minimum width=(1/4)*\linewidth,
+            minimum width=\rbydscale*\linewidth,
             minimum height=6.5*\rbydnodeheight,
             inner sep=0,
             outer sep=0,
@@ -619,7 +620,7 @@
         \node (#1) [
             #2,
             anchor=center,
-            minimum width=(1/4)*\linewidth,
+            minimum width=\rbydscale*\linewidth,
             minimum height=6.5*\rbydnodeheight,
             inner sep=0,
             outer sep=0,
@@ -744,7 +745,7 @@
         \node (#1) [
             #2,
             anchor=center,
-            minimum width=(1/4)*\linewidth,
+            minimum width=\rbydscale*\linewidth,
             minimum height=6.5*\rbydnodeheight,
             inner sep=0,
             outer sep=0,
@@ -813,7 +814,7 @@
         \node (#1) [
             #2,
             anchor=center,
-            minimum width=(1/4)*\linewidth,
+            minimum width=\rbydscale*\linewidth,
             minimum height=6.5*\rbydnodeheight,
             inner sep=0,
             outer sep=0,
@@ -1610,16 +1611,40 @@
 
         % Rbyd stuff
         \coordinate (rorigin) at (0,{6*\bnodeheight});
-        \rlog{rlog}{right=(1/8)*\linewidth of rorigin};
-        \rbyd{rbyd}{right=(3/8)*\linewidth of rorigin};
-        \rtree{rtree}{right=(5/8)*\linewidth of rorigin};
-        \riiiiiiv{riiiiiiv}{right=(7/8)*\linewidth of rorigin};
+        \rlog{rlog}{right=0.5*\rbydscale*\linewidth of rorigin};
+        \rbyd{rbyd}{right=1.5*\rbydscale*\linewidth of rorigin};
+        \rtree{rtree}{right=2.5*\rbydscale*\linewidth of rorigin};
+        \riiiiiiv{riiiiiiv}{right=3.5*\rbydscale*\linewidth of rorigin};
 
         \draw[rbydbubbleptr] (rlog_rtrunk) -- (rbyd_rtrunk);
         \draw[rbydbubbleptr] (rbyd_rtrunk) -- (rtree_rtrunk);
         \draw[rbydbubbleptr] (rtree_rtrunk) -- (riiiiiiv_rtrunk);
 
-        \node at (rbyd_r0_0) [circle, draw, overlay] {HIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII};
+        % add a magnifying glass
+        \begin{scope}[on behind layer]
+        \node (magnifyer_a) at ($(rbyd)-(0,{0.5*\rbydnodeheight})$) [
+            circle,
+            draw,
+            overlay,
+            minimum width=9.5*\rbydnodewidth,
+        ] {};
+        \end{scope}
+        \node (magnifyer_b) at ($(btree_b1_0)-(0,{0.5*\rnodeheight})$) [
+            circle,
+            draw,
+            overlay,
+            minimum width=9.5*\rnodewidth
+        ] {};
+        \begin{scope}[on behind layer]
+        %\draw (tangent cs:node=magnifyer_b,point={(magnifyer_a)},solution=1)
+        %    -- (tangent cs:node=magnifyer_a,point={(magnifyer_b)},solution=2);
+        %\draw (tangent cs:node=magnifyer_b,point={(magnifyer_a)},solution=2)
+        %    -- (tangent cs:node=magnifyer_a,point={(magnifyer_b)},solution=1);
+        \draw ($(magnifyer_b)!{(1/2)*9.5*\rnodewidth}!110:(magnifyer_a)$)
+            -- ($(magnifyer_a)!{(1/2)*9.5*\rbydnodewidth}!-70:(magnifyer_b)$);
+        \draw ($(magnifyer_b)!{(1/2)*9.5*\rnodewidth}!-110:(magnifyer_a)$)
+            -- ($(magnifyer_a)!{(1/2)*9.5*\rbydnodewidth}!70:(magnifyer_b)$);
+        \end{scope}
 
         % B-tree commit/compact/split examples
         \btreecommit{bcommit}
