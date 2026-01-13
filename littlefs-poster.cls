@@ -133,7 +133,8 @@
             fill=titlebgcolor]
         (-0.5\paperwidth,-0.5\paperheight)
         rectangle
-        (0.5\paperwidth,-0.5\paperheight+120pt);
+        %(0.5\paperwidth,-0.5\paperheight+120pt);
+        (0.5\paperwidth,-0.5\paperheight+2*48pt);
 }
 \usebackgroundstyle{littlefsbackgroundstyle}
 
