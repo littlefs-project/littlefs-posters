@@ -1647,7 +1647,13 @@
 \block[bodyinnersep=0pt]{}{
     \begin{tikzfigure}
     \flushleft
-    \begin{tikzpicture}
+    \begin{tikzpicture}[
+        magnifyer/.style={
+            draw,
+            thin,
+            overlay,
+        },
+    ]
         % main B-tree
         \coordinate (borigin) at (0,0);
         \btree{btree}{right=0 of borigin};
@@ -1678,27 +1684,33 @@
         % add a magnifying glass
         \begin{scope}[on behind layer]
         \node (magnifyer_a) at ($(rbyd)-(0,{0.5*\rbydnodeheight})$) [
+            magnifyer,
             circle,
-            draw,
-            overlay,
             minimum width=9.5*\rbydnodewidth,
         ] {};
         \end{scope}
         \node (magnifyer_b) at ($(btree_b1_0)-(0,{0.5*\rnodeheight})$) [
+            magnifyer,
             circle,
-            draw,
-            overlay,
             minimum width=9.5*\rnodewidth
         ] {};
         \begin{scope}[on behind layer]
-        %\draw (tangent cs:node=magnifyer_b,point={(magnifyer_a)},solution=1)
-        %    -- (tangent cs:node=magnifyer_a,point={(magnifyer_b)},solution=2);
-        %\draw (tangent cs:node=magnifyer_b,point={(magnifyer_a)},solution=2)
-        %    -- (tangent cs:node=magnifyer_a,point={(magnifyer_b)},solution=1);
-        \draw ($(magnifyer_b)!{(1/2)*9.5*\rnodewidth}!110:(magnifyer_a)$)
-            -- ($(magnifyer_a)!{(1/2)*9.5*\rbydnodewidth}!-70:(magnifyer_b)$);
-        \draw ($(magnifyer_b)!{(1/2)*9.5*\rnodewidth}!-110:(magnifyer_a)$)
-            -- ($(magnifyer_a)!{(1/2)*9.5*\rbydnodewidth}!70:(magnifyer_b)$);
+        %\draw[magnifyer]
+        %    (tangent cs:node=magnifyer_b,point={(magnifyer_a)},solution=1)
+        %    --
+        %    (tangent cs:node=magnifyer_a,point={(magnifyer_b)},solution=2);
+        %\draw[magnifyer]
+        %    (tangent cs:node=magnifyer_b,point={(magnifyer_a)},solution=2)
+        %    --
+        %    (tangent cs:node=magnifyer_a,point={(magnifyer_b)},solution=1);
+        \draw[magnifyer]
+            ($(magnifyer_b)!{(1/2)*9.5*\rnodewidth}!110:(magnifyer_a)$)
+            --
+            ($(magnifyer_a)!{(1/2)*9.5*\rbydnodewidth}!-70:(magnifyer_b)$);
+        \draw[magnifyer]
+            ($(magnifyer_b)!{(1/2)*9.5*\rnodewidth}!-110:(magnifyer_a)$)
+            --
+            ($(magnifyer_a)!{(1/2)*9.5*\rbydnodewidth}!70:(magnifyer_b)$);
         \end{scope}
 
         % add B-tree table
