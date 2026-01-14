@@ -1780,7 +1780,7 @@
         % B-tree commit/compact/split examples
         \btreecommit{bcommit}
             {below right=0*\get{bnodeheight}
-                and (5+0.125)*\get{bnodewidth}
+                and (5-0.125)*\get{bnodewidth}
                 of btree_broot};
         \draw[bbubbleptr] (btree_broot) -- (bcommit)
             node[pos=0.5, anchor=south] {\Large
@@ -1789,7 +1789,7 @@
 
         \btreecompact{bcompact}
             {below right=1.125*\get{bnodeheight}
-                and 8.75*\get{bnodewidth}
+                and (8.75-0.25-0.125)*\get{bnodewidth}
                 of btree_broot};
         \draw[bbubbleptr] (btree_broot) -- (bcompact.south)
             node[pos=0.5, anchor=south] {\Large
@@ -1798,7 +1798,7 @@
             };
 
         \btreesplit{bsplit}
-            {above right=(0.5-0.125)*\get{bnodeheight}
+            {above right=(0.5-0.25-0.125)*\get{bnodeheight}
                 and 12.5*\get{bnodewidth}
                 of btree_broot};
         \draw[bbubbleptr] (btree_broot) -- (bsplit.north)
