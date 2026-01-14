@@ -312,7 +312,8 @@
 % }
 \title{\Large \bf
     %\lfs+: rbyd B-trees: Flexible incremental B-trees when RAM $\ll$ block size
-    \lfs+: rbyd B-trees: Incremental B-trees when RAM $\ll$ block size
+    %\lfs+: rbyd B-trees: Incremental B-trees when RAM $\ll$ block size
+    \lfs+: rbyd B-trees: Flexible B-trees when RAM $\ll$ block size
 }
 % \title{\Large \bf
 %     \lfs+: rbyd B-trees: Incremental order-statistic B-trees when RAM $\ll$
@@ -371,7 +372,7 @@ B-tree with the following constraints:
 \begin{enumerate}
 \item Strictly bounded-RAM, i.e. no non-tail recursion
 \item RAM usage independent of block size
-\item Incremental, i.e. does not rely on full block rewrites
+\item Does not rely on full block rewrites
 \end{enumerate}
 % \item Support for sparse keys, e.g. file names
 % \item Support for order-statistic keys, e.g. compressable ranges
