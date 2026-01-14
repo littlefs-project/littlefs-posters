@@ -486,6 +486,7 @@
         %loosely dashed,
         dash pattern=on 6pt off 6pt,
         rounded corners=40pt,
+        fill=bg,
         inner sep=0,
         outer sep=0,
     },
@@ -1355,7 +1356,7 @@
             bbubble,
             #2,
             minimum width=3.25*\get{bnodewidth},
-            minimum height=3.125*\get{bnodeheight},
+            minimum height=(3.125-0.25-0.125)*\get{bnodeheight},
         ] {};
 
         % title
@@ -1370,7 +1371,7 @@
         % B-tree nodes
         \node (#1_b1_0) [
             btree,
-            above left=2.25 and 0.75 of #1.south,
+            above left=(2.25-0.25-0.125) and 0.75 of #1.south,
             anchor=center,
             draw=none
         ] {};
@@ -1378,14 +1379,14 @@
 
         \node (#1_b0_0) [
             btree,
-            below right=1.5 and 0.5 of #1_b1_0,
+            below right=(1.5-0.25) and 0.5 of #1_b1_0,
             draw=none,
         ] {};
         \rbydvi{#1_b0_0};
 
         \draw[bptr]
             (#1_b1_0_r6_0)
-            .. controls +(0,-1) and +(0,+1) ..
+            .. controls +(0,-1/1.2) and +(0,+1/1.2) ..
             (#1_b0_0_rroot);
 
         % B-tree commit
@@ -1439,7 +1440,7 @@
 
         \draw[bptr]
             (#1_b1_1_r7_0)
-            .. controls +(0,-1) and +(0,+1) ..
+            .. controls +(0,-1/1.2) and +(0,+1/1.2) ..
             (#1_b0_1_rroot);
     \end{scope}
 }
@@ -1457,7 +1458,7 @@
             bbubble,
             #2,
             minimum width=3.5*\get{bnodewidth},
-            minimum height=3.125*\get{bnodeheight},
+            minimum height=(3.125-0.25-0.125)*\get{bnodeheight},
         ] {};
 
         % title
@@ -1472,7 +1473,7 @@
         % B-tree nodes
         \node (#1_b1_0) [
             btree,
-            above left=2.25 and 0.625 of #1.south,
+            above left=(2.25-0.25-0.125) and 0.625 of #1.south,
             anchor=center,
             draw=none
         ] {};
@@ -1480,13 +1481,13 @@
 
         \node (#1_b0_0) [
             btree,
-            below right=1.5 and -0.25 of #1_b1_0,
+            below right=(1.5-0.25) and -0.25 of #1_b1_0,
         ] {};
         \rbydvi{#1_b0_0};
 
         \draw[bptr]
             (#1_b1_0_r6_0)
-            .. controls +(0,-1) and +(0,+1) ..
+            .. controls +(0,-1/1.2) and +(0,+1/1.2) ..
             (#1_b0_0_rroot);
 
         % B-tree commit
@@ -1523,7 +1524,7 @@
 
         \draw[bptr]
             (#1_b1_1_r7_0)
-            .. controls +(0,-1) and +(0,+1) ..
+            .. controls +(0,-1/1.2) and +(0,+1/1.2) ..
             (#1_b0_1_rroot);
 
         \draw[bdashedptr] (#1_b0_0) -- (#1_b0_1);
@@ -1542,8 +1543,8 @@
         \node (#1) [
             bbubble,
             #2,
-            minimum width=4.75*\get{bnodewidth},
-            minimum height=3.125*\get{bnodeheight},
+            minimum width=(4.75-0.25)*\get{bnodewidth},
+            minimum height=(3.125-0.25-0.125)*\get{bnodeheight},
         ] {};
 
         % title
@@ -1558,7 +1559,7 @@
         % B-tree nodes
         \node (#1_b1_0) [
             btree,
-            above left=2.25 and 0.625 of #1.south,
+            above left=(2.25-0.25-0.125) and 0.625 of #1.south,
             anchor=center,
             draw=none
         ] {};
@@ -1566,13 +1567,13 @@
 
         \node (#1_b0_0) [
             btree,
-            below right=1.5 and -0.875 of #1_b1_0,
+            below right=(1.5-0.25) and -0.875 of #1_b1_0,
         ] {};
         \rbydvi{#1_b0_0};
 
         \draw[bptr]
             (#1_b1_0_r6_0)
-            .. controls +(0,-1) and +(0,+1) ..
+            .. controls +(0,-1/1.2) and +(0,+1/1.2) ..
             (#1_b0_0_rroot);
 
         % B-tree commit
@@ -1614,11 +1615,11 @@
 
         \draw[bptr]
             (#1_b1_1_r7_0)
-            .. controls +(0,-1) and +(0,+1) ..
+            .. controls +(0,-1/1.2) and +(0,+1/1.2) ..
             (#1_b0_1_rroot);
         \draw[bptr]
             (#1_b1_1_r8_0)
-            .. controls +(0,-1) and +(0,+1.1) ..
+            .. controls +(0,-1/1.2) and +(0,+1.1/1.2) ..
             (#1_b0_2_rroot);
 
         \draw[bdashedptr] (#1_b0_0) -- (#1_b0_1);
@@ -1777,31 +1778,33 @@
         };
 
         % B-tree commit/compact/split examples
-        \btreecommit{bcommit}
-            {below right=0.75*\get{bnodeheight} and 5.5*\get{bnodewidth}
+        \btreesplit{bsplit}
+            {below right=1.25*\get{bnodeheight}
+                and 12.5*\get{bnodewidth}
                 of btree_broot};
-        \draw[bbubbleptr] (btree_broot) -- (bcommit)
+        \draw[bbubbleptr] (btree_broot) -- (bsplit.south)
             node[pos=0.5, anchor=south] {\Large
-                $\text{uncompacted} \le b$
+                %$\text{compacted} \gt b/2$
+                $\text{compacted} \gt \frac{b}{2}$
             };
 
         \btreecompact{bcompact}
-            {above right=-0.125*\get{bnodeheight}
-                and (8.75-0.125)*\get{bnodewidth}
+            {above right=0.125*\get{bnodeheight}
+                and (9.25-0.125)*\get{bnodewidth}
                 of btree_broot};
-        \draw[bbubbleptr] (btree_broot) -- (bcompact)
+        \draw[bbubbleptr] (btree_broot) -- (bcompact.north)
             node[pos=0.5, anchor=south] {\Large
                 %$\text{compacted} \le b/2$
                 $\text{compacted} \le \frac{b}{2}$
             };
 
-        \btreesplit{bsplit}
-            {below right=1*\get{bnodeheight} and 12.5*\get{bnodewidth}
+        \btreecommit{bcommit}
+            {below right=0.5*\get{bnodeheight}
+                and (5.5)*\get{bnodewidth}
                 of btree_broot};
-        \draw[bbubbleptr] (btree_broot) -- (bsplit)
+        \draw[bbubbleptr] (btree_broot) -- (bcommit)
             node[pos=0.5, anchor=south] {\Large
-                %$\text{compacted} \gt b/2$
-                $\text{compacted} \gt \frac{b}{2}$
+                $\text{uncompacted} \le b$
             };
 
         % cut off bounding box a bit, the B-tree leaves don't really
