@@ -10,10 +10,14 @@ TIKZDIR ?= tikz_poster
 DISK_SIZE ?= 134217728 # 128 MiB
 
 # how many entries to test?
-BENCH_RBYD_N ?= 4096
-BENCH_BTREE_N ?= 4096
+#BENCH_RBYD_N ?= 4096
+BENCH_RBYD_N ?= 8192
+#BENCH_BTREE_N ?= 4096
+BENCH_BTREE_N ?= 8192
 # how big a file to simulate?
-BENCH_WT_SIZE ?= 1048576 # 1 MiB
+#BENCH_WT_SIZE ?= 1048576 # 1 MiB
+BENCH_WT_SIZE ?= 2097152 # 2 MiB
+#BENCH_WT_SIZE ?= 16777216 # 16 MiB
 # how big a chunk to write?
 BENCH_WT_CHUNK ?= 64
 
@@ -104,7 +108,10 @@ bench-p26-poster-wt: \
 # $3 - block sizes
 define BENCH_P26_POSTER_WT_RULE
 $1: $(BENCH_$(U_$2)_RUNNER)
-	$$(strip ./scripts/bench.py -R$$< -B bench_p26_wt \
+	$$(strip ./scripts/bench.py -R$$< -B \
+		bench_p26_wt_linear \
+		bench_p26_wt_random \
+		bench_p26_wt_logging \
 		$(BENCHFLAGS) \
 		-DDISK_SIZE=$(DISK_SIZE) \
 		-DFS=$(N_$2) \
@@ -262,13 +269,9 @@ $(PLOTSDIR)/bench_p26_poster_wt.svg: \
 			--title=random \
 			-W0.5" \
 		--subplot-right=" \
-			-Dcase=bench_p26_wt_many \
-			--title=many \
-			-W0.33" \
-		--subplot-right=" \
 			-Dcase=bench_p26_wt_logging \
 			--title=logging \
-			-W0.25" \
+			-W0.33" \
 		--legend \
 		$(foreach fs, $(BENCH_FSS),$\
 			-L'$(N_$(fs))=$(fs)') \
