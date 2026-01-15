@@ -1896,10 +1896,27 @@
 % Results
 \block{Simulated results}{\Large
     \begin{minipage}[t]{0.25\linewidth}
-    \begin{itemize}
         \vspace{0pt}
-        \item Implemented in littlefs3 (unstable).
-    \end{itemize}
+        Implemented in littlefs3 (unstable):
+        \begin{itemize}
+            \item Replaces append-only CTZ skip-lists.
+            \item Provides efficient random writes.
+            \item Flexibility leads to code reuse (mtree,
+                block map). However, upfront cost is high.
+        \end{itemize}
+        \vspace{16pt}
+        \begin{center}
+            % Code/RAM sizes
+            % TODO recalculate these?
+            \begin{tabular}{l@{\qquad}r@{\quad}r@{\quad}r}
+                \toprule
+                & code & ctx & stack \\
+                \midrule
+                littlefs3 & 34450 & 660 & 2100 \\
+                littlefs2 & 16880 & 580 & 1464 \\
+                \bottomrule
+            \end{tabular}
+        \end{center}
     \end{minipage}
     \begin{minipage}[t]{0.75\linewidth}
         \vspace{0pt}
