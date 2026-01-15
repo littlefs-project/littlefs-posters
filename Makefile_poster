@@ -167,11 +167,11 @@ $(PLOTSDIR)/bench_p26_poster_btree.svg: \
 		--subplot=" \
 			-Dm='commit+sim' \
 			--title='commit' \
-			--ylim-ratio=0.01" \
+			$(if, --ylim-ratio=0.01)" \
 		--subplot-right=" \
 			-Dm='commit+sim+amor' \
 			--title='commit (amortized)' \
-			--ylim-ratio=0.01 $(if, --ylim-ratio=0.98) \
+			$(if, --ylim-ratio=0.01) $(if, --ylim-ratio=0.98) \
 			-W0.5" \
 		--subplot-right=" \
 			-Dm='lookup+sim' \
@@ -181,7 +181,7 @@ $(PLOTSDIR)/bench_p26_poster_btree.svg: \
 			-Dm='usage+per' \
 			--title='usage (per attr)' \
 			--y2 --yunits=B \
-			--ylim-ratio=0.01 $(if, --ylim-ratio=0.98) \
+			$(if, --ylim-ratio=0.01) $(if, --ylim-ratio=0.98) \
 			-W0.25" \
 		$(PLOTFLAGS) \
 		-o$@)

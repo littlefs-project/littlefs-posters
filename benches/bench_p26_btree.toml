@@ -29,9 +29,16 @@ code = '''
             CFG->block_count-2);
     lfs3_alloc_ckpoint(&lfs3);
 
-    // create a tree with N elements
+    // commit initial commit just to avoid first erase messing with
+    // amortized results
     lfs3_btree_t btree;
     lfs3_btree_init(&btree);
+    lfs3_btree_commit(&lfs3, &btree, 0, LFS3_RATTRS(
+            LFS3_RATTR(1, LFS3_TAG_DATA, +1),
+            LFS3_RATTR(1, LFS3_TAG_DATA, -1),
+            LFS3_RATTR_NULL)) => 0;
+
+    // fill btree with N elements
     uint32_t prng = SEED;
     for (lfs3_bid_t i = 0; i < N; i++) {
         lfs3_bid_t i_
