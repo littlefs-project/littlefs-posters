@@ -11,6 +11,8 @@ SRC += $(POSTER:$(BUILDDIR)/%.pdf=%.tex) $(ABSTRACT:$(BUILDDIR)/%.pdf=%.tex)
 SRC += littlefs-btree-abstract.bib
 SRC += littlefs-poster.cls
 SRC += littlefs-ico.tex
+SRC += littlefs-btree-eval.tex
+SRC += $(wildcard results/*.csv)
 SRC += usenix-2020-09.sty
 
 # where are our benchmarks?
