@@ -5,16 +5,14 @@ PLOTSDIR ?= plots_poster
 # overrideable tikz dir
 TIKZDIR ?= tikz_poster
 
-
 # give us more space for activities
 DISK_SIZE ?= 134217728 # 128 MiB
+# block sizes for btree benchmarks
+BENCH_BTREE_BLOCK_SIZES ?= 4096,8192,16384,32768,65536,131072,$\
+	262144,524288,1048576
 
 # enable debug to make sure benches work, otherwise asserts are disabled
 DEBUG ?= 1
-
-
-# how big step size?
-BENCH_STEP ?= 1
 
 # how many samples?
 BENCH_SAMPLES ?= 1
@@ -51,7 +49,6 @@ $(RESULTSDIR)/bench_p26_poster_rbyd.csv: $(BENCH_LFS3NB_RUNNER)
 	$(strip ./scripts/bench.py -R$< -B bench_p26_rbyd \
 		$(BENCHFLAGS) \
 		-DFS=$(N_lfs3) \
-		-DSTEP=$(BENCH_STEP) \
 		-DSEED="range($(BENCH_SAMPLES))" \
 		-DREAD_TIME=$(NOR_READ_TIME) \
 		-DPROG_TIME=$(NOR_PROG_TIME) \
@@ -66,11 +63,12 @@ $(RESULTSDIR)/bench_p26_poster_btree.csv: $(BENCH_LFS3NB_RUNNER)
 	$(strip ./scripts/bench.py -R$< -B bench_p26_btree \
 		$(BENCHFLAGS) \
 		-DFS=$(N_lfs3) \
-		-DSTEP=$(BENCH_STEP) \
 		-DSEED="range($(BENCH_SAMPLES))" \
 		-DREAD_TIME=$(NOR_READ_TIME) \
 		-DPROG_TIME=$(NOR_PROG_TIME) \
 		-DERASE_TIME=$(NOR_ERASE_TIME) \
+		-DORDER=2 \
+		-DBLOCK_SIZE="$(BENCH_BTREE_BLOCK_SIZES)" \
 		-o$@)
 
 
@@ -155,31 +153,25 @@ $(PLOTSDIR)/bench_p26_poster_btree.svg: \
 			-o-) \
 		-W1500 -H350 \
 		--title='btree operations' \
-		-bORDER \
+		-bBLOCK_SIZE \
 		-xn \
 		-ybench_readed_avg \
 		-ybench_readed_bnd \
 		--yunits=s \
 		--legend \
-		-L0,bench_readed_avg=inorder \
-		-L1,bench_readed_avg=reversed \
-		-L2,bench_readed_avg=random \
-		-L0,bench_readed_bnd= \
-		-L1,bench_readed_bnd= \
-		-L2,bench_readed_bnd= \
-		-C0,bench_readed_avg=$(C_lfs3) \
-		-C1,bench_readed_avg=$(C_lfs3nb) \
-		-C2,bench_readed_avg=$(C_lfs2) \
-		-C0,bench_readed_bnd=$(C_lfs3:bf=1f) \
-		-C1,bench_readed_bnd=$(C_lfs3nb:bf=1f) \
-		-C2,bench_readed_bnd=$(C_lfs2:bf=1f) \
+		$(foreach bs,$(subst $(,), ,$(BENCH_BTREE_BLOCK_SIZES)),$\
+			-L'$(bs),bench_readed_avg=$(bs)' \
+			-L'$(bs),bench_readed_bnd=' \
+			-C'$(bs),bench_readed_avg=$(C_lfs3)' \
+			-C'$(bs),bench_readed_bnd=$(C_lfs3:bf=1f)') \
 		--subplot=" \
 			-Dm='commit+sim' \
-			--title='commit'" \
+			--title='commit' \
+			--ylim-ratio=0.01" \
 		--subplot-right=" \
 			-Dm='commit+sim+amor' \
 			--title='commit (amortized)' \
-			--ylim-ratio=0.98 \
+			--ylim-ratio=0.01 $(if, --ylim-ratio=0.98) \
 			-W0.5" \
 		--subplot-right=" \
 			-Dm='lookup+sim' \
@@ -189,7 +181,7 @@ $(PLOTSDIR)/bench_p26_poster_btree.svg: \
 			-Dm='usage+per' \
 			--title='usage (per attr)' \
 			--y2 --yunits=B \
-			--ylim-ratio=0.98 \
+			--ylim-ratio=0.01 $(if, --ylim-ratio=0.98) \
 			-W0.25" \
 		$(PLOTFLAGS) \
 		-o$@)
