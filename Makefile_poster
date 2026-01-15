@@ -22,9 +22,17 @@ BENCH_WT_SIZE ?= 2097152 # 2 MiB
 BENCH_WT_CHUNK ?= 64
 
 # how many samples?
+ifdef PRECISE
+BENCH_SAMPLES ?= 16
+else
 BENCH_SAMPLES ?= 1
+endif
 # how long to simulate?
+ifdef PRECISE
+BENCH_SIM_TIME ?= 3600000000000 # 1 hour
+else
 BENCH_SIM_TIME ?= 600000000000 # 10 minutes
+endif
 
 # block sizes for btree benchmarks
 BENCH_BTREE_BLOCK_SIZES ?= 4096,8192,16384,32768,65536,131072,$\
