@@ -171,7 +171,7 @@ BENCHES ?= $(wildcard benches/*.toml)
 # littlefs3 bench-runner and sources
 BENCH_LFS3_RUNNER ?= $(BUILDDIR)/bench_lfs3_runner
 BENCH_LFS3_FILTER ?= sed -n -e'1p' -e'/\<lfs3_emubd/d' -e'/\<lfs3/p'
-BENCH_LFS3_CFLAGS += -DLFS3=1 -DLFS3_YES_BMAP=1
+BENCH_LFS3_CFLAGS += -DLFS3=1 -DLFS3_YES_GBMAP=1
 CODEMAP_LFS3_SRC ?= $(filter-out %.t.c %.b.c %.a.c,$(wildcard littlefs3/*.c))
 CODEMAP_LFS3_OBJ := $(CODEMAP_LFS3_SRC:%.c=$(BUILDDIR)/%.lfs3.o)
 CODEMAP_LFS3_DEP := $(CODEMAP_LFS3_OBJ:.o=.d)

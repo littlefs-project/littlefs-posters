@@ -1875,7 +1875,6 @@ void perm_run(
     // using kiwibd?
     #if defined(BENCH_KIWIBD)
     struct lfs3_kiwibd_cfg bdcfg = {
-        .disk_path          = bench_disk_path,
         .read_sleep         = bench_read_sleep,
         .prog_sleep         = bench_prog_sleep,
         .erase_sleep        = bench_erase_sleep,
@@ -1892,7 +1891,6 @@ void perm_run(
     // using emubd?
     #elif defined(BENCH_EMUBD)
     struct lfs3_emubd_cfg bdcfg = {
-        .disk_path          = bench_disk_path,
         .read_sleep         = bench_read_sleep,
         .prog_sleep         = bench_prog_sleep,
         .erase_sleep        = bench_erase_sleep,

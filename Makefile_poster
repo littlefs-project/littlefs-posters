@@ -1,0 +1,121 @@
+# overrideable results dir
+RESULTSDIR ?= results_poster
+# overrideable plots dir
+PLOTSDIR ?= plots_poster
+# overrideable tikz dir
+TIKZDIR ?= tikz_poster
+
+
+# give us more space for activities
+DISK_SIZE ?= 134217728 # 128 MiB
+
+# enable debug to make sure benches work, otherwise asserts are disabled
+DEBUG ?= 1
+
+
+# how big step size?
+BENCH_STEP ?= 1
+
+# how many samples?
+BENCH_SAMPLES ?= 1
+
+
+# we only care about littlefs3+nogbmap and littlefs2
+BENCH_FSS ?= lfs3nb lfs2
+# we only care about NOR for now
+BENCH_SIMS ?= nor
+
+
+# override bench rules
+BENCH_RULES ?= \
+	bench-p26-poster-rbyd
+# override plot rules
+PLOT_RULES ?= \
+	plot-p26-poster-rbyd
+# override tikz rules
+TIKZ_RULES ?= \
+	tikz-p26-postesr-rbyd
+
+# default Makefile does most of the work
+include Makefile
+
+
+## Run rbyd benchmarks
+.PHONY: bench-p26-poster-rbyd
+bench-p26-poster-rbyd: $(RESULTSDIR)/bench_p26_poster_rbyd.csv
+
+$(RESULTSDIR)/bench_p26_poster_rbyd.csv: $(BENCH_LFS3NB_RUNNER)
+	$(strip ./scripts/bench.py -R$< -B bench_p26_rbyd \
+		$(BENCHFLAGS) \
+		-DFS=$(N_lfs3) \
+		-DSTEP=$(BENCH_STEP) \
+		-DSEED="range($(BENCH_SAMPLES))" \
+		-DREAD_TIME=$(NOR_READ_TIME) \
+		-DPROG_TIME=$(NOR_PROG_TIME) \
+		-DERASE_TIME=$(NOR_ERASE_TIME) \
+		-o$@)
+
+
+## Plot rbyd benchmarks
+.PHONY: plot-p26-poster-rbyd
+plot-p26-poster-rbyd: $(PLOTSDIR)/bench_p26_poster_rbyd.svg
+
+$(PLOTSDIR)/bench_p26_poster_rbyd.svg: \
+		$(RESULTSDIR)/bench_p26_poster_rbyd.avg.csv \
+		$(RESULTSDIR)/bench_p26_poster_rbyd.per.avg.csv \
+		$(RESULTSDIR)/bench_p26_poster_rbyd.sim.avg.csv \
+		$(RESULTSDIR)/bench_p26_poster_rbyd.sim.per.avg.csv
+	$(strip ./scripts/plotmpl.py \
+		<(./scripts/csv.py $^ \
+			-fbench_readed_avg \
+			-fbench_readed_bnd=bench_readed_max \
+			-o-) \
+		<(./scripts/csv.py $^ \
+			-Dbench_readed_avg='*' \
+			-fbench_readed_bnd=bench_readed_min \
+			-o-) \
+		-W1500 -H350 \
+		--title='rbyd operations' \
+		-bORDER \
+		-xn \
+		-ybench_readed_avg \
+		-ybench_readed_bnd \
+		--yunits=s \
+		--legend \
+		-L0,bench_readed_avg=inorder \
+		-L1,bench_readed_avg=reversed \
+		-L2,bench_readed_avg=random \
+		-L0,bench_readed_bnd= \
+		-L1,bench_readed_bnd= \
+		-L2,bench_readed_bnd= \
+		-C0,bench_readed_avg=$(C_lfs3) \
+		-C1,bench_readed_avg=$(C_lfs3nb) \
+		-C2,bench_readed_avg=$(C_lfs2) \
+		-C0,bench_readed_bnd=$(C_lfs3:bf=1f) \
+		-C1,bench_readed_bnd=$(C_lfs3nb:bf=1f) \
+		-C2,bench_readed_bnd=$(C_lfs2:bf=1f) \
+		--subplot=" \
+			-Dm='create+sim' \
+			--title='create'" \
+		--subplot-right=" \
+			-Dm='delete+sim' \
+			--title='delete' \
+			-W0.5" \
+		--subplot-right=" \
+			-Dm='fetch+sim+per' \
+			--title='fetch (per attr)' \
+			-W0.33" \
+		--subplot-right=" \
+			-Dm='lookup+sim' \
+			--title='lookup' \
+			-W0.25" \
+		--subplot-right=" \
+			-Dm='usage+per' \
+			--title='usage (per attr)' \
+			--y2 --yunits=B \
+			-W0.2" \
+		$(PLOTFLAGS) \
+		-o$@)
+
+
+

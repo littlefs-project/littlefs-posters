@@ -189,7 +189,7 @@ size_t bench_heap(void);
     /* note FS must be explicitly defined to be included in output.csv,    */ \
     /* hacky, I know... TODO BENCH_EXPLICIT_DEFINES?                       */ \
     BENCH_DEFINE(FS,                 BENCH_IFDEF_LFS3(                        \
-                                            LFS3_IFDEF_BMAP(3, 30),           \
+                                            LFS3_IFDEF_GBMAP(3, 30),          \
                                         BENCH_IFDEF_LFS2(2,                   \
                                         BENCH_IFDEF_SPIFFS(4,                 \
                                         BENCH_IFDEF_YAFFS2(5, 0))))         ) \
@@ -256,17 +256,17 @@ size_t bench_heap(void);
     BENCH_DEFINE(RCACHE_SIZE,        LFS3_MAX(256, READ_SIZE)               ) \
     BENCH_DEFINE(PCACHE_SIZE,        LFS3_MAX(256, PROG_SIZE)               ) \
     /* NOTE this was expanded to match littlefs2                           */ \
-    BENCH_DEFINE(FILE_CACHE_SIZE,    CACHE_SIZE                             ) \
+    BENCH_DEFINE(FCACHE_SIZE,        CACHE_SIZE                             ) \
     BENCH_DEFINE(LOOKAHEAD_SIZE,     16                                     ) \
     BENCH_DEFINE(GC_FLAGS,           0                                      ) \
     BENCH_DEFINE(GC_STEPS,           0                                      ) \
     BENCH_DEFINE(GC_COMPACT_THRESH,  0                                      ) \
-    BENCH_DEFINE(INLINE_SIZE,        BLOCK_SIZE/4                           ) \
+    BENCH_DEFINE(SHRUB_SIZE,         BLOCK_SIZE/4                           ) \
     /* TODO crystal/fragment_thresh 1/16 or 1/8? */                           \
     BENCH_DEFINE(FRAGMENT_SIZE,      LFS3_MIN(BLOCK_SIZE/16, 512)           ) \
     /* TODO should max-prog_size be enforced in lfs3_init? */                 \
     BENCH_DEFINE(CRYSTAL_THRESH,     LFS3_MAX(BLOCK_SIZE/16, PROG_SIZE)     ) \
-    BENCH_DEFINE(BMAP_SCAN_THRESH,   BLOCK_COUNT/4                          )
+    BENCH_DEFINE(LOOKGBMAP_THRESH,   BLOCK_COUNT/4                          )
 #else
 #define BENCH_LFS3_DEFINES
 #endif
@@ -405,20 +405,20 @@ struct bench_cfg {
     .block_recycles     = BLOCK_RECYCLES,       \
     .rcache_size        = RCACHE_SIZE,          \
     .pcache_size        = PCACHE_SIZE,          \
-    .file_cache_size    = FILE_CACHE_SIZE,      \
+    .fcache_size        = FCACHE_SIZE,          \
     .lookahead_size     = LOOKAHEAD_SIZE,       \
-    BENCH_BMAP_CFG                              \
+    BENCH_GBMAP_CFG                             \
     BENCH_GC_CFG                                \
     .gc_compact_thresh  = GC_COMPACT_THRESH,    \
-    .inline_size        = INLINE_SIZE,          \
+    .shrub_size         = SHRUB_SIZE,           \
     .fragment_size      = FRAGMENT_SIZE,        \
     .crystal_thresh     = CRYSTAL_THRESH,
 
-#ifdef LFS3_BMAP
-#define BENCH_BMAP_CFG \
-    .bmap_scan_thresh   = BMAP_SCAN_THRESH,
+#ifdef LFS3_GBMAP
+#define BENCH_GBMAP_CFG \
+    .lookgbmap_thresh   = LOOKGBMAP_THRESH,
 #else
-#define BENCH_BMAP_CFG
+#define BENCH_GBMAP_CFG
 #endif
 
 #ifdef LFS3_GC
