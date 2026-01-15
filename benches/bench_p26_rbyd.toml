@@ -110,6 +110,9 @@ code = '''
                     LFS3_RATTR_NULL)) => 0;
         }
         BENCH_STOP("delete");
+
+        // test that our delete worked
+        assert(rbyd.weight == lfs3_smax(n-1, 0));
     }
 '''
 
@@ -158,6 +161,7 @@ code = '''
             BENCH_START("fetch", i+1);
             lfs3_rbyd_t rbyd_;
             lfs3_rbyd_fetch(&lfs3, &rbyd_, rbyd.blocks[0], 0) => 0;
+            assert(rbyd_.weight == i+1);
             BENCH_STOP("fetch");
         }
     }
@@ -211,7 +215,8 @@ code = '''
             lfs3_stag_t tag_ = lfs3_rbyd_lookup(&lfs3, &rbyd,
                     i_, LFS3_TAG_DATA,
                     &data_);
-            assert(tag_ >= 0);
+            assert(tag_ == LFS3_TAG_DATA);
+            assert(lfs3_data_size(&data_) == SIZE);
             BENCH_STOP("lookup");
         }
     }
