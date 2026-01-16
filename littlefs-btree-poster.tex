@@ -1374,7 +1374,7 @@
             bbubble,
             #2,
             minimum width=3.25*\get{bnodewidth},
-            minimum height=(3.125-0.25-0.125)*\get{bnodeheight},
+            minimum height=(3.125-0.25)*\get{bnodeheight},
         ] {};
 
         % title
@@ -1389,7 +1389,7 @@
         % B-tree nodes
         \node (#1_b1_0) [
             btree,
-            above left=(2.25-0.25-0.125) and 0.75 of #1.south,
+            above left=(2.25-0.25) and 0.75 of #1.south,
             anchor=center,
             draw=none
         ] {};
@@ -1476,7 +1476,7 @@
             bbubble,
             #2,
             minimum width=3.5*\get{bnodewidth},
-            minimum height=(3.125-0.25-0.125)*\get{bnodeheight},
+            minimum height=(3.125-0.25)*\get{bnodeheight},
         ] {};
 
         % title
@@ -1491,7 +1491,7 @@
         % B-tree nodes
         \node (#1_b1_0) [
             btree,
-            above left=(2.25-0.25-0.125) and 0.625 of #1.south,
+            above left=(2.25-0.25) and 0.625 of #1.south,
             anchor=center,
             draw=none
         ] {};
@@ -1562,7 +1562,7 @@
             bbubble,
             #2,
             minimum width=(4.75-0.25)*\get{bnodewidth},
-            minimum height=(3.125-0.25-0.125)*\get{bnodeheight},
+            minimum height=(3.125-0.25)*\get{bnodeheight},
         ] {};
 
         % title
@@ -1577,7 +1577,7 @@
         % B-tree nodes
         \node (#1_b1_0) [
             btree,
-            above left=(2.25-0.25-0.125) and 0.625 of #1.south,
+            above left=(2.25-0.25) and 0.625 of #1.south,
             anchor=center,
             draw=none
         ] {};
@@ -1784,7 +1784,7 @@
         \riiiiiiv{riiiiiiv}{right=3.5*\get{rbydwidth} of rorigin};
         \scoped[on layer=behind above] % force clip split bubble
         \fill[overlay, bg] ($(riiiiiiv_r0_6.south west)-(0,0.33em)$)
-            rectangle ($(riiiiiiv_r0_6.north east)+(0.33em,0.33em)$);
+            rectangle ($(riiiiiiv_r0_6.north east)+(0.33em,3em)$);
 
         \draw[rbydbubbleptr] (rlog_rtrunk) -- (rbyd_rtrunk);
         \draw[rbydbubbleptr] (rbyd_rtrunk) -- (rtree_rtrunk);
