@@ -8,7 +8,7 @@
     group style={
         group size=3 by 1,
         horizontal sep=1.8em,
-        vertical sep=0.8em,
+        vertical sep=1.8em,
     },
     total width/.initial=(\linewidth-3.6em),
     total height/.initial=16em,
@@ -31,8 +31,14 @@
     ylabel style={
         font=\normalsize,
         align=center,
-        anchor=north,
-        at={(-2.6em,0.5)},
+        anchor=base,
+        at={(-1.8em,0.5)},
+    },
+    explicit ylabel/.style={
+        font=\normalsize,
+        anchor=base,
+        align=center,
+        rotate=90,
     },
     % x-axis
     xticklabel style={
@@ -122,6 +128,7 @@
 % Write-throughput group
 \begin{groupplot}[
     % group stuff
+    group/group name=wt group,
     group style={
         group size=1 by 3,
         horizontal sep=1.8em,
@@ -139,8 +146,8 @@
     xmode=log,
     log basis x=2,
     xticklabels={},
-    ylabel=Sequential,
-    ylabel style={at={(-3.3em,0.5)}},
+    %ylabel=Sequential,
+    %ylabel style={at={(-3.3em,0.5)}},
 ]
     \addplot[lfs3] table[
         x expr=(\thisrow{BLOCK_SIZE}),
@@ -156,8 +163,10 @@
     xmode=log,
     log basis x=2,
     xticklabels={},
-    ylabel={Random\\Throughput (KiB/s)},
-    ylabel style={at={(-3.3em,0.5)}},
+    %ylabel={Random\\Throughput (KiB/s)},
+    %ylabel style={at={(-3.3em,0.5)}},
+    ylabel={Throughput (KiB/s)},
+    ylabel style={at={(-1.6em,0.5)}},
 ]
     \addplot[lfs3] table[
         x expr=(\thisrow{BLOCK_SIZE}),
@@ -172,8 +181,8 @@
     % x-axis
     xmode=log,
     log basis x=2,
-    ylabel=Logging,
-    ylabel style={at={(-3.3em,0.5)}},
+    %ylabel=Logging,
+    %ylabel style={at={(-3.3em,0.5)}},
 ]
     \addplot[lfs3] table[
         x expr=(\thisrow{BLOCK_SIZE}),
@@ -185,6 +194,14 @@
     ] {results/tikz_p26_poster_wt.lfs2.logging.csv};
 
 \end{groupplot}
+
+
+\node at ($(wt group c1r1.west)-(2.4em,0)$) [/pgfplots/explicit ylabel]
+    {Sequential};
+\node at ($(wt group c1r2.west)-(2.4em,0)$) [/pgfplots/explicit ylabel]
+    {Random};
+\node at ($(wt group c1r3.west)-(2.4em,0)$) [/pgfplots/explicit ylabel]
+    {Logging};
 
 
 % forcefully shove our plots up via bounding box, that title isn't
