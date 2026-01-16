@@ -513,8 +513,8 @@
         line width=2.4*1.6pt,
         %loosely dashed,
         dash pattern=on 6pt off 6pt,
-        shorten <= 0.5*\pgfkeysvalueof{/tikz/bnodewidth},
-        shorten >= 0.5*\pgfkeysvalueof{/tikz/bnodewidth},
+        shorten <= 0.5*\get{bnodewidth},
+        shorten >= 0.25*\get{bnodewidth},
     },
 }
 
@@ -1672,13 +1672,26 @@
         \node (#1_b0_6) [btree, right=6*1.25 of #1_b0_0] {};
         \rbydvi{#1_b0_6};
 
+        % extra nodes, our rbyd technically isn't big enough for these :)
+        \node (#1_b0_7) [btree, right=7*1.25 of #1_b0_0] {};
+        \rbydvi{#1_b0_7};
+        \node (#1_b0_8) [btree, right=8*1.25 of #1_b0_0] {};
+        \rbydvi{#1_b0_8};
+        \node (#1_b0_9) [btree, right=9*1.25 of #1_b0_0] {};
+        \rbydvi{#1_b0_9};
+        \node (#1_b0_10) [btree, right=10*1.25 of #1_b0_0] {};
+        \rbydvi{#1_b0_10};
+
+        % root node
         \scoped[on behind layer]
         \node (#1_b1_0) [
             btree={2*\get{bnodewidth}}{2*\get{bnodeheight}},
-            above right=1.5/1.2 and 2.75 of #1_b0_0,
+            %above right=1.5/1.2 and 2.75 of #1_b0_0,
+            above right=1.5/1.2 and 3.25 of #1_b0_0,
             alias=#1_broot
         ] {};
         \rbydvi{#1_b1_0};
+        % root branches
         \draw[bptr]
             (#1_b1_0_r0_0)
             .. controls +(0,-1/1.2) and +(0,+1.3/1.2) ..
@@ -1706,7 +1719,31 @@
         \draw[bptr]
             (#1_b1_0_r6_0)
             .. controls +(0,-1/1.2) and +(0,+1.3/1.2) ..
-            (#1_b0_6_rroot);
+            (#1_b0_6_rroot)
+            node (last bptr) [pos=0.5] {};
+
+        % extra root branches
+        \draw[bptr]
+            (last bptr.center)
+            .. controls +(1/1.2,0) and +(0,+1.0/1.2) ..
+            (#1_b0_7_rroot);
+        \draw[bptr]
+            (last bptr.center)
+            .. controls +(1/1.2,0) and +(0,+1.1/1.2) ..
+            (#1_b0_8_rroot);
+        \draw[bptr]
+            (last bptr.center)
+            .. controls +(1/1.2,0) and +(0,+1.2/1.2) ..
+            (#1_b0_9_rroot);
+        \draw[bptr]
+            (last bptr.center)
+            .. controls +(1/1.2,0) and +(0,+1.3/1.2) ..
+            (#1_b0_10_rroot);
+
+        % forcefully clip the last extra node so it fits
+        \fill[overlay, bg] ({\linewidth-\get{boffset}}, -0.25)
+            rectangle ({\linewidth+0.5*\get{bnodewidth}}, 1.25);
+
     \end{scope}
 }
 
@@ -1717,7 +1754,9 @@
     \flushleft
     \begin{tikzpicture}[
         % B-tree offset
-        boffset/.initial=36pt,
+        %boffset/.initial=36pt,
+        %boffset/.initial=0pt,
+        boffset/.initial=24pt,
         % rbyd offset
         roffset/.initial=5.25*\get{bnodeheight},
         % styles
@@ -1744,8 +1783,8 @@
 
         % add rbyd table
         \node [
-            above right=2.25*\get{rbydnodeheight}
-                and 4.5*\get{rbydwidth}
+            above right=2*\get{rbydnodeheight}
+                and (4.5*\get{rbydwidth})-36pt
                 of rorigin,
             %draw,
             anchor=center,
@@ -1785,11 +1824,14 @@
 
         % add B-tree table
         \node [
-            above left=0.2*\get{bnodeheight}
-                and 3.25*\get{bnodewidth}
+            %above left=0.2*\get{bnodeheight}
+                %and 3.25*\get{bnodewidth}
+            above left=0.25*\get{bnodeheight}
+                and 3.5*\get{bnodewidth}
                 of btree_broot.center,
             anchor=center,
             overlay,
+            fill=bg,
         ] {\Large
             \btreetable
         };
@@ -1797,38 +1839,57 @@
         % B-tree commit/compact/split examples
         \btreecommit{bcommit}
             {below right=0*\get{bnodeheight}
-                and (5-0.125)*\get{bnodewidth}
+                and 4.625*\get{bnodewidth}
                 of btree_broot};
         \draw[bbubbleptr] (btree_broot) -- (bcommit)
             node[pos=0.5, anchor=south] {\Large
-                $\text{uncompacted} \le b$
+                %$\text{uncompacted} \le b$
+                $\le b$
             };
 
         \btreecompact{bcompact}
             {below right=1.125*\get{bnodeheight}
-                and (8.75-0.25-0.125)*\get{bnodewidth}
+                and 8.375*\get{bnodewidth}
                 of btree_broot};
-        \draw[bbubbleptr] (btree_broot) -- (bcompact.south)
+        \draw[bbubbleptr, shorten >=0, shorten <=0]
+            ($(bcommit.east)+(0,{0.75*\get{bnodeheight}})
+                +({0.5*\get{bnodewidth}},0)$)
+            .. controls +({1.5*\get{bnodewidth}},0)
+                and +(0,{+0.25*\get{bnodeheight}}) ..
+            ($(bcompact.north)+(0,{0.25*\get{bnodewidth}})$)
             node[pos=0.5, anchor=south] {\Large
                 %$\text{compacted} \le b/2$
-                $\text{compacted} \le \frac{b}{2}$
+                %$\text{compacted} \le \frac{b}{2}$
+                $\le \frac{b}{2}$
             };
+        %\draw[bbubbleptr] (btree_broot) -- (bcompact.south)
+        %    node[pos=0.5, anchor=south] {\Large
+        %        %$\text{compacted} \le b/2$
+        %        $\text{compacted} \le \frac{b}{2}$
+        %    };
 
         \btreesplit{bsplit}
-            {above right=(0.5-0.25-0.125)*\get{bnodeheight}
-                and 12.5*\get{bnodewidth}
+            {above right=0.5*\get{bnodeheight}
+                and 11.875*\get{bnodewidth}
                 of btree_broot};
-        \draw[bbubbleptr] (btree_broot) -- (bsplit.north)
+        \draw[bbubbleptr] ($(bcommit.east)+(0,{0.95*\get{bnodeheight}})$)
+            -- ($(bsplit.west)+(0,{0.7*\get{bnodeheight}})$)
             node[pos=0.5, anchor=south] {\Large
                 %$\text{compacted} \gt b/2$
-                $\text{compacted} \gt \frac{b}{2}$
+                %$\text{compacted} \gt \frac{b}{2}$
+                $\gt \frac{b}{2}$
             };
+        %\draw[bbubbleptr] (btree_broot) -- (bsplit.north)
+        %    node[pos=0.5, anchor=south] {\Large
+        %        %$\text{compacted} \gt b/2$
+        %        $\text{compacted} \gt \frac{b}{2}$
+        %    };
 
         % cut off bounding box a bit, the B-tree leaves don't really
         % add anything
-%         \coordinate (bounding box south west)
-%             at ($(current bounding box.south west)
-%                 +(0,{0.125*\get{bnodeheight}})$);
+        %\coordinate (bounding box south west)
+        %    at ($(current bounding box.south west)
+        %        +(0,{0.125*\get{bnodeheight}})$);
          \coordinate (bounding box south west)
              at ($(current bounding box.south west)
                  +(0,-24pt)$);
@@ -1885,8 +1946,8 @@
         % \item Introduces hysterisis, no split{$\leftrightarrow$}merge
         %     oscillation.
         \item Minimizes split{$\leftrightarrow$}merge oscillation.
-        \item Results in optimal B-tree distribution after sequential
-            writes.
+        \item Results in optimal B-tree distribution after
+            sequential writes.
         % \item Optimal B-tree distribution after sequential writes.
     \end{itemize}
 }
@@ -1905,7 +1966,8 @@
                 gbmap). However, upfront cost is high.
         \end{itemize}
         %\vspace{16pt}
-        \vspace{24pt}
+        %\vspace{24pt}
+        \vspace{36pt}
         %\begin{center}
             % Code/RAM sizes
             % TODO recalculate these?
