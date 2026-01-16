@@ -321,18 +321,19 @@ $1: $2
 	$$(strip ./scripts/csv.py $$^ \
 		-DORDER=$3 \
 		-Dm=create+sim \
+		-DSEED=0 \
 		-bbench=create \
 		-bORDER \
 		-bn \
 		-Si=n \
-		-ft=bench_readed_avg \
+		-ft=bench_readed \
 		-o$$@)
 endef
 
 $(foreach order, 0 1 2,$\
 	$(eval $(call TIKZ_P26_POSTER_RBYD_RULE,$\
 		$(TIKZDIR)/tikz_p26_poster_rbyd.$(order).csv,$\
-		$(RESULTSDIR)/bench_p26_poster_rbyd.sim.avg.csv,$\
+		$(RESULTSDIR)/bench_p26_poster_rbyd.sim.csv,$\
 		$(order))))
 
 # filter results
