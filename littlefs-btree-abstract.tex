@@ -744,7 +744,7 @@ generally improves due to reduced metadata overhead.
 However, the more complex file data-structure is not without downsides.
 Static analysis shows \lfsiii+'s code increasing from
 16.9KiB {$\rightarrow$} 34.5KiB, and RAM increasing from
-1.5KiB {$\rightarrow$} 2.1KiB.
+2.0KiB {$\rightarrow$} 2.8KiB. % note this includes ctx+stack!
 This includes unrelated changes, but we believe the added file
 complexity is the main culprit.
 % This includes unrelated changes in the filesystem, but we believe the
