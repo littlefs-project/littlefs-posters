@@ -176,22 +176,27 @@
 
 
 % small Dhara tree example
-\def\dharanodewidth{(1/8)*\linewidth}
+\def\dharanodewidth{(1/7)*\linewidth}
 \def\dharanodeheight{\dharanodewidth}
 \def\dharanoderatio{0.6}
 
 \newcommand{\dhara}[1]{
     \begin{scope}[
-        x=\dharanodewidth,
-        y=\dharanodeheight,
+        % dhara scaling
+        dharanodewidth/.initial=\dharanodewidth,
+        dharanodeheight/.initial=\dharanodeheight,
+        dharanoderatio/.initial=\dharanoderatio,
+        % grid stuff
+        x=\get{dharanodewidth},
+        y=\get{dharanodeheight},
         node distance=1,
         on grid,
         % dhara tag/alt styles
         dharatag/.style={
             draw,
             ultra thick,
-            minimum width=\dharanoderatio*\dharanodewidth,
-            minimum height=\dharanoderatio*\dharanodeheight,
+            minimum width=\get{dharanoderatio}*\get{dharanodewidth},
+            minimum height=\get{dharanoderatio}*\get{dharanodeheight},
             inner sep=0,
             outer sep=0,
             fill=bg,
@@ -272,12 +277,13 @@
 \begin{columns}
 \column{0.5}
 \block{Dhara trees \vphantom{Red-black-yellow Dhara (rbyd) trees}}{\Large
-    \begin{minipage}[t]{0.6\linewidth}
+    \begin{minipage}[t]{0.62\linewidth}
         \vspace{0pt}
         Implemented in the Dhara FTL, Dhara trees provide
         a log-encoded radix tree
         %log-encoded radix trees
         in bounded-RAM.
+        However:
         \begin{itemize}
         \item Limited to radix trees (implicitly balanced).
         \item Radix B-tree nodes perform poorly with
@@ -290,9 +296,11 @@
         \end{itemize}
     \end{minipage}%
     %\quad
-    \begin{minipage}[t]{0.45\linewidth}
-        \vspace{0pt}
+    \hspace{6pt}
+    \begin{minipage}[t]{0.38\linewidth}%
+        \vspace{0pt}%
         \begin{tikzfigure}
+        \centering
         \begin{tikzpicture}
             \dhara{dhara}
             \coordinate (bounding box south west)
