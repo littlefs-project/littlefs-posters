@@ -8,61 +8,113 @@
     group style={
         group size=3 by 1,
         horizontal sep=1.8em,
-        vertical sep=1.8em,
+        vertical sep=0.8em,
     },
-    width=(1/3)*\linewidth,
-    height=11em,
+    total width/.initial=(\linewidth-3.6em),
+    total height/.initial=16em,
+    width=(1/3)*\pgfkeysvalueof{/pgfplots/total width},
+    height=\pgfkeysvalueof{/pgfplots/total height},
     % parse csvs
     table/col sep=comma,
+    % some common tick stuff
+    unbounded coords=jump,
+    scaled ticks=false,
+    log ticks with fixed point,
+    % y-axis
+    ymin=0,
+    yticklabel style={
+        /pgf/number format/fixed,
+        /pgf/number format/precision=5,
+        /pgf/number format/skip 0.,
+        font=\normalsize,
+    },
+    ylabel style={
+        font=\normalsize,
+        align=center,
+        anchor=north,
+        at={(-2.6em,0.5)},
+    },
+    % x-axis
+    xticklabel style={
+        /pgf/number format/fixed,
+        /pgf/number format/precision=5,
+        /pgf/number format/skip 0.,
+        font=\normalsize,
+    },
+    % axis stuff
+    every axis/.append style={
+        ultra thick,
+        tick style={ultra thick},
+    },
+    axis background/.style={
+        fill=bg,
+    },
+    % throughput axis stuff
+    throughput/.style={
+        xmode=log,
+        log basis x=2,
+    },
     % styles
-    inorder/.style={},
-    reversed/.style={},
-    random/.style={},
-    lfs3/.style={},
-    lfs2/.style={},
+    inorder/.style={fgdarkblue},
+    reversed/.style={fgdarkgreen},
+    random/.style={fgdarkpurple},
+    bs4KiB/.style={fgdarkblue},
+    bs16KiB/.style={fgdarkgreen},
+    bs64KiB/.style={fgdarkpurple},
+    bs256KiB/.style={fgdarkyellow},
+    lfs3/.style={fgdarkblue, mark=o, mark size=6pt},
+    lfs2/.style={fgdarkgreen, mark=triangle, mark size=6pt},
 }
 \begin{groupplot}
 
 % Rbyd append plot
 \nextgroupplot[
-    title={Rbyd appends},
+    title={Rbyd append},
+    ylabel={Runtime (ms)},
+    xmin=0,
+    xmax=8192,
 ]
     \addplot[inorder] table[
         x expr=(\thisrow{n}),
-        y expr=(\thisrow{t}),
+        y expr=(\thisrow{t}*1000),
     ] {results/tikz_p26_poster_rbyd.0.comb.csv};
     \addplot[reversed] table[
         x expr=(\thisrow{n}),
-        y expr=(\thisrow{t}),
+        y expr=(\thisrow{t}*1000),
     ] {results/tikz_p26_poster_rbyd.1.comb.csv};
     \addplot[random] table[
         x expr=(\thisrow{n}),
-        y expr=(\thisrow{t}),
+        y expr=(\thisrow{t}*1000),
     ] {results/tikz_p26_poster_rbyd.2.comb.csv};
 
 % B-tree append plot
 \nextgroupplot[
-    title={B-tree appends (amortized)},
+    title={B-tree append (amortized)},
+    xmin=0,
+    xmax=8192,
 ]
-    \addplot[inorder] table[
+    \addplot[bs4KiB] table[
         x expr=(\thisrow{n}),
-        y expr=(\thisrow{t}),
+        y expr=(\thisrow{t}*1000),
     ] {results/tikz_p26_poster_btree.4096.comb.csv};
-    \addplot[inorder] table[
+    \addplot[bs16KiB] table[
         x expr=(\thisrow{n}),
-        y expr=(\thisrow{t}),
+        y expr=(\thisrow{t}*1000),
     ] {results/tikz_p26_poster_btree.16384.comb.csv};
-    \addplot[inorder] table[
+    \addplot[bs64KiB] table[
         x expr=(\thisrow{n}),
-        y expr=(\thisrow{t}),
+        y expr=(\thisrow{t}*1000),
     ] {results/tikz_p26_poster_btree.65536.comb.csv};
-    \addplot[inorder] table[
+    \addplot[bs256KiB] table[
         x expr=(\thisrow{n}),
-        y expr=(\thisrow{t}),
+        y expr=(\thisrow{t}*1000),
     ] {results/tikz_p26_poster_btree.262144.comb.csv};
 
 % Write-throughput plot group
-\nextgroupplot[group/empty plot]
+\nextgroupplot[
+    group/horizontal sep=3.6em,
+    group/empty plot,
+]
 
 \end{groupplot}
 
@@ -73,55 +125,81 @@
     group style={
         group size=1 by 3,
         horizontal sep=1.8em,
-        vertical sep=1.8em,
+        vertical sep=0.8em,
     },
-    width=(1/3)*\linewidth,
-    height=(1/3)*11em,
+    width=(1/3)*\pgfkeysvalueof{/pgfplots/total width},
+    height=(1/3)*\pgfkeysvalueof{/pgfplots/total height}+0.4em,
 ]
 
 \nextgroupplot[
     at={(top group c3r1.north)},
     anchor=north,
-    title={File write-throughput},
+    title={File write throughput},
     % x-axis
     xmode=log,
+    log basis x=2,
+    xticklabels={},
+    ylabel=Sequential,
+    ylabel style={at={(-3.3em,0.5)}},
 ]
     \addplot[lfs3] table[
         x expr=(\thisrow{BLOCK_SIZE}),
-        y expr=(\thisrow{throughput}),
+        y expr=(\thisrow{throughput}/1024),
     ] {results/tikz_p26_poster_wt.lfs3nb.linear.csv};
     \addplot[lfs2] table[
         x expr=(\thisrow{BLOCK_SIZE}),
-        y expr=(\thisrow{throughput}),
+        y expr=(\thisrow{throughput}/1024),
     ] {results/tikz_p26_poster_wt.lfs2.linear.csv};
 
 \nextgroupplot[
     % x-axis
     xmode=log,
+    log basis x=2,
+    xticklabels={},
+    ylabel={Random\\Throughput (KiB/s)},
+    ylabel style={at={(-3.3em,0.5)}},
 ]
     \addplot[lfs3] table[
         x expr=(\thisrow{BLOCK_SIZE}),
-        y expr=(\thisrow{throughput}),
+        y expr=(\thisrow{throughput}/1024),
     ] {results/tikz_p26_poster_wt.lfs3nb.random.csv};
     \addplot[lfs2] table[
         x expr=(\thisrow{BLOCK_SIZE}),
-        y expr=(\thisrow{throughput}),
+        y expr=(\thisrow{throughput}/1024),
     ] {results/tikz_p26_poster_wt.lfs2.random.csv};
 
 \nextgroupplot[
     % x-axis
     xmode=log,
+    log basis x=2,
+    ylabel=Logging,
+    ylabel style={at={(-3.3em,0.5)}},
 ]
     \addplot[lfs3] table[
         x expr=(\thisrow{BLOCK_SIZE}),
-        y expr=(\thisrow{throughput}),
+        y expr=(\thisrow{throughput}/1024),
     ] {results/tikz_p26_poster_wt.lfs3nb.logging.csv};
     \addplot[lfs2] table[
         x expr=(\thisrow{BLOCK_SIZE}),
-        y expr=(\thisrow{throughput}),
+        y expr=(\thisrow{throughput}/1024),
     ] {results/tikz_p26_poster_wt.lfs2.logging.csv};
 
 \end{groupplot}
+
+
+% forcefully shove our plots up via bounding box, that title isn't
+% doing anything
+\coordinate (bounding box south west)
+    at ($(current bounding box.south west)
+        +(0,96pt)$);
+\coordinate (bounding box north east)
+    at ($(current bounding box.north east)
+        -(0,96pt)$);
+\pgfresetboundingbox
+\useasboundingbox (bounding box south west)
+    rectangle (bounding box north east);
+%\draw (bounding box south west)
+%    rectangle (bounding box north east);
 
 
 \end{tikzpicture}%
