@@ -50,7 +50,10 @@
     % axis stuff
     every axis/.append style={
         ultra thick,
-        tick style={ultra thick},
+        %tick style={ultra thick},
+        tick style={thick},
+        %major tick length=6pt,
+        major tick length=9pt,
     },
     axis background/.style={
         fill=bg,
@@ -71,6 +74,42 @@
     lfs3/.style={fgdarkblue, mark=o, mark size=6pt},
     lfs2/.style={fgdarkgreen, mark=triangle, mark size=6pt},
 }
+
+
+% x minor log ticks hack
+\newcommand{\xminorlogticks}[1][tb]{
+    % get jump/div
+    \pgfkeysgetvalue{/pgfplots/xminorlogtick jump}{\xjump}
+    \pgfkeysgetvalue{/pgfplots/xminorlogtick div}{\xdiv}
+    % generate xminorlogticks
+    \foreach[expand list=true] \x in {
+            \pgfkeysvalueof{/pgfplots/xminorlogticks}}
+        \foreach[parse=true] \i in {1,2,...,2^\xdiv-2^(\xdiv-\xjump)-1} {
+            % tick locations
+            \def\xi{(2^\x)*(1-\i/2^\xdiv)}
+            % bottom ticks
+            \IfSubStr{#1}{b}{
+                \edef\expanded{\noexpand
+                    \draw[style={thick,gray}]
+                        ({{\xi},0})
+                        -- ([yshift=+6pt]{{\xi},0});
+                }
+                \expanded
+            }{}
+            % top ticks
+            \IfSubStr{#1}{t}{
+                \edef\expanded{\noexpand
+                    \draw[style={thick,gray}]
+                        ({{\xi},0} |- current axis.north)
+                        -- ([yshift=-6pt]{{\xi},0} |- current axis.north);
+                }
+                \expanded
+            }{}
+    }
+}
+
+
+% top group
 \begin{groupplot}
 
 % Rbyd append plot
@@ -79,6 +118,9 @@
     ylabel={Runtime (ms)},
     xmin=0,
     xmax=8192,
+    % tick style
+    xtick={0,1000,...,8192},
+    xticklabels={0,1K,2K,3K,4K,5K,6K,7K,8K},
 ]
     \addplot[inorder] table[
         x expr=(\thisrow{n}),
@@ -98,6 +140,9 @@
     title={B-tree append (amortized)},
     xmin=0,
     xmax=8192,
+    % tick style
+    xtick={0,1000,...,8192},
+    xticklabels={0,1K,2K,3K,4K,5K,6K,7K,8K},
 ]
     \addplot[bs4KiB] table[
         x expr=(\thisrow{n}),
@@ -148,7 +193,14 @@
     xticklabels={},
     %ylabel=Sequential,
     %ylabel style={at={(-3.3em,0.5)}},
+    % tick style
+    xtickten={12,14,...,20},
+    xminorlogticks/.initial={12,14,...,20},
+    xminorlogtick jump/.initial=4,
+    xminorlogtick div/.initial=4,
 ]
+    \xminorlogticks
+
     \addplot[lfs3] table[
         x expr=(\thisrow{BLOCK_SIZE}),
         y expr=(\thisrow{throughput}/1024),
@@ -167,7 +219,14 @@
     %ylabel style={at={(-3.3em,0.5)}},
     ylabel={Throughput (KiB/s)},
     ylabel style={at={(-1.6em,0.5)}},
+    % tick style
+    xtickten={12,14,...,20},
+    xminorlogticks/.initial={12,14,...,20},
+    xminorlogtick jump/.initial=4,
+    xminorlogtick div/.initial=4,
 ]
+    \xminorlogticks
+
     \addplot[lfs3] table[
         x expr=(\thisrow{BLOCK_SIZE}),
         y expr=(\thisrow{throughput}/1024),
@@ -183,7 +242,15 @@
     log basis x=2,
     %ylabel=Logging,
     %ylabel style={at={(-3.3em,0.5)}},
+    % tick style
+    xtickten={12,14,...,20},
+    xticklabels={4KiB,16KiB,64KiB,256KiB,1MiB},
+    xminorlogticks/.initial={12,14,...,20},
+    xminorlogtick jump/.initial=4,
+    xminorlogtick div/.initial=4,
 ]
+    \xminorlogticks
+
     \addplot[lfs3] table[
         x expr=(\thisrow{BLOCK_SIZE}),
         y expr=(\thisrow{throughput}/1024),
