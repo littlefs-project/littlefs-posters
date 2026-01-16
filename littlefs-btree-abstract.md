@@ -35,9 +35,10 @@ into RAM.
 The original Dhara tree implements a radix tree, and while it is
 possible to extend the radix tree into a B-tree, the resulting B-tree is
 relatively inflexible. Augmenting a traditional B-tree with sparse keys
-and order-statistic ranges does not change the O(b) -> O(b) runtime for
-block size b, but attempting the same transformation on the emulated
-arrays in a Dhara B-tree increases the runtime O(log b) -> O(b log b).
+and order-statistic ranges does not change the $O(b) \rightarrow O(b)$
+runtime for block size $b$, but attempting the same transformation on
+the emulated arrays in a Dhara B-tree increases the runtime
+$O(\log b) \rightarrow O(b \log b)$.
 
 To solve this, we need to extend the sparse and order-statistic
 properties into the Dhara tree itself. Our solution is a
@@ -57,8 +58,8 @@ leaf distribution after sequential writes.
 
 The main downside of rbyds is increased storage overhead, however a
 tail-recursive rebalancing algorithm brings compacted cost down
-O(b log b) -> O(b). In our current implementation, the overhead of rbyds
-divides the branching-factor by ~1/8 over dense arrays.
+$O(b \log b) \rightarrow O(b)$. In our current implementation, the
+overhead of rbyds divides the branching-factor by ~1/8 over dense arrays.
 
 ## Results and Discussion
 
@@ -75,9 +76,9 @@ metadata overhead.
 
 However, the more complex file data-structure is not without downsides.
 Static analysis shows littlefs3's code increasing from
-16.9KiB -> 34.5KiB, and RAM increasing from 2.0KiB -> 2.8KiB. This
-includes unrelated changes, but we believe the added file complexity is
-the main culprit.
+16.9KiB $\rightarrow$ 34.5KiB, and RAM increasing from
+2.0KiB $\rightarrow$ 2.8KiB. This includes unrelated changes, but we
+believe the added file complexity is the main culprit.
 
 For future work, we will be looking to better understand overall
 filesystem performance---focusing on throughput and latency, comparing
