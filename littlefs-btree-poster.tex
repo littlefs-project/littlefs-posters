@@ -500,7 +500,8 @@
     },
     bbubble/.style={
         draw,
-        ultra thick,
+        %ultra thick,
+        line width=2pt,
         %loosely dashed,
         dash pattern=on 6pt off 6pt,
         rounded corners=40pt,
@@ -1485,7 +1486,7 @@
             %minimum height=0.25*\get{bnodeheight},
             minimum height=0.33*\get{bnodeheight},
         ] {\Large
-            Compact 
+            Compact
         };
 
         % B-tree nodes
@@ -1571,7 +1572,7 @@
             %minimum height=0.25*\get{bnodeheight},
             minimum height=0.33*\get{bnodeheight},
         ] {\Large
-            Split 
+            Split
         };
 
         % B-tree nodes
@@ -1746,8 +1747,8 @@
 
         % forcefully clip the last extra node so it fits
         \scoped[on layer=above behind]
-        \fill[overlay, bg] ({\linewidth-\get{boffset}}, -0.125)
-            rectangle ({\linewidth+0.5*\get{bnodewidth}}, 1.125);
+        \fill[overlay, bg] ({\linewidth-\get{boffset}}, -0.25)
+            rectangle ({\linewidth+0.5*\get{bnodewidth}}, 1.25);
 
     \end{scope}
 }
@@ -1782,9 +1783,9 @@
         \rtree{rtree}{right=2.5*\get{rbydwidth} of rorigin};
         \scoped[on above layer] % force 2-3-4 tree on top of split bubble
         \riiiiiiv{riiiiiiv}{right=3.5*\get{rbydwidth} of rorigin};
-        \scoped[on layer=behind above] % force clip split bubble
-        \fill[overlay, bg] ($(riiiiiiv_r0_6.south west)-(0,0.33em)$)
-            rectangle ($(riiiiiiv_r0_6.north east)+(0.33em,3em)$);
+        %\scoped[on layer=behind above] % force clip split bubble
+        %\fill[overlay, bg] ($(riiiiiiv_r0_6.south west)-(0,0.33em)$)
+        %    rectangle ($(riiiiiiv_r0_6.north east)+(0.33em,3em)$);
 
         \draw[rbydbubbleptr] (rlog_rtrunk) -- (rbyd_rtrunk);
         \draw[rbydbubbleptr] (rbyd_rtrunk) -- (rtree_rtrunk);
