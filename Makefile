@@ -1137,9 +1137,12 @@ $1: $(BENCH_$(U_$3)_RUNNER)
 		-DREAD_SIZE=$($(U_$4)_READ_SIZE) \
 		-DPROG_SIZE=$($(U_$4)_PROG_SIZE) \
 		-DERASE_SIZE=$($(U_$4)_ERASE_SIZE) \
-		-DREAD_TIME=$($(U_$4)_READ_TIME) \
-		-DPROG_TIME=$($(U_$4)_PROG_TIME) \
-		-DERASE_TIME=$($(U_$4)_ERASE_TIME) \
+		-DREADS_TIMING=$($(U_$4)_READS_TIMING) \
+		-DPROGS_TIMING=$($(U_$4)_PROGS_TIMING) \
+		-DERASES_TIMING=$($(U_$4)_ERASES_TIMING) \
+		-DREADED_TIMING=$($(U_$4)_READED_TIMING) \
+		-DPROGGED_TIMING=$($(U_$4)_PROGGED_TIMING) \
+		-DERASED_TIMING=$($(U_$4)_ERASED_TIMING) \
 		-DBLOCK_SIZE=$($(U_$4)_$(U_$3)_BLOCK_SIZE) \
 		-o$$@)
 else
@@ -1179,9 +1182,12 @@ $1: $(BENCH_$(U_$3)_RUNNER)
 		-DREAD_SIZE=$($(U_$4)_READ_SIZE) \
 		-DPROG_SIZE=$($(U_$4)_PROG_SIZE) \
 		-DERASE_SIZE=$($(U_$4)_ERASE_SIZE) \
-		-DREAD_TIME=$($(U_$4)_READ_TIME) \
-		-DPROG_TIME=$($(U_$4)_PROG_TIME) \
-		-DERASE_TIME=$($(U_$4)_ERASE_TIME) \
+		-DREADS_TIMING=$($(U_$4)_READS_TIMING) \
+		-DPROGS_TIMING=$($(U_$4)_PROGS_TIMING) \
+		-DERASES_TIMING=$($(U_$4)_ERASES_TIMING) \
+		-DREADED_TIMING=$($(U_$4)_READED_TIMING) \
+		-DPROGGED_TIMING=$($(U_$4)_PROGGED_TIMING) \
+		-DERASED_TIMING=$($(U_$4)_ERASED_TIMING) \
 		-DBLOCK_SIZE=$($(U_$4)_$(U_$3)_BLOCK_SIZE) \
 		-o$$@)
 else
@@ -1217,34 +1223,17 @@ simtime-%: PHONY
 				$(foreach csv, \
 						$(wildcard $(RESULTSDIR)/bench_$(subst -,_,$*)_*$\
 							.$(fs).$(sim).csv), \
-					<(./scripts/csv.py \
-						<(./scripts/csv.py $(csv) \
-							-fn \
-							-fbench_readed \
-							-fbench_proged \
-							-fbench_erased \
-							-Dbench_creaded='*' \
-							-Dbench_cproged='*' \
-							-Dbench_cerased='*' \
-							-o-) \
+					<(./scripts/csv.py $(csv) \
 						-bfs=$(fs) \
 						-bsim=$(sim) \
 						-bbench=$(patsubst $\
 							$(RESULTSDIR)/bench_$(subst -,_,$*)_%$\
 								.$(fs).$(sim).csv,%,$(csv)) \
-						-Dm=write,read \
+						-Dprobe=write,read \
 						-fminn='min(n)' \
 						-fmaxn='max(n)' \
-						-fmint='min( \
-							(float(bench_readed)*float(READ_TIME) \
-								+ float(bench_proged)*float(PROG_TIME) \
-								+ float(bench_erased)*float(ERASE_TIME) \
-							) / 1.0e9)' \
-						-fmaxt='max( \
-							(float(bench_readed)*float(READ_TIME) \
-								+ float(bench_proged)*float(PROG_TIME) \
-								+ float(bench_erased)*float(ERASE_TIME) \
-							) / 1.0e9)' \
+						-fmint='min(float(bench_simtime)/1.0e9)' \
+						-fmaxt='max(float(bench_simtime)/1.0e9)' \
 						-o-)))) \
 		-I \
 		-bfs \
@@ -1265,35 +1254,19 @@ BENCH_T_RESULT_RECIPE = $(strip ./scripts/csv.py \
 			$(foreach sim, $(or $3, $(BENCH_SIMS)), \
 				$(foreach bench, $4, \
 					<(./scripts/csv.py \
-						<(./scripts/csv.py \
-							$(RESULTSDIR)/bench_$1_$(bench).$(fs).$(sim).csv \
-							-fn \
-							-fbench_readed \
-							-fbench_proged \
-							-fbench_erased \
-							-Dbench_creaded='*' \
-							-Dbench_cproged='*' \
-							-Dbench_cerased='*' \
-							-o-) \
+						$(RESULTSDIR)/bench_$1_$(bench).$(fs).$(sim).csv \
 						-bfs=$(fs) \
 						-bsim=$(sim) \
 						-bbench=$(bench) \
-						-Dm=write,read \
+						-Dprobe=write,read \
 						-DSIZE=$(shell python -c '$\
 							print(max([$(P26_T_SIZES)]))') \
 						-fthroughput=' \
 							float(n) / max( \
-								(float(bench_readed)*float(READ_TIME) \
-									+ float(bench_proged)*float(PROG_TIME) \
-									+ float(bench_erased)*float(ERASE_TIME) \
-									) / 1.0e9, \
+								float(bench_simtime)/1.0e9, \
 								1.0e-9)' \
 						-fn \
-						-ft=' \
-							(float(bench_readed)*float(READ_TIME) \
-								+ float(bench_proged)*float(PROG_TIME) \
-								+ float(bench_erased)*float(ERASE_TIME) \
-							) / 1.0e9' \
+						-ft='float(bench_simtime)/1.0e9' \
 						-o-)))) \
 		-I \
 		-bfs \
@@ -1313,24 +1286,15 @@ BENCH_T_RESULT_OPS_RECIPE = $(strip ./scripts/csv.py \
 			$(foreach sim, $(or $3,$(BENCH_SIMS)), \
 				$(foreach bench, $4, \
 					<(./scripts/csv.py \
-						<(./scripts/csv.py \
-							$(RESULTSDIR)/bench_$1_$(bench).$(fs).$(sim).csv \
-							-fn \
-							-fbench_readed \
-							-fbench_proged \
-							-fbench_erased \
-							-Dbench_creaded='*' \
-							-Dbench_cproged='*' \
-							-Dbench_cerased='*' \
-							-o-) \
+						$(RESULTSDIR)/bench_$1_$(bench).$(fs).$(sim).csv \
 						-bfs=$(fs) \
 						-bsim=$(sim) \
 						-bbench=$(bench) \
-						-Dm=write,read \
+						-Dprobe=write,read \
 						-DSIZE=$(shell python -c '$\
 							print(max([$(P26_T_SIZES)]))') \
 						-freaded=bench_readed \
-						-fproged=bench_proged \
+						-fprogged=bench_progged \
 						-ferased=bench_erased \
 						-o-)))) \
 		-I \
@@ -1355,47 +1319,26 @@ BENCH_T_RESULT_RAM_RECIPE = $(strip ./scripts/csv.py \
 								-bfunction -o- \
 							| $(BENCH_$(U_$(fs))_FILTER) \
 							| ./scripts/csv.py - \
-								-bfs=$(fs) \
-								-bsim=$(sim) \
-								-bbench=$(bench) \
 								-bSIZE=all \
 								-fdata=data_size \
 								-o-) \
 						<(./scripts/csv.py \
 							$(RESULTSDIR)/bench_$1_$(bench).$(fs).$(sim).csv \
-							-Dm=stack \
-							-fstack=bench_readed \
-							-fn \
-							-Dbench_readed='*' \
-							-Dbench_proged='*' \
-							-Dbench_erased='*' \
-							-Dbench_creaded='*' \
-							-Dbench_cproged='*' \
-							-Dbench_cerased='*' \
+							-Dprobe=stack \
+							-bSIZE \
+							-fstack=bench_simtime \
 							-o-) \
 						<(./scripts/csv.py \
 							$(RESULTSDIR)/bench_$1_$(bench).$(fs).$(sim).csv \
-							-Dm=ctx \
-							-fctx=bench_readed \
-							-fn \
-							-Dbench_readed='*' \
-							-Dbench_proged='*' \
-							-Dbench_erased='*' \
-							-Dbench_creaded='*' \
-							-Dbench_cproged='*' \
-							-Dbench_cerased='*' \
+							-Dprobe=ctx \
+							-bSIZE \
+							-fctx=bench_simtime \
 							-o-) \
 						<(./scripts/csv.py \
 							$(RESULTSDIR)/bench_$1_$(bench).$(fs).$(sim).csv \
-							-Dm=heap \
-							-fheap=bench_readed \
-							-fn \
-							-Dbench_readed='*' \
-							-Dbench_proged='*' \
-							-Dbench_erased='*' \
-							-Dbench_creaded='*' \
-							-Dbench_cproged='*' \
-							-Dbench_cerased='*' \
+							-Dprobe=heap \
+							-bSIZE \
+							-fheap=bench_simtime \
 							-o-) \
 						-bfs=$(fs) \
 						-bsim=$(sim) \
@@ -1406,7 +1349,7 @@ BENCH_T_RESULT_RAM_RECIPE = $(strip ./scripts/csv.py \
 						-fctx \
 						-fstack=stack-ctx \
 						-fheap \
-						-ftotal='data+stack+heap' \
+						-ftotal=data+stack+heap \
 						-o-)))) \
 		-I \
 		-bfs \
@@ -1472,130 +1415,135 @@ results-p26-rt-ops:
 #		linear random many)
 
 
-# simulated/estimated results
-$(RESULTSDIR)/bench_%.sim.csv: $(RESULTSDIR)/bench_%.csv
-	$(strip ./scripts/csv.py $^ \
-		-Bm='%(m)s+sim' \
-		-fbench_readed=' \
-			(float(bench_readed)*float(READ_TIME) \
-				+ float(bench_proged)*float(PROG_TIME) \
-				+ float(bench_erased)*float(ERASE_TIME) \
-				) / 1.0e9' \
-		-fbench_proged=0 \
-		-fbench_erased=0 \
-		-fbench_creaded=' \
-			(float(bench_creaded)*float(READ_TIME) \
-				+ float(bench_cproged)*float(PROG_TIME) \
-				+ float(bench_cerased)*float(ERASE_TIME) \
-				) / 1.0e9' \
-		-fbench_cproged=0 \
-		-fbench_cerased=0 \
-		-o$@ || touch $@)
-
-# simulated throughput results
+# this is all outdated now after bench runner rework
 #
-# note we first sum n/readed/proged/erased
-$(RESULTSDIR)/bench_%.tsim.csv: $(RESULTSDIR)/bench_%.csv
-	$(strip ./scripts/csv.py \
-		<(./scripts/csv.py $^ \
-			-fn \
-			-fbench_readed \
-			-fbench_proged \
-			-fbench_erased \
-			-Dbench_creaded='*' \
-			-Dbench_cproged='*' \
-			-Dbench_cerased='*' \
-			-o-) \
-		-Bm='%(m)s+tsim' \
-		-fn \
-		-fbench_readed=' \
-			float(n) / max( \
-				(float(bench_readed)*float(READ_TIME) \
-					+ float(bench_proged)*float(PROG_TIME) \
-					+ float(bench_erased)*float(ERASE_TIME) \
-					) / 1.0e9, \
-				1.0e-9)' \
-		-fbench_proged=0 \
-		-fbench_erased=0 \
-		-o$@ || touch $@)
-
-# simulated RAM results
-#
-# this includes stack + heap + any data sections
-#
-# $1 - target
-# $2 - csv files
-# $3 - fs type/version
-#
-define BENCH_P26_RAM_RULE
-$1: $(BENCH_$(U_$3)_RUNNER) $2
-	$$(strip ./scripts/csv.py \
-		<(./scripts/csv.py $$(wordlist 2,$$(words $$^),$$^) \
-			-fn \
-			-fbench_readed \
-			-fbench_proged \
-			-fbench_erased \
-			-Dbench_creaded='*' \
-			-Dbench_cproged='*' \
-			-Dbench_cerased='*' \
-			-o-) \
-		-Dm=stack,ctx,heap \
-		-Bm=ram \
-		-fn \
-		-fbench_readed="bench_readed + $$$$( \
-			./scripts/data.py $$< -bfunction -o- \
-				| $(BENCH_$(U_$3)_FILTER) \
-				| ./scripts/csv.py - -fdata_size --total)" \
-		-fbench_proged=0 \
-		-fbench_erased=0 \
-		-o$$@ || touch $$@)
-endef
-
-$(foreach fs, $(BENCH_FSS),$\
-	$(foreach sim, $(BENCH_SIMS),$\
-		$(eval $(call BENCH_P26_RAM_RULE,$\
-				$(RESULTSDIR)/bench_%.$(fs).$(sim).ram.csv,$\
-				$(RESULTSDIR)/bench_%.$(fs).$(sim).csv,$\
-				$(fs)))))
-
-# amortized results
-$(RESULTSDIR)/bench_%.amor.csv: $(RESULTSDIR)/bench_%.csv
-	$(strip ./scripts/csv.py $^ \
-		-Bn -Bm='%(m)s+amor' \
-		-fbench_readed='float(bench_creaded) / float(n)' \
-		-fbench_proged='float(bench_cproged) / float(n)' \
-		-fbench_erased='float(bench_cerased) / float(n)' \
-		-o$@ || touch $@)
-
-# per-byte/entry usage results
-$(RESULTSDIR)/bench_%.per.csv: $(RESULTSDIR)/bench_%.csv
-	$(strip ./scripts/csv.py $^ \
-		-Bn -Bm='%(m)s+per' \
-		-Dbench_creaded='*' \
-		-Dbench_cproged='*' \
-		-Dbench_cerased='*' \
-		-fbench_readed='float(bench_readed) / float(n)' \
-		-fbench_proged='float(bench_proged) / float(n)' \
-		-fbench_erased='float(bench_erased) / float(n)' \
-		-o$@ || touch $@)
-
-# averaged results (over SAMPLES)
-$(RESULTSDIR)/bench_%.avg.csv: $(RESULTSDIR)/bench_%.csv
-	$(strip ./scripts/csv.py $^ \
-		-DSEED='*' \
-		-Dbench_creaded='*' \
-		-Dbench_cproged='*' \
-		-Dbench_cerased='*' \
-		-fbench_readed_avg='avg(bench_readed)' \
-		-fbench_proged_avg='avg(bench_proged)' \
-		-fbench_erased_avg='avg(bench_erased)' \
-		-fbench_readed_min='min(bench_readed)' \
-		-fbench_proged_min='min(bench_proged)' \
-		-fbench_erased_min='min(bench_erased)' \
-		-fbench_readed_max='max(bench_readed)' \
-		-fbench_proged_max='max(bench_proged)' \
-		-fbench_erased_max='max(bench_erased)' \
-		-o$@ || touch $@)
+# we should try to not place second-order csvs in the results dir
+# anyways, we _really_ don't want to accidentally clean the results dir
+# 
+# # simulated/estimated results
+# $(RESULTSDIR)/bench_%.sim.csv: $(RESULTSDIR)/bench_%.csv
+# 	$(strip ./scripts/csv.py $^ \
+# 		-Bm='%(m)s+sim' \
+# 		-fbench_readed=' \
+# 			(float(bench_readed)*float(READ_TIME) \
+# 				+ float(bench_proged)*float(PROG_TIME) \
+# 				+ float(bench_erased)*float(ERASE_TIME) \
+# 				) / 1.0e9' \
+# 		-fbench_proged=0 \
+# 		-fbench_erased=0 \
+# 		-fbench_creaded=' \
+# 			(float(bench_creaded)*float(READ_TIME) \
+# 				+ float(bench_cproged)*float(PROG_TIME) \
+# 				+ float(bench_cerased)*float(ERASE_TIME) \
+# 				) / 1.0e9' \
+# 		-fbench_cproged=0 \
+# 		-fbench_cerased=0 \
+# 		-o$@ || touch $@)
+# 
+# # simulated throughput results
+# #
+# # note we first sum n/readed/proged/erased
+# $(RESULTSDIR)/bench_%.tsim.csv: $(RESULTSDIR)/bench_%.csv
+# 	$(strip ./scripts/csv.py \
+# 		<(./scripts/csv.py $^ \
+# 			-fn \
+# 			-fbench_readed \
+# 			-fbench_proged \
+# 			-fbench_erased \
+# 			-Dbench_creaded='*' \
+# 			-Dbench_cproged='*' \
+# 			-Dbench_cerased='*' \
+# 			-o-) \
+# 		-Bm='%(m)s+tsim' \
+# 		-fn \
+# 		-fbench_readed=' \
+# 			float(n) / max( \
+# 				(float(bench_readed)*float(READ_TIME) \
+# 					+ float(bench_proged)*float(PROG_TIME) \
+# 					+ float(bench_erased)*float(ERASE_TIME) \
+# 					) / 1.0e9, \
+# 				1.0e-9)' \
+# 		-fbench_proged=0 \
+# 		-fbench_erased=0 \
+# 		-o$@ || touch $@)
+# 
+# # simulated RAM results
+# #
+# # this includes stack + heap + any data sections
+# #
+# # $1 - target
+# # $2 - csv files
+# # $3 - fs type/version
+# #
+# define BENCH_P26_RAM_RULE
+# $1: $(BENCH_$(U_$3)_RUNNER) $2
+# 	$$(strip ./scripts/csv.py \
+# 		<(./scripts/csv.py $$(wordlist 2,$$(words $$^),$$^) \
+# 			-fn \
+# 			-fbench_readed \
+# 			-fbench_proged \
+# 			-fbench_erased \
+# 			-Dbench_creaded='*' \
+# 			-Dbench_cproged='*' \
+# 			-Dbench_cerased='*' \
+# 			-o-) \
+# 		-Dm=stack,ctx,heap \
+# 		-Bm=ram \
+# 		-fn \
+# 		-fbench_readed="bench_readed + $$$$( \
+# 			./scripts/data.py $$< -bfunction -o- \
+# 				| $(BENCH_$(U_$3)_FILTER) \
+# 				| ./scripts/csv.py - -fdata_size --total)" \
+# 		-fbench_proged=0 \
+# 		-fbench_erased=0 \
+# 		-o$$@ || touch $$@)
+# endef
+# 
+# $(foreach fs, $(BENCH_FSS),$\
+# 	$(foreach sim, $(BENCH_SIMS),$\
+# 		$(eval $(call BENCH_P26_RAM_RULE,$\
+# 				$(RESULTSDIR)/bench_%.$(fs).$(sim).ram.csv,$\
+# 				$(RESULTSDIR)/bench_%.$(fs).$(sim).csv,$\
+# 				$(fs)))))
+# 
+# # amortized results
+# $(RESULTSDIR)/bench_%.amor.csv: $(RESULTSDIR)/bench_%.csv
+# 	$(strip ./scripts/csv.py $^ \
+# 		-Bn -Bm='%(m)s+amor' \
+# 		-fbench_readed='float(bench_creaded) / float(n)' \
+# 		-fbench_proged='float(bench_cproged) / float(n)' \
+# 		-fbench_erased='float(bench_cerased) / float(n)' \
+# 		-o$@ || touch $@)
+# 
+# # per-byte/entry usage results
+# $(RESULTSDIR)/bench_%.per.csv: $(RESULTSDIR)/bench_%.csv
+# 	$(strip ./scripts/csv.py $^ \
+# 		-Bn -Bm='%(m)s+per' \
+# 		-Dbench_creaded='*' \
+# 		-Dbench_cproged='*' \
+# 		-Dbench_cerased='*' \
+# 		-fbench_readed='float(bench_readed) / float(n)' \
+# 		-fbench_proged='float(bench_proged) / float(n)' \
+# 		-fbench_erased='float(bench_erased) / float(n)' \
+# 		-o$@ || touch $@)
+# 
+# # averaged results (over SAMPLES)
+# $(RESULTSDIR)/bench_%.avg.csv: $(RESULTSDIR)/bench_%.csv
+# 	$(strip ./scripts/csv.py $^ \
+# 		-DSEED='*' \
+# 		-Dbench_creaded='*' \
+# 		-Dbench_cproged='*' \
+# 		-Dbench_cerased='*' \
+# 		-fbench_readed_avg='avg(bench_readed)' \
+# 		-fbench_proged_avg='avg(bench_proged)' \
+# 		-fbench_erased_avg='avg(bench_erased)' \
+# 		-fbench_readed_min='min(bench_readed)' \
+# 		-fbench_proged_min='min(bench_proged)' \
+# 		-fbench_erased_min='min(bench_erased)' \
+# 		-fbench_readed_max='max(bench_readed)' \
+# 		-fbench_proged_max='max(bench_proged)' \
+# 		-fbench_erased_max='max(bench_erased)' \
+# 		-o$@ || touch $@)
 
 
 
@@ -1938,72 +1886,112 @@ plot-p26-wt-ram-logging: \
 # $1 - target
 # $2 - sources
 # $3 - title
-# $4 - y field
-# $5 - measurement
-# $6 - optional amor/per flag
-# $7 - extra plotmpl.py flags
+# $4 - probe
+# $5 - optional amor/per flag
+# $6 - y field
+# $7 - y expr
+# $8 - extra plotmpl.py flags
 #
 define PLOT_P26_LITMUS_RULE
-$1: $2
+$(1:.svg=.csv): $2
+	$$(strip ./scripts/csv.py \
+		<(./scripts/csv.py $$^ \
+			-Dprobe=$4 \
+			-bFS -bERASE_SIZE -bMODE -bprobe -bn -bSEED \
+			-f$6='$7' \
+			-o-) \
+		$(if $(filter amor,$5), \
+			<(./scripts/csv.py \
+				<(./scripts/csv.py $$^ \
+					-Dprobe=$4 \
+					-bFS -bERASE_SIZE -bMODE -bprobe -bn -bSEED \
+					-f$6='$7' \
+					-Sn=n \
+					-o-) \
+				-bFS -bERASE_SIZE -bMODE -bprobe='%(probe)s+amor' -bn -bSEED \
+				-f$6=' \
+					accumulate( \
+							float($6), \
+							FS, ERASE_SIZE, MODE, probe, SEED) \
+						/ float(n)' \
+				-o-)) \
+		$(if $(filter per,$5), \
+			<(./scripts/csv.py $$^ \
+				-Dprobe=$4 \
+				-bFS -bERASE_SIZE -bMODE -bprobe='%(probe)s+per' -bn -bSEED \
+				-f$6='float($7) / float(n)' \
+				-o-)) \
+		-f$6 \
+		-o$$@)
+
+$(1:.svg=.avg.csv): $(1:.svg=.csv)
+	$$(strip ./scripts/csv.py $$^ \
+		-DSEED='*' \
+		-f$6_avg='avg($6)' \
+		-f$6_min='min($6)' \
+		-f$6_max='max($6)' \
+		-o$$@)
+
+$1: $(1:.svg=.avg.csv)
 	$$(strip ./scripts/plotmpl.py \
 		<(./scripts/csv.py $$^ \
-			-f$4_avg \
-			-f$4_bnd=$4_min \
+			-f$6_avg \
+			-f$6_bnd=$6_min \
 			-o-) \
 		<(./scripts/csv.py $$^ \
-			-D$4_avg='*' \
-			-f$4_bnd=$4_max \
+			-D$6_avg='*' \
+			-f$6_bnd=$6_max \
 			-o-) \
 		-W1500 -H700 \
 		--title=$3 \
 		-bFS \
 		-xn \
-		-y$4_avg -y$4_bnd \
+		-y$6_avg -y$6_bnd \
 		--subplot=" \
 				-DERASE_SIZE='$($(U_$(firstword $(BENCH_SIMS)))_ERASE_SIZE)' \
-				-Dm=$5 \
-				$(if $(filter amor,$6),--ylabel=raw) \
-				$(if $(filter per,$6),--ylabel=total) \
+				-Dprobe=$4 \
+				$(if $(filter amor,$5),--ylabel=raw) \
+				$(if $(filter per,$5),--ylabel=total) \
 				--title=$(firstword $(BENCH_SIMS)) \
-				$(if $6,--add-xticklabel=,) \
+				$(if $5,--add-xticklabel=,) \
 				--ylim-ratio=0.98" \
-			$(if $6, \
+			$(if $5, \
 			--subplot-below=" \
 				-DERASE_SIZE='$($(U_$(firstword $(BENCH_SIMS)))_ERASE_SIZE)' \
-				-Dm=$5+$6 \
-				$(if $(filter amor,$6),--ylabel=amortized) \
-				$(if $(filter per,$6),--ylabel=per) \
+				-Dprobe=$4+$5 \
+				$(if $(filter amor,$5),--ylabel=amortized) \
+				$(if $(filter per,$5),--ylabel=per) \
 				--ylim-ratio=0.98 \
 				-H0.5",) \
 		$(foreach sim, $(wordlist 2,$(words $(BENCH_SIMS)),$(BENCH_SIMS)),$\
 			--subplot-right=" \
 					-DERASE_SIZE='$($(U_$(sim))_ERASE_SIZE)' \
-					-Dm=$5 \
+					-Dprobe=$4 \
 					--title=$(sim) \
-					$(if $6,--add-xticklabel=,) \
+					$(if $5,--add-xticklabel=,) \
 					--ylim-ratio=0.98 \
 					-W$$(shell python -c '$\
 						print(1 / ($\
 							"$(BENCH_SIMS)".split()$\
 								.index("$(sim)")+1))') \
-				$(if $6, \
+				$(if $5, \
 				--subplot-below=\" \
 					-DERASE_SIZE='$($(U_$(sim))_ERASE_SIZE)' \
-					-Dm=$5+$6 \
+					-Dprobe=$4+$5 \
 					--ylim-ratio=0.98 \
 					-H0.5\",)") \
 		--legend \
 		$(foreach fs, $(BENCH_FSS),$\
-			-L'$(N_$(fs)),$4_avg=$(fs)%n$\
+			-L'$(N_$(fs)),$6_avg=$(fs)%n$\
 				- bs=$(EMMC_$(U_$(fs))_BLOCK_SIZE)%n$\
 				- bs=$(NOR_$(U_$(fs))_BLOCK_SIZE)%n$\
 				- bs=$(NAND_$(U_$(fs))_BLOCK_SIZE)' \
-			-L'$(N_$(fs)),$4_bnd=') \
+			-L'$(N_$(fs)),$6_bnd=') \
 		$(foreach fs, $(BENCH_FSS),$\
-			-C'$(N_$(fs)),$4_avg=$(C_$(fs))') \
+			-C'$(N_$(fs)),$6_avg=$(C_$(fs))') \
 		$(foreach fs, $(BENCH_FSS),$\
-			-C'$(N_$(fs)),$4_bnd=$(C_$(fs):bf=1f)') \
-		$7 \
+			-C'$(N_$(fs)),$6_bnd=$(C_$(fs):bf=1f)') \
+		$8 \
 		$$(PLOTFLAGS) \
 		-o$$@)
 endef
@@ -2012,80 +2000,78 @@ $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		$(PLOTSDIR)/bench_p26_litmus_%_r.svg,$\
 		$(foreach fs, $(BENCH_FSS),$\
 			$(foreach sim, $(BENCH_SIMS),$\
-				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).avg.csv $\
-				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).amor.avg.csv)),$\
+				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).csv)),$\
 		"$$* file writes - reads",$\
-		bench_readed,$\
 		write,$\
 		amor,$\
+		bench_readed,$\
+		bench_readed,$\
 		-DMODE=0 --x2 --xunits=B --y2 --yunits=B))
 $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		$(PLOTSDIR)/bench_p26_litmus_%_p.svg,$\
 		$(foreach fs, $(BENCH_FSS),$\
 			$(foreach sim, $(BENCH_SIMS),$\
-				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).avg.csv $\
-				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).amor.avg.csv)),$\
+				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).csv)),$\
 		"$$* file writes - progs",$\
-		bench_proged,$\
 		write,$\
 		amor,$\
+		bench_progged,$\
+		bench_progged,$\
 		-DMODE=0 --x2 --xunits=B --y2 --yunits=B))
 $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		$(PLOTSDIR)/bench_p26_litmus_%_e.svg,$\
 		$(foreach fs, $(BENCH_FSS),$\
 			$(foreach sim, $(BENCH_SIMS),$\
-				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).avg.csv $\
-				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).amor.avg.csv)),$\
+				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).csv)),$\
 		"$$* file writes - erases",$\
-		bench_erased,$\
 		write,$\
 		amor,$\
+		bench_erased,$\
+		bench_erased,$\
 		-DMODE=0 --x2 --xunits=B --y2 --yunits=B))
 $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		$(PLOTSDIR)/bench_p26_litmus_%_u.svg,$\
 		$(foreach fs, $(BENCH_FSS),$\
 			$(foreach sim, $(BENCH_SIMS),$\
-				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).avg.csv $\
-				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).per.avg.csv)),$\
+				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).csv)),$\
 		"$$* file disk usage",$\
-		bench_readed,$\
 		usage,$\
 		per,$\
+		bench_usage,$\
+		bench_simtime,$\
 		-DMODE=1 --x2 --xunits=B --y2 --yunits=B))
 $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		$(PLOTSDIR)/bench_p26_litmus_%_s.svg,$\
 		$(foreach fs, $(BENCH_FSS),$\
 			$(foreach sim, $(BENCH_SIMS),$\
-				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).avg.csv $\
-				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).per.avg.csv)),$\
+				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).csv)),$\
 		"$$* file stack usage",$\
-		bench_readed,$\
 		stack,$\
 		per,$\
+		bench_stack,$\
+		bench_simtime,$\
 		-DMODE=2 --x2 --xunits=B --y2 --yunits=B))
 $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		$(PLOTSDIR)/bench_p26_litmus_%_h.svg,$\
 		$(foreach fs, $(BENCH_FSS),$\
 			$(foreach sim, $(BENCH_SIMS),$\
-				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).avg.csv $\
-				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).per.avg.csv)),$\
+				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).csv)),$\
 		"$$* file heap usage",$\
-		bench_readed,$\
 		heap,$\
 		per,$\
+		bench_heap,$\
+		bench_simtime,$\
 		-DMODE=2 --x2 --xunits=B --y2 --yunits=B))
 $(eval $(call PLOT_P26_LITMUS_RULE,$\
 		$(PLOTSDIR)/bench_p26_litmus_%.svg,$\
 		$(foreach fs, $(BENCH_FSS),$\
 			$(foreach sim, $(BENCH_SIMS),$\
-				$(RESULTSDIR)/bench_p26_litmus_%$\
-					.$(fs).$(sim).sim.avg.csv $\
-				$(RESULTSDIR)/bench_p26_litmus_%$\
-					.$(fs).$(sim).sim.amor.avg.csv)),$\
+				$(RESULTSDIR)/bench_p26_litmus_%.$(fs).$(sim).csv)),$\
 		"$$* file writes - simulated runtime",$\
-		bench_readed,$\
-		write+sim,$\
+		write,$\
 		amor,$\
+		bench_simtime,$\
+		float(bench_simtime)/1.0e9,$\
 		-DMODE=0 --x2 --xunits=B --yunits=s))
 
 # p26 throughput plot rule
@@ -2095,18 +2081,27 @@ $(eval $(call PLOT_P26_LITMUS_RULE,$\
 # $3 - title
 # $4 - x-axis
 # $5 - x-ticks
-# $6 - measurement
-# $7 - extra plotmpl.py flags
+# $6 - probe
+# $7 - y field
+# $8 - y expr
+# $9 - extra plotmpl.py flags
 #
 define PLOT_P26_T_RULE
-$1: $2
+$(1:.svg=.csv): $2
+	$$(strip ./scripts/csv.py $$^ \
+		-Dprobe=$6 \
+		-bFS -bERASE_SIZE -bprobe -b$4 \
+		-f$7='$8' \
+		-o$$@)
+
+$1: $(1:.svg=.csv)
 	$$(strip ./scripts/plotmpl.py $$^ \
 		-W1500 -H350 \
 		--title=$3 \
 		-bFS \
 		-x$4 \
-		-ybench_readed \
-		-Dm=$6 \
+		-y$7 \
+		-Dprobe=$6 \
 		--subplot=" \
 			-DERASE_SIZE=$($(U_$(firstword $(BENCH_SIMS)))_ERASE_SIZE) \
 			--title=$(firstword $(BENCH_SIMS))" \
@@ -2134,7 +2129,7 @@ $1: $2
 		$$(shell python -c '$\
 			for n in [$5]: $\
 				print("--add-xticklabel=%d=\"%%(x)IB\"" % n)') \
-		$7 \
+		$9 \
 		$$(PLOTFLAGS) \
 		-o$$@)
 endef
@@ -2144,22 +2139,26 @@ $(eval $(call PLOT_P26_T_RULE,$\
 		$(PLOTSDIR)/bench_p26_wt_%.svg,$\
 		$(foreach fs, $(BENCH_FSS),$\
 			$(foreach sim, $(BENCH_SIMS),$\
-				$(RESULTSDIR)/bench_p26_wt_%.$(fs).$(sim).tsim.csv)),$\
+				$(RESULTSDIR)/bench_p26_wt_%.$(fs).$(sim).csv)),$\
 		"$$* file writes - simulated throughput",$\
 		SIZE,$\
 		$(P26_T_SIZES),$\
-		write+tsim,$\
+		write,$\
+		bench_throughput,$\
+		float(n)/max(float(bench_simtime)/1.0e9,1.0e-9),$\
 		--y2 --yunits=B/s))
 
 $(eval $(call PLOT_P26_T_RULE,$\
 		$(PLOTSDIR)/bench_p26_rt_%.svg,$\
 		$(foreach fs, $(BENCH_FSS),$\
 			$(foreach sim, $(BENCH_SIMS),$\
-				$(RESULTSDIR)/bench_p26_rt_%.$(fs).$(sim).tsim.csv)),$\
+				$(RESULTSDIR)/bench_p26_rt_%.$(fs).$(sim).csv)),$\
 		"$$* file reads - simulated throughput",$\
 		SIZE,$\
 		$(P26_T_SIZES),$\
-		read+tsim,$\
+		read,$\
+		bench_throughput,$\
+		float(n)/max(float(bench_simtime)/1.0e9,1.0e-9),$\
 		--y2 --yunits=B/s))
 
 # p26 throughput usage rules
@@ -2172,6 +2171,8 @@ $(eval $(call PLOT_P26_T_RULE,$\
 		SIZE,$\
 		$(P26_T_SIZES),$\
 		usage,$\
+		bench_usage,$\
+		bench_simtime,$\
 		--y2 --yunits=B))
 
 # p26 throughput stack rules
@@ -2184,6 +2185,8 @@ $(eval $(call PLOT_P26_T_RULE,$\
 		SIZE,$\
 		$(P26_T_SIZES),$\
 		stack,$\
+		bench_stack,$\
+		bench_simtime,$\
 		--y2 --yunits=B))
 
 # p26 throughput heap rules
@@ -2196,18 +2199,85 @@ $(eval $(call PLOT_P26_T_RULE,$\
 		SIZE,$\
 		$(P26_T_SIZES),$\
 		heap,$\
+		bench_heap,$\
+		bench_simtime,$\
 		--y2 --yunits=B))
 
 # p26 throughput ram rules
+
+# alternative ram rule for per-fs+sim csv
+#
+## $1 - target
+## $2 - sources
+## $3 - fs type/version
+#define PLOT_P26_T_RAM_RULE
+#$1: $(BENCH_$(U_$3)_RUNNER) $2
+#	$$(strip ./scripts/csv.py \
+#		<(./scripts/csv.py $$(wordlist 2,$$(words $$^),$$^) \
+#			-Dprobe=stack \
+#			-fbench_stack=bench_simtime \
+#			-o-) \
+#		<(./scripts/csv.py $$(wordlist 2,$$(words $$^),$$^) \
+#			-Dprobe=heap \
+#			-fbench_heap=bench_simtime \
+#			-o-) \
+#		-Bprobe=ram \
+#		-fbench_stack \
+#		-fbench_heap \
+#		-fbench_ram="bench_stack + bench_heap + $$$$( \
+#			./scripts/data.py $$< -bfunction -o- \
+#				| $(BENCH_$(U_$3)_FILTER) \
+#				| ./scripts/csv.py - -fdata_size --total)" \
+#		-o$$@)
+#endef
+#$(foreach fs, $(BENCH_FSS),$\
+#	$(foreach sim, $(BENCH_SIMS),$\
+#		$(eval $(call PLOT_P26_T_RAM_RULE,$\
+#			$(PLOTSDIR)/bench_p26_wt_%.$(fs).$(sim).ram.csv,$\
+#			$(RESULTSDIR)/bench_p26_wt_%.$(fs).$(sim).csv,$\
+#			$(fs)))))
+
+$(PLOTSDIR)/bench_p26_wt_ram_%.csv: \
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				$(BENCH_$(U_$(fs))_RUNNER) \
+				$(RESULTSDIR)/bench_p26_wt_%.$(fs).$(sim).csv))
+	$(strip ./scripts/csv.py \
+		$(foreach fs, $(BENCH_FSS), \
+			$(foreach sim, $(BENCH_SIMS), \
+				<(./scripts/csv.py \
+					<(./scripts/csv.py \
+						$(RESULTSDIR)/bench_p26_wt_$*.$(fs).$(sim).csv \
+						-Dprobe=stack \
+						-fbench_stack=bench_simtime \
+						-o-) \
+					<(./scripts/csv.py \
+						$(RESULTSDIR)/bench_p26_wt_$*.$(fs).$(sim).csv \
+						-Dprobe=heap \
+						-fbench_heap=bench_simtime \
+						-o-) \
+					-Bprobe=ram \
+					-fbench_stack \
+					-fbench_heap \
+					-fbench_ram="bench_stack + bench_heap + $$( \
+						./scripts/data.py $(BENCH_$(U_$(fs))_RUNNER) \
+								-bfunction -o- \
+							| $(BENCH_$(U_$(fs))_FILTER) \
+							| ./scripts/csv.py - -fdata_size --total)" \
+					-o-))) \
+		-bFS -bERASE_SIZE -bprobe -bSIZE \
+		-fbench_ram \
+		-o$@)
+
 $(eval $(call PLOT_P26_T_RULE,$\
 		$(PLOTSDIR)/bench_p26_wt_ram_%.svg,$\
-		$(foreach fs, $(BENCH_FSS),$\
-			$(foreach sim, $(BENCH_SIMS),$\
-				$(RESULTSDIR)/bench_p26_wt_%.$(fs).$(sim).ram.csv)),$\
+		PHONY,$\
 		"$$* file writes - RAM usage",$\
 		SIZE,$\
 		$(P26_T_SIZES),$\
 		ram,$\
+		bench_ram,$\
+		bench_ram,$\
 		--y2 --yunits=B))
 
 
@@ -2265,43 +2335,25 @@ $(TIKZDIR)/tikz_p26_wt.csv: \
 		$(foreach fs, $(BENCH_FSS), \
 			$(foreach sim, $(BENCH_SIMS), \
 				$(foreach bench, linear random many logging, \
-					$(RESULTSDIR)/bench_p26_wt_$(bench).$\
-						$(fs).$(sim).csv)))
+					$(RESULTSDIR)/bench_p26_wt_$(bench).$(fs).$(sim).csv)))
 	$(strip ./scripts/csv.py \
 		$(foreach fs, $(BENCH_FSS), \
 			$(foreach sim, $(BENCH_SIMS), \
 				$(foreach bench, linear random many logging, \
 					<(./scripts/csv.py \
-						<(./scripts/csv.py \
-							$(RESULTSDIR)/bench_p26_wt_$(bench).$\
-								$(fs).$(sim).csv \
-							-fn \
-							-fbench_readed \
-							-fbench_proged \
-							-fbench_erased \
-							-Dbench_creaded='*' \
-							-Dbench_cproged='*' \
-							-Dbench_cerased='*' \
-							-o-) \
+						$(RESULTSDIR)/bench_p26_wt_$(bench).$(fs).$(sim).csv \
 						-bfs=$(fs) \
 						-bsim=$(sim) \
 						-bbench=$(bench) \
-						-Dm=write,read \
+						-Dprobe=write,read \
 						-DSIZE=$(shell python -c '$\
 							print(max([$(P26_T_SIZES)]))') \
 						-fthroughput=' \
 							float(n) / max( \
-								(float(bench_readed)*float(READ_TIME) \
-									+ float(bench_proged)*float(PROG_TIME) \
-									+ float(bench_erased)*float(ERASE_TIME) \
-									) / 1.0e9, \
+								float(bench_simtime)/1.0e9, \
 								1.0e-9)' \
 						-fn \
-						-ft=' \
-							(float(bench_readed)*float(READ_TIME) \
-								+ float(bench_proged)*float(PROG_TIME) \
-								+ float(bench_erased)*float(ERASE_TIME) \
-							) / 1.0e9' \
+						-ft='float(bench_simtime)/1.0e9' \
 						-o-)))) \
 		-bfs \
 		-bsim \
@@ -2343,42 +2395,22 @@ $(TIKZDIR)/tikz_p26_wt_ops.csv: \
 		$(foreach fs, $(BENCH_FSS), \
 			$(foreach sim, $(BENCH_SIMS), \
 				$(foreach bench, linear random many logging, \
-					$(RESULTSDIR)/bench_p26_wt_$(bench).$\
-						$(fs).$(sim).csv)))
+					$(RESULTSDIR)/bench_p26_wt_$(bench).$(fs).$(sim).csv)))
 	$(strip ./scripts/csv.py \
 		$(foreach fs, $(BENCH_FSS), \
 			$(foreach sim, $(BENCH_SIMS), \
 				$(foreach bench, linear random many logging, \
 					<(./scripts/csv.py \
-						<(./scripts/csv.py \
-							$(RESULTSDIR)/bench_p26_wt_$(bench).$\
-								$(fs).$(sim).csv \
-							-fn \
-							-fbench_readed \
-							-fbench_proged \
-							-fbench_erased \
-							-Dbench_creaded='*' \
-							-Dbench_cproged='*' \
-							-Dbench_cerased='*' \
-							-o-) \
+						$(RESULTSDIR)/bench_p26_wt_$(bench).$(fs).$(sim).csv \
 						-bfs=$(fs) \
 						-bsim=$(sim) \
 						-bbench=$(bench) \
-						-Dm=write,read \
+						-Dprobe=write,read \
 						-DSIZE=$(shell python -c '$\
 							print(max([$(P26_T_SIZES)]))') \
-						-freaded='float(bench_readed) $\
-							/ (float(n)/float(SIZE))' \
-						-fproged='float(bench_proged) $\
-							/ (float(n)/float(SIZE))' \
-						-ferased='float(bench_erased) $\
-							/ (float(n)/float(SIZE))' \
-						-freadtime='float(READ_TIME) * float(bench_readed) $\
-							/ (float(n)/float(SIZE))' \
-						-fprogtime='float(PROG_TIME) * float(bench_proged) $\
-							/ (float(n)/float(SIZE))' \
-						-ferasetime='float(ERASE_TIME) * float(bench_erased) $\
-							/ (float(n)/float(SIZE))' \
+						-freaded='float(bench_readed) / float(n)' \
+						-fprogged='float(bench_progged) / float(n)' \
+						-ferased='float(bench_erased) / float(n)' \
 						-o-)))) \
 		-bfs \
 		-bsim \
@@ -2424,8 +2456,7 @@ $(TIKZDIR)/tikz_p26_wt_ram.csv: \
 		$(foreach fs, $(BENCH_FSS), \
 			$(foreach sim, $(BENCH_SIMS), \
 				$(foreach bench, linear random many logging, \
-					$(RESULTSDIR)/bench_p26_wt_$(bench).$\
-						$(fs).$(sim).csv)))
+					$(RESULTSDIR)/bench_p26_wt_$(bench).$(fs).$(sim).csv)))
 	$(strip ./scripts/csv.py \
 		$(foreach fs, $(BENCH_FSS), \
 			$(foreach sim, $(BENCH_SIMS), \
@@ -2435,50 +2466,29 @@ $(TIKZDIR)/tikz_p26_wt_ram.csv: \
 								-bfunction -o- \
 							| $(BENCH_$(U_$(fs))_FILTER) \
 							| ./scripts/csv.py - \
-								-bfs=$(fs) \
-								-bsim=$(sim) \
-								-bbench=$(bench) \
 								-bSIZE=all \
 								-fdata=data_size \
 								-o-) \
 						<(./scripts/csv.py \
 							$(RESULTSDIR)/bench_p26_wt_$(bench)$\
 								.$(fs).$(sim).csv \
-							-Dm=stack \
-							-fstack=bench_readed \
-							-fn \
-							-Dbench_readed='*' \
-							-Dbench_proged='*' \
-							-Dbench_erased='*' \
-							-Dbench_creaded='*' \
-							-Dbench_cproged='*' \
-							-Dbench_cerased='*' \
+							-Dprobe=stack \
+							-bSIZE \
+							-fstack=bench_simtime \
 							-o-) \
 						<(./scripts/csv.py \
 							$(RESULTSDIR)/bench_p26_wt_$(bench)$\
 								.$(fs).$(sim).csv \
-							-Dm=ctx \
-							-fctx=bench_readed \
-							-fn \
-							-Dbench_readed='*' \
-							-Dbench_proged='*' \
-							-Dbench_erased='*' \
-							-Dbench_creaded='*' \
-							-Dbench_cproged='*' \
-							-Dbench_cerased='*' \
+							-Dprobe=ctx \
+							-bSIZE \
+							-fctx=bench_simtime \
 							-o-) \
 						<(./scripts/csv.py \
 							$(RESULTSDIR)/bench_p26_wt_$(bench)$\
 								.$(fs).$(sim).csv \
-							-Dm=heap \
-							-fheap=bench_readed \
-							-fn \
-							-Dbench_readed='*' \
-							-Dbench_proged='*' \
-							-Dbench_erased='*' \
-							-Dbench_creaded='*' \
-							-Dbench_cproged='*' \
-							-Dbench_cerased='*' \
+							-Dprobe=heap \
+							-bSIZE \
+							-fheap=bench_simtime \
 							-o-) \
 						-bfs=$(fs) \
 						-bsim=$(sim) \
@@ -2532,7 +2542,7 @@ $(foreach sim, $(BENCH_SIMS),$\
 		$(TIKZDIR)/tikz_p26_wt_ram.csv,$\
 		$(sim))))
 
-# another tikz write-throughput SIZE=max ops transposition rule
+# another tikz write-throughput SIZE=max ram transposition rule
 #
 # $1 - target
 # $2 - source
@@ -2571,35 +2581,19 @@ $(foreach sim, $(BENCH_SIMS),$\
 #
 define TIKZ_T_WT_N_RULE
 $1: $2
-	$$(strip ./scripts/csv.py \
-		<(./scripts/csv.py $$^ \
-			-fn \
-			-fbench_readed \
-			-fbench_proged \
-			-fbench_erased \
-			-Dbench_creaded='*' \
-			-Dbench_cproged='*' \
-			-Dbench_cerased='*' \
-			-o-) \
+	$$(strip ./scripts/csv.py $$^ \
 		-bfs=$3 \
 		-bsim=$4 \
 		-bbench=$5 \
-		-Dm=write,read \
+		-Dprobe=write,read \
 		-bSIZE \
-		-Si=SIZE \
+		-SSIZE=SIZE \
 		-fthroughput=' \
 			float(n) / max( \
-				(float(bench_readed)*float(READ_TIME) \
-					+ float(bench_proged)*float(PROG_TIME) \
-					+ float(bench_erased)*float(ERASE_TIME) \
-					) / 1.0e9, \
+				float(bench_simtime)/1.0e9, \
 				1.0e-9)' \
 		-fn \
-		-ft=' \
-			(float(bench_readed)*float(READ_TIME) \
-				+ float(bench_proged)*float(PROG_TIME) \
-				+ float(bench_erased)*float(ERASE_TIME) \
-			) / 1.0e9' \
+		-ft='float(bench_simtime)/1.0e9' \
 		-o$$@)
 endef
 

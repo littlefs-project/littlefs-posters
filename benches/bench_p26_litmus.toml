@@ -137,6 +137,7 @@ code = '''
         if (MODE == 2 && (i+1) % STEP == 0) {
             // measure stack/heap usage
             BENCH_RESULT("stack", i*CHUNK+CHUNK, BENCH_STACK());
+            BENCH_RESULT("ctx", i*CHUNK+CHUNK, BENCH_STACK_CURRENT());
             BENCH_RESULT("heap", i*CHUNK+CHUNK, BENCH_HEAP());
         }
     }
@@ -311,6 +312,7 @@ code = '''
         if (MODE == 2 && (i+1) % STEP == 0) {
             // measure stack/heap usage
             BENCH_RESULT("stack", i*CHUNK+CHUNK, BENCH_STACK());
+            BENCH_RESULT("ctx", i*CHUNK+CHUNK, BENCH_STACK_CURRENT());
             BENCH_RESULT("heap", i*CHUNK+CHUNK, BENCH_HEAP());
         }
 
@@ -473,6 +475,7 @@ code = '''
             if (MODE == 2 && (i+j+1) % STEP == 0) {
                 // measure stack/heap usage
                 BENCH_RESULT("stack", (i+j)*CHUNK+CHUNK, BENCH_STACK());
+                BENCH_RESULT("ctx", (i+j)*CHUNK+CHUNK, BENCH_STACK_CURRENT());
                 BENCH_RESULT("heap", (i+j)*CHUNK+CHUNK, BENCH_HEAP());
             }
         }
@@ -684,6 +687,7 @@ code = '''
         if (MODE == 2 && (i+1) % STEP == 0) {
             // measure stack/heap usage
             BENCH_RESULT("stack", i*CHUNK+CHUNK, BENCH_STACK());
+            BENCH_RESULT("ctx", i*CHUNK+CHUNK, BENCH_STACK_CURRENT());
             BENCH_RESULT("heap", i*CHUNK+CHUNK, BENCH_HEAP());
         }
     }

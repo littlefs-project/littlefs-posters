@@ -161,6 +161,7 @@ code = '''
 
     // report the total stack/heap usage after the benchmark
     BENCH_RESULT("stack", written, BENCH_STACK());
+    BENCH_RESULT("ctx", written, BENCH_STACK_CURRENT());
     BENCH_RESULT("heap", written, BENCH_HEAP());
 
     // find the total disk usage after the benchmark
@@ -319,6 +320,7 @@ code = '''
 
     // report the total stack/heap usage after the benchmark
     BENCH_RESULT("stack", written, BENCH_STACK());
+    BENCH_RESULT("ctx", written, BENCH_STACK_CURRENT());
     BENCH_RESULT("heap", written, BENCH_HEAP());
 
     // find the total disk usage after the benchmark
@@ -488,6 +490,7 @@ code = '''
 
     // report the total stack/heap usage after the benchmark
     BENCH_RESULT("stack", written, BENCH_STACK());
+    BENCH_RESULT("ctx", written, BENCH_STACK_CURRENT());
     BENCH_RESULT("heap", written, BENCH_HEAP());
 
     // find the total disk usage after the benchmark
@@ -698,6 +701,7 @@ code = '''
 
     // report the total stack/heap usage after the benchmark
     BENCH_RESULT("stack", written, BENCH_STACK());
+    BENCH_RESULT("ctx", written, BENCH_STACK_CURRENT());
     BENCH_RESULT("heap", written, BENCH_HEAP());
 
     // find the total disk usage after the benchmark
