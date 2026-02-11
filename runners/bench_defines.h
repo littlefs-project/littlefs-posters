@@ -86,6 +86,14 @@
     #define BENCH_CFG_FROM(field, p) \
             (const struct bench_cfg*)( \
                 (uint8_t*)(p) - offsetof(const struct bench_cfg, field))
+
+    // DISK_GEOMETRY controls which simulation we use
+    // 0 => NOR flash (the default)
+    // 1 => NAND flash
+    #define DISK_MAP(define) \
+            ((DISK_GEOMETRY == 0) ? NOR_##define \
+                                  : NAND_##define)
+
     #endif
 #endif
 
@@ -99,9 +107,21 @@
                                             BENCH_IFDEF_SPIFFS(4,
                                             BENCH_IFDEF_YAFFS2(5, 0))))     )
     //          name                    value (overridable)
-    BENCH_DEFINE(READ_SIZE,             (PAGE_SIZE) ? PAGE_SIZE : 1         )
-    BENCH_DEFINE(PROG_SIZE,             (PAGE_SIZE) ? PAGE_SIZE : 1         )
-    BENCH_DEFINE(BLOCK_SIZE,            4096                                )
+    BENCH_DEFINE(DISK_SIZE,             128*1024*1024                       )
+    BENCH_DEFINE(DISK_GEOMETRY,         0                                   )
+    // simulation mode
+    // 0 => full bus+buffer sim
+    // 1 => simple per-byte sim
+    BENCH_DEFINE(DISK_SIM,              0                                   )
+    BENCH_DEFINE(READ_SIZE,             (PAGE_SIZE)
+                                            ? PAGE_SIZE
+                                            : DISK_MAP(READ_SIZE)           )
+    BENCH_DEFINE(PROG_SIZE,             (PAGE_SIZE)
+                                            ? PAGE_SIZE
+                                            : DISK_MAP(PROG_SIZE)           )
+    BENCH_DEFINE(ERASE_SIZE,            DISK_MAP(ERASE_SIZE)                )
+    BENCH_DEFINE(BLOCK_SIZE,            LFS3_MAX(ERASE_SIZE, 512)           )
+    BENCH_DEFINE(BLOCK_COUNT,           DISK_SIZE/LFS3_MAX(BLOCK_SIZE, 1)   )
     // optional, overrides both READ_SIZE and PROG_SIZE
     BENCH_DEFINE(PAGE_SIZE,             0                                   )
     // default cache size, this doesn't necessarily need to be limited by
@@ -109,11 +129,7 @@
     BENCH_DEFINE(CACHE_SIZE,            LFS3_MAX(
                                             256,
                                             LFS3_MAX(READ_SIZE, PROG_SIZE)) )
-    // total disk size
-    BENCH_DEFINE(DISK_SIZE,             8*1024*1024                         )
-    BENCH_DEFINE(BLOCK_COUNT,           DISK_SIZE/BLOCK_SIZE                )
-    // ERASE_SIZE is just informative
-    BENCH_DEFINE(ERASE_SIZE,            4096                                )
+
     // littlefs3 specific defines
     #if defined(LFS3)
     BENCH_DEFINE(BLOCK_RECYCLES,        100                                 )
@@ -186,82 +202,98 @@
     // bd defines
     BENCH_DEFINE(ERASE_VALUE,           BENCH_IFDEF_SPIFFS(-2,
                                             BENCH_IFDEF_YAFFS2(0xff, -1))   )
-    #ifndef BENCH_NAND
-    // default timings for NOR flash, based on w25q64jv:
+    BENCH_DEFINE(READ_WIDTH,            DISK_MAP(READ_WIDTH)                )
+    BENCH_DEFINE(PROG_WIDTH,            DISK_MAP(PROG_WIDTH)                )
+    BENCH_DEFINE(ERASE_WIDTH,           DISK_MAP(ERASE_WIDTH)               )
+    BENCH_DEFINE(READ_TIMING,           DISK_MAP(READ_TIMING)               )
+    BENCH_DEFINE(PROG_TIMING,           DISK_MAP(PROG_TIMING)               )
+    BENCH_DEFINE(ERASE_TIMING,          DISK_MAP(ERASE_TIMING)              )
+    BENCH_DEFINE(READED_TIMING,         DISK_MAP(READED_TIMING)             )
+    BENCH_DEFINE(PROGGED_TIMING,        DISK_MAP(PROGGED_TIMING)            )
+    BENCH_DEFINE(ERASED_TIMING,         DISK_MAP(ERASED_TIMING)             )
+
+    // NOR flash (DISK_GEOMETRY=0)
+    //
+    // based on w25q64jv:
     // https://www.winbond.com/resource-files/
-    // W25Q256JV%20SPI%20RevQ%2002072025%20Plus.pdf
+    //         W25Q64JV%20RevM%2012242024%20Plus.pdf
     //
     // note one thing unique to NOR flash is the extreme erase cost
     //
     // FR=104 MHz, quad prog (9.6 ns * 8/4)
     // => +~19 ns for bus (not read!)
     //
+    // simple per-byte sim:
     // readed=40ns/B fR=50 MHz, quad read (20 ns * 8/4)
     // progged=1582ns/B tPP=0.4 ms, page=256 (0.4 ms / 256 + bus)
     // erased=10986ns/B tSE=45 ms, sector=4096 (45 ms / 4096)
     //
-    // reads=0ns (no transaction cost)
-    // progs=400000ns tPP=0.4 ms, page=256
-    // erases=45000000ns tSE=45 ms, sector=4096
+    // less-simple bus+buffer sim:
+    // read=0ns/B (no transaction cost)
+    // prog=1563ns/B tPP=0.4 ms, page=256 (0.4 ms / 256)
+    // erase=10986ns/B tSE=45 ms, sector=4096 (45 ms / 4096)
     // readed=40ns/B fR=50 MHz, quad read (20 ns * 8/4)
-    // progged=1484ns/B tPP=0.4 ms (((4096/256)*0.4ms - 0.4ms)/4096 + bus)
-    // erased=0ns/B (no per-byte cost)
+    // progged=19ns/B (bus)
+    // erased=0ns/B (no bus cost)
     //
-    #ifdef BENCH_SIMPLE
-    BENCH_DEFINE(READS_TIMING,          0                                   )
-    BENCH_DEFINE(PROGS_TIMING,          0                                   )
-    BENCH_DEFINE(ERASES_TIMING,         0                                   )
-    BENCH_DEFINE(READED_TIMING,         40                                  )
-    BENCH_DEFINE(PROGGED_TIMING,        1582                                )
-    BENCH_DEFINE(ERASED_TIMING,         10986                               )
-    #else
-    BENCH_DEFINE(READS_TIMING,          0                                   )
-    BENCH_DEFINE(PROGS_TIMING,          400000                              )
-    BENCH_DEFINE(ERASES_TIMING,         45000000                            )
-    BENCH_DEFINE(READED_TIMING,         40                                  )
-    BENCH_DEFINE(PROGGED_TIMING,        1484                                )
-    BENCH_DEFINE(ERASED_TIMING,         0                                   )
-    #endif
-    #else
-    // default timings for NAND flash, based on w25n01gv:
+    BENCH_DEFINE(NOR_READ_SIZE,         1                                   )
+    BENCH_DEFINE(NOR_PROG_SIZE,         1                                   )
+    BENCH_DEFINE(NOR_ERASE_SIZE,        4096                                )
+    BENCH_DEFINE(NOR_READ_WIDTH,        (DISK_SIM == 0)
+                                            ? 1
+                                            : BLOCK_SIZE                    )
+    BENCH_DEFINE(NOR_PROG_WIDTH,        (DISK_SIM == 0)
+                                            ? LFS3_MIN(256, BLOCK_SIZE)
+                                            : BLOCK_SIZE                    )
+    BENCH_DEFINE(NOR_ERASE_WIDTH,       (DISK_SIM == 0)
+                                            ? LFS3_MIN(ERASE_SIZE, BLOCK_SIZE)
+                                            : BLOCK_SIZE                    )
+    BENCH_DEFINE(NOR_READ_TIMING,       (DISK_SIM == 0) ? 0     : 0         )
+    BENCH_DEFINE(NOR_PROG_TIMING,       (DISK_SIM == 0) ? 1563  : 0         )
+    BENCH_DEFINE(NOR_ERASE_TIMING,      (DISK_SIM == 0) ? 10986 : 0         )
+    BENCH_DEFINE(NOR_READED_TIMING,     (DISK_SIM == 0) ? 40    : 40        )
+    BENCH_DEFINE(NOR_PROGGED_TIMING,    (DISK_SIM == 0) ? 19    : 1582      )
+    BENCH_DEFINE(NOR_ERASED_TIMING,     (DISK_SIM == 0) ? 0     : 10986     )
+
+    // NAND flash (DISK_GEOMETRY=1)
+    //
+    // based on w25n01gv:
     // https://www.winbond.com/resource-files/W25N01GV%20Rev%20R%20070323.pdf
     //
     // FR=104 MHz, quad read/prog (9.6 ns * 8/4)
     // => +~19 ns for bus
     //
+    // simple per-byte sim:
     // readed=31ns/B tRD1=25 us, p=2048, s=512 (25 us / 2048 + bus)
     // progged=141ns/B tPP=250 us, p=2048, s=512 (250 us / 2048 + bus)
     // erased=15ns/B tBE=2 ms, block=131072 (2 ms / 131072)
     //
-    // reads=25000ns tRD1=25 us, p=2048, s=512
-    // progs=250000ns tPP=250 us, p=2048, s=512
-    // erases=2000000ns tBE=2 ms, block=131072
-    // readed=31ns/B tRD1=25 us (((131072/2048)*25us - 25us)/131072 + bus)
-    // progged=139ns/B tPP=250 us (((131072/2048)*250us - 250us)/131072 + bus)
-    // erased=0ns/B (no per-byte cost)
+    // less-simple bus+buffer sim:
+    // read=12ns/B tRD1=25 us, p=2048, s=512 (25 us / 2048)
+    // prog=122ns/B tPP=250 us, p=2048, s=512 (250 us / 2048)
+    // erase=15ns/B tBE=2 ms, block=131072 (2 ms / 131072)
+    // readed=19ns/B (bus)
+    // progged=19ns/B (bus)
+    // erased=0ns/B (no bus cost)
     //
-    #ifdef BENCH_SIMPLE
-    BENCH_DEFINE(READS_TIMING,          0                                   )
-    BENCH_DEFINE(PROGS_TIMING,          0                                   )
-    BENCH_DEFINE(ERASES_TIMING,         0                                   )
-    BENCH_DEFINE(READED_TIMING,         31                                  )
-    BENCH_DEFINE(PROGGED_TIMING,        141                                 )
-    BENCH_DEFINE(ERASED_TIMING,         15                                  )
-    #else
-    BENCH_DEFINE(READS_TIMING,          25000                               )
-    BENCH_DEFINE(PROGS_TIMING,          250000                              )
-    BENCH_DEFINE(ERASES_TIMING,         2000000                             )
-    BENCH_DEFINE(READED_TIMING,         31                                  )
-    BENCH_DEFINE(PROGGED_TIMING,        139                                 )
-    BENCH_DEFINE(ERASED_TIMING,         0                                   )
-    #endif
-    #endif
-    #ifndef BENCH_KIWIBD
-    BENCH_DEFINE(ERASE_CYCLES,          0                                   )
-    BENCH_DEFINE(BADBLOCK_BEHAVIOR,     LFS3_EMUBD_BADBLOCK_PROGERROR       )
-    BENCH_DEFINE(POWERLOSS_BEHAVIOR,    LFS3_EMUBD_POWERLOSS_ATOMIC         )
-    BENCH_DEFINE(BD_SEED,               0                                   )
-    #endif
+    BENCH_DEFINE(NAND_READ_SIZE,        1                                   )
+    BENCH_DEFINE(NAND_PROG_SIZE,        512                                 )
+    BENCH_DEFINE(NAND_ERASE_SIZE,       131072                              )
+    BENCH_DEFINE(NAND_READ_WIDTH,       (DISK_SIM == 0)
+                                            ? LFS3_MIN(2048, BLOCK_SIZE)
+                                            : BLOCK_SIZE                    )
+    BENCH_DEFINE(NAND_PROG_WIDTH,       (DISK_SIM == 0)
+                                            ? LFS3_MIN(2048, BLOCK_SIZE)
+                                            : BLOCK_SIZE                    )
+    BENCH_DEFINE(NAND_ERASE_WIDTH,      (DISK_SIM == 0)
+                                            ? LFS3_MIN(ERASE_SIZE, BLOCK_SIZE)
+                                            : BLOCK_SIZE                    )
+    BENCH_DEFINE(NAND_READ_TIMING,      (DISK_SIM == 0) ? 12  : 0           )
+    BENCH_DEFINE(NAND_PROG_TIMING,      (DISK_SIM == 0) ? 122 : 0           )
+    BENCH_DEFINE(NAND_ERASE_TIMING,     (DISK_SIM == 0) ? 15  : 0           )
+    BENCH_DEFINE(NAND_READED_TIMING,    (DISK_SIM == 0) ? 19  : 31          )
+    BENCH_DEFINE(NAND_PROGGED_TIMING,   (DISK_SIM == 0) ? 19  : 141         )
+    BENCH_DEFINE(NAND_ERASED_TIMING,    (DISK_SIM == 0) ? 0   : 15          )
 #endif
 
 
@@ -389,9 +421,12 @@
         BENCH_BDCFG_CFG
         #endif
         .erase_value                    = ERASE_VALUE,
-        .reads_timing                   = READS_TIMING,
-        .progs_timing                   = PROGS_TIMING,
-        .erases_timing                  = ERASES_TIMING,
+        .read_width                     = READ_WIDTH,
+        .prog_width                     = PROG_WIDTH,
+        .erase_width                    = ERASE_WIDTH,
+        .read_timing                    = READ_TIMING,
+        .prog_timing                    = PROG_TIMING,
+        .erase_timing                   = ERASE_TIMING,
         .readed_timing                  = READED_TIMING,
         .progged_timing                 = PROGGED_TIMING,
         .erased_timing                  = ERASED_TIMING,
@@ -407,9 +442,12 @@
         BENCH_BDCFG_CFG
         #endif
         .erase_value                    = ERASE_VALUE,
-        .reads_timing                   = READS_TIMING,
-        .progs_timing                   = PROGS_TIMING,
-        .erases_timing                  = ERASES_TIMING,
+        .read_width                     = READ_WIDTH,
+        .prog_width                     = PROG_WIDTH,
+        .erase_width                    = ERASE_WIDTH,
+        .read_timing                    = READ_TIMING,
+        .prog_timing                    = PROG_TIMING,
+        .erase_timing                   = ERASE_TIMING,
         .readed_timing                  = READED_TIMING,
         .progged_timing                 = PROGGED_TIMING,
         .erased_timing                  = ERASED_TIMING,

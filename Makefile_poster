@@ -23,6 +23,7 @@ BENCH_WT_CHUNK ?= 64
 
 # stick to a simple simulation for now
 SIMPLE ?= 1
+#NAND ?= 1
 # how many samples?
 ifdef PRECISE
 SAMPLES ?= 16
@@ -85,14 +86,13 @@ $(RESULTSDIR)/bench_p26_poster_rbyd.csv: $(BENCH_LFS3NB_RUNNER)
 		$(BENCHFLAGS) \
 		-DDISK_SIZE=$(DISK_SIZE) \
 		-DFS=$(N_lfs3) \
+		$(if $(SIMPLE),-DDISK_SIM=1) \
+		$(if $(NAND), \
+			-DDISK_GEOMETRY=1, \
+			-DDISK_GEOMETRY=0) \
 		-DSEED="range($(SAMPLES))" \
 		-DN=$(BENCH_RBYD_N) \
-		-DREADS_TIMING=$(NOR_READS_TIMING) \
-		-DPROGS_TIMING=$(NOR_PROGS_TIMING) \
-		-DERASES_TIMING=$(NOR_ERASES_TIMING) \
-		-DREADED_TIMING=$(NOR_READED_TIMING) \
-		-DPROGGED_TIMING=$(NOR_PROGGED_TIMING) \
-		-DERASED_TIMING=$(NOR_ERASED_TIMING) \
+		-x1 \
 		-o$@)
 
 ## Run btree benchmarks
@@ -104,16 +104,15 @@ $(RESULTSDIR)/bench_p26_poster_btree.csv: $(BENCH_LFS3NB_RUNNER)
 		$(BENCHFLAGS) \
 		-DDISK_SIZE=$(DISK_SIZE) \
 		-DFS=$(N_lfs3) \
+		$(if $(SIMPLE),-DDISK_SIM=1) \
+		$(if $(NAND), \
+			-DDISK_GEOMETRY=1, \
+			-DDISK_GEOMETRY=0) \
 		-DSEED="range($(SAMPLES))" \
 		-DN=$(BENCH_BTREE_N) \
-		-DREADS_TIMING=$(NOR_READS_TIMING) \
-		-DPROGS_TIMING=$(NOR_PROGS_TIMING) \
-		-DERASES_TIMING=$(NOR_ERASES_TIMING) \
-		-DREADED_TIMING=$(NOR_READED_TIMING) \
-		-DPROGGED_TIMING=$(NOR_PROGGED_TIMING) \
-		-DERASED_TIMING=$(NOR_ERASED_TIMING) \
 		-DORDER=2 \
 		-DBLOCK_SIZE="$(BENCH_BTREE_BLOCK_SIZES)" \
+		-x1 \
 		-o$@)
 
 ## Run write-throughput benchmarks
@@ -134,17 +133,15 @@ $1: $(BENCH_$(U_$2)_RUNNER)
 		$(BENCHFLAGS) \
 		-DDISK_SIZE=$(DISK_SIZE) \
 		-DFS=$(N_$2) \
+		$(if $(SIMPLE),-DDISK_SIM=1) \
+		$(if $(NAND), \
+			-DDISK_GEOMETRY=1, \
+			-DDISK_GEOMETRY=0) \
 		-DSEED="range($(SAMPLES))" \
 		$(if $(SKIP_WARMUP),-DSKIP_WARMUP=$(SKIP_WARMUP)) \
 		-DSIZE=$(BENCH_WT_SIZE) \
 		-DCHUNK=$(BENCH_WT_CHUNK) \
 		-DSIM_TIME=$(SIM_TIME) \
-		-DREADS_TIMING=$(NOR_READS_TIMING) \
-		-DPROGS_TIMING=$(NOR_PROGS_TIMING) \
-		-DERASES_TIMING=$(NOR_ERASES_TIMING) \
-		-DREADED_TIMING=$(NOR_READED_TIMING) \
-		-DPROGGED_TIMING=$(NOR_PROGGED_TIMING) \
-		-DERASED_TIMING=$(NOR_ERASED_TIMING) \
 		-DBLOCK_SIZE="$(or $3,$(BENCH_WT_BLOCK_SIZES))" \
 		-o$$@)
 endef
@@ -165,12 +162,18 @@ $(PLOTSDIR)/bench_p26_poster_rbyd.csv: \
 		<(./scripts/csv.py $^ \
 			-Dprobe=create,delete,lookup \
 			-bprobe -bORDER -bn -bSEED \
-			-fbench_simtime='float(bench_simtime)/1.0e9' \
+			-fbench_simtime='float(delta( \
+					bench_simtime, \
+					probe, ORDER, SEED)) \
+				/1.0e9' \
 			-o-) \
 		<(./scripts/csv.py $^ \
 			-Dprobe=fetch \
 			-bprobe='%(probe)s+per' -bORDER -bn -bSEED \
-			-fbench_simtime='float(bench_simtime)/1.0e9/float(n)' \
+			-fbench_simtime='float(delta( \
+					bench_simtime, \
+					probe, ORDER, SEED)) \
+				/1.0e9/float(n)' \
 			-o-) \
 		<(./scripts/csv.py $^ \
 			-Dprobe=usage \
@@ -253,21 +256,15 @@ $(PLOTSDIR)/bench_p26_poster_btree.csv: \
 		<(./scripts/csv.py $^ \
 			-Dprobe=commit,lookup \
 			-bprobe -bBLOCK_SIZE -bn -bSEED \
-			-fbench_simtime='float(bench_simtime)/1.0e9' \
+			-fbench_simtime='float(delta( \
+					bench_simtime, \
+					probe, BLOCK_SIZE, SEED)) \
+				/1.0e9' \
 			-o-) \
-		<(./scripts/csv.py \
-			<(./scripts/csv.py $^ \
-				-Dprobe=commit \
-				-bprobe -bBLOCK_SIZE -bn -bSEED \
-				-fbench_simtime \
-				-Sn=n \
-				-o-) \
+		<(./scripts/csv.py $^ \
+			-Dprobe=commit \
 			-bprobe='%(probe)s+amor' -bBLOCK_SIZE -bn -bSEED \
-			-fbench_simtime=' \
-				accumulate( \
-						float(bench_simtime)/1.0e9, \
-						probe, BLOCK_SIZE, SEED) \
-					/ float(n)' \
+			-fbench_simtime='float(bench_simtime)/1.0e9/float(n)' \
 			-o-) \
 		<(./scripts/csv.py $^ \
 			-Dprobe=usage \

@@ -27,7 +27,7 @@ defines.NO_FRUNCATE = 0
 
 # include common bench helpers
 code = '''
-#include "benches/bench_helpers.h"
+    #include "benches/bench_helpers.h"
 '''
 
 
@@ -85,7 +85,7 @@ code = '''
     uint32_t prng = SEED;
 
     // reset our timer
-    lfs3_kiwibd_simreset(CFG);
+    BENCH_SIMRESET();
 
     // open a file
     BENCH_START("write");
@@ -108,7 +108,7 @@ code = '''
     lfs3_off_t size = 0;
     uint64_t written = 0;
     while (!(SIM_SIZE && written >= (uint64_t)SIM_SIZE)
-            && !(SIM_TIME && lfs3_kiwibd_simtime(CFG) >= SIM_TIME)) {
+            && !(SIM_TIME && BENCH_SIMTIME() >= SIM_TIME)) {
         // arguably we should just rewind and continue writing to the
         // front of the file when we hit the end, but this overly
         // penalizes littlefs2, so instead we truncate
@@ -160,9 +160,9 @@ code = '''
     BENCH_STOP("write", written);
 
     // report the total stack/heap usage after the benchmark
-    BENCH_RESULT("stack", written, BENCH_STACK());
+    BENCH_RESULT("stack", written, BENCH_STACK_WATERMARK());
     BENCH_RESULT("ctx", written, BENCH_STACK_CURRENT());
-    BENCH_RESULT("heap", written, BENCH_HEAP());
+    BENCH_RESULT("heap", written, BENCH_HEAP_WATERMARK());
 
     // find the total disk usage after the benchmark
     #if defined(LFS3)
@@ -245,7 +245,7 @@ code = '''
     uint32_t prng = SEED;
 
     // reset our timer
-    lfs3_kiwibd_simreset(CFG);
+    BENCH_SIMRESET();
 
     // open a file
     BENCH_START("write");
@@ -268,7 +268,7 @@ code = '''
     lfs3_off_t size = 0;
     uint64_t written = 0;
     while (!(SIM_SIZE && written >= (uint64_t)SIM_SIZE)
-            && !(SIM_TIME && lfs3_kiwibd_simtime(CFG) >= SIM_TIME)) {
+            && !(SIM_TIME && BENCH_SIMTIME() >= SIM_TIME)) {
         // seek to a random location
         lfs3_off_t pos = BENCH_PRNG(&prng) % SIZE;
         #if defined(LFS3)
@@ -319,9 +319,9 @@ code = '''
     BENCH_STOP("write", written);
 
     // report the total stack/heap usage after the benchmark
-    BENCH_RESULT("stack", written, BENCH_STACK());
+    BENCH_RESULT("stack", written, BENCH_STACK_WATERMARK());
     BENCH_RESULT("ctx", written, BENCH_STACK_CURRENT());
-    BENCH_RESULT("heap", written, BENCH_HEAP());
+    BENCH_RESULT("heap", written, BENCH_HEAP_WATERMARK());
 
     // find the total disk usage after the benchmark
     #if defined(LFS3)
@@ -409,13 +409,13 @@ code = '''
     uint32_t prng = SEED;
 
     // reset our timer
-    lfs3_kiwibd_simreset(CFG);
+    BENCH_SIMRESET();
 
     // open a file
     BENCH_START("write");
     uint64_t written = 0;
     while (!(SIM_SIZE && written >= (uint64_t)SIM_SIZE)
-            && !(SIM_TIME && lfs3_kiwibd_simtime(CFG) >= SIM_TIME)) {
+            && !(SIM_TIME && BENCH_SIMTIME() >= SIM_TIME)) {
         // choose a random filename
         lfs3_off_t pos = BENCH_PRNG(&prng) % FILE_COUNT;
         char name[256];
@@ -465,7 +465,7 @@ code = '''
             written += d;
 
             // taking too long?
-            if (SIM_TIME && lfs3_kiwibd_simtime(CFG) >= SIM_TIME) {
+            if (SIM_TIME && BENCH_SIMTIME() >= SIM_TIME) {
                 break;
             }
         }
@@ -489,9 +489,9 @@ code = '''
     BENCH_STOP("write", written);
 
     // report the total stack/heap usage after the benchmark
-    BENCH_RESULT("stack", written, BENCH_STACK());
+    BENCH_RESULT("stack", written, BENCH_STACK_WATERMARK());
     BENCH_RESULT("ctx", written, BENCH_STACK_CURRENT());
-    BENCH_RESULT("heap", written, BENCH_HEAP());
+    BENCH_RESULT("heap", written, BENCH_HEAP_WATERMARK());
 
     // find the total disk usage after the benchmark
     #if defined(LFS3)
@@ -575,7 +575,7 @@ code = '''
     uint32_t prng = SEED;
 
     // reset our timer
-    lfs3_kiwibd_simreset(CFG);
+    BENCH_SIMRESET();
 
     // open a file
     BENCH_START("write");
@@ -598,7 +598,7 @@ code = '''
     #endif
     uint64_t written = 0;
     while (!(SIM_SIZE && written >= (uint64_t)SIM_SIZE)
-            && !(SIM_TIME && lfs3_kiwibd_simtime(CFG) >= SIM_TIME)) {
+            && !(SIM_TIME && BENCH_SIMTIME() >= SIM_TIME)) {
         // append to log
         uint8_t wbuf[CHUNK];
         for (lfs3_size_t j = 0; j < CHUNK; j++) {
@@ -700,9 +700,9 @@ code = '''
     BENCH_STOP("write", written);
 
     // report the total stack/heap usage after the benchmark
-    BENCH_RESULT("stack", written, BENCH_STACK());
+    BENCH_RESULT("stack", written, BENCH_STACK_WATERMARK());
     BENCH_RESULT("ctx", written, BENCH_STACK_CURRENT());
-    BENCH_RESULT("heap", written, BENCH_HEAP());
+    BENCH_RESULT("heap", written, BENCH_HEAP_WATERMARK());
 
     // find the total disk usage after the benchmark
     #if defined(LFS3)

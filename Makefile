@@ -437,12 +437,16 @@ CFLAGS += -Wno-format-overflow
 CFLAGS += -Wno-stringop-overflow
 CFLAGS += -ftrack-macro-expansion=0
 # enable stack measurements
-CFLAGS += -DBENCH_YES_STACK
+CFLAGS += -DBENCH_STACK
+CFLAGS += -Wl,--wrap=printf
+CFLAGS += -Wl,--wrap=vprintf
 # wrap malloc/free/realloc for heap measurements
-CFLAGS += -DBENCH_YES_HEAP
+CFLAGS += -DBENCH_HEAP
 CFLAGS += -Wl,--wrap=malloc
 CFLAGS += -Wl,--wrap=free
 CFLAGS += -Wl,--wrap=realloc
+CFLAGS += -Wl,--wrap=printf
+CFLAGS += -Wl,--wrap=vprintf
 # gc unused functions
 CFLAGS += -ffunction-sections
 CFLAGS += -fdata-sections

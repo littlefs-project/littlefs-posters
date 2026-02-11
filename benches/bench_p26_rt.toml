@@ -80,7 +80,7 @@ code = '''
     uint32_t prng = SEED;
 
     // reset our timer
-    lfs3_kiwibd_simreset(CFG);
+    BENCH_SIMRESET();
 
     // create a file to read
     #if defined(LFS3)
@@ -95,7 +95,7 @@ code = '''
         lfs3_file_write(&lfs3, &file, wbuf, CHUNK) => CHUNK;
 
         // taking too long?
-        if (SIM_TIME && lfs3_kiwibd_simtime(CFG) >= SIM_TIME) {
+        if (SIM_TIME && BENCH_SIMTIME() >= SIM_TIME) {
             return;
         }
     }
@@ -112,7 +112,7 @@ code = '''
         lfs2_file_write(&lfs2, &file, wbuf, CHUNK) => CHUNK;
 
         // taking too long?
-        if (SIM_TIME && lfs3_kiwibd_simtime(CFG) >= SIM_TIME) {
+        if (SIM_TIME && BENCH_SIMTIME() >= SIM_TIME) {
             return;
         }
     }
@@ -129,7 +129,7 @@ code = '''
         SPIFFS_write(&spiffs, fd, wbuf, CHUNK) => CHUNK;
 
         // taking too long?
-        if (SIM_TIME && lfs3_kiwibd_simtime(CFG) >= SIM_TIME) {
+        if (SIM_TIME && BENCH_SIMTIME() >= SIM_TIME) {
             return;
         }
     }
@@ -146,7 +146,7 @@ code = '''
         yaffs_write(fd, wbuf, CHUNK) => CHUNK;
 
         // taking too long?
-        if (SIM_TIME && lfs3_kiwibd_simtime(CFG) >= SIM_TIME) {
+        if (SIM_TIME && BENCH_SIMTIME() >= SIM_TIME) {
             return;
         }
     }
@@ -154,7 +154,7 @@ code = '''
     #endif
 
     // reset our timer
-    lfs3_kiwibd_simreset(CFG);
+    BENCH_SIMRESET();
 
     // open the file
     BENCH_START("read");
@@ -171,7 +171,7 @@ code = '''
     lfs3_off_t size = 0;
     uint64_t readed = 0;
     while (!(SIM_SIZE && readed >= (uint64_t)SIM_SIZE)
-            && !(SIM_TIME && lfs3_kiwibd_simtime(CFG) >= SIM_TIME)) {
+            && !(SIM_TIME && BENCH_SIMTIME() >= SIM_TIME)) {
         // read from the file
         uint8_t rbuf[CHUNK];
         #if defined(LFS3)
@@ -282,7 +282,7 @@ code = '''
     uint32_t prng = SEED;
 
     // reset our timer
-    lfs3_kiwibd_simreset(CFG);
+    BENCH_SIMRESET();
 
     // create a file to read
     #if defined(LFS3)
@@ -297,7 +297,7 @@ code = '''
         lfs3_file_write(&lfs3, &file, wbuf, CHUNK) => CHUNK;
 
         // taking too long?
-        if (SIM_TIME && lfs3_kiwibd_simtime(CFG) >= SIM_TIME) {
+        if (SIM_TIME && BENCH_SIMTIME() >= SIM_TIME) {
             return;
         }
     }
@@ -314,7 +314,7 @@ code = '''
         lfs2_file_write(&lfs2, &file, wbuf, CHUNK) => CHUNK;
 
         // taking too long?
-        if (SIM_TIME && lfs3_kiwibd_simtime(CFG) >= SIM_TIME) {
+        if (SIM_TIME && BENCH_SIMTIME() >= SIM_TIME) {
             return;
         }
     }
@@ -331,7 +331,7 @@ code = '''
         SPIFFS_write(&spiffs, fd, wbuf, CHUNK) => CHUNK;
 
         // taking too long?
-        if (SIM_TIME && lfs3_kiwibd_simtime(CFG) >= SIM_TIME) {
+        if (SIM_TIME && BENCH_SIMTIME() >= SIM_TIME) {
             return;
         }
     }
@@ -348,7 +348,7 @@ code = '''
         yaffs_write(fd, wbuf, CHUNK) => CHUNK;
 
         // taking too long?
-        if (SIM_TIME && lfs3_kiwibd_simtime(CFG) >= SIM_TIME) {
+        if (SIM_TIME && BENCH_SIMTIME() >= SIM_TIME) {
             return;
         }
     }
@@ -356,7 +356,7 @@ code = '''
     #endif
 
     // reset our timer
-    lfs3_kiwibd_simreset(CFG);
+    BENCH_SIMRESET();
 
     // open the file
     BENCH_START("read");
@@ -372,7 +372,7 @@ code = '''
     #endif
     uint64_t readed = 0;
     while (!(SIM_SIZE && readed >= (uint64_t)SIM_SIZE)
-            && !(SIM_TIME && lfs3_kiwibd_simtime(CFG) >= SIM_TIME)) {
+            && !(SIM_TIME && BENCH_SIMTIME() >= SIM_TIME)) {
         // seek to a random location
         lfs3_off_t pos = BENCH_PRNG(&prng) % SIZE;
         #if defined(LFS3)
@@ -489,7 +489,7 @@ code = '''
     uint32_t prng = SEED;
 
     // reset our timer
-    lfs3_kiwibd_simreset(CFG);
+    BENCH_SIMRESET();
 
     // create files to read
     #if defined(LFS3)
@@ -506,7 +506,7 @@ code = '''
             lfs3_file_write(&lfs3, &file, wbuf, d) => d;
 
             // taking too long?
-            if (SIM_TIME && lfs3_kiwibd_simtime(CFG) >= SIM_TIME) {
+            if (SIM_TIME && BENCH_SIMTIME() >= SIM_TIME) {
                 return;
             }
         }
@@ -526,7 +526,7 @@ code = '''
             lfs2_file_write(&lfs2, &file, wbuf, d) => d;
 
             // taking too long?
-            if (SIM_TIME && lfs3_kiwibd_simtime(CFG) >= SIM_TIME) {
+            if (SIM_TIME && BENCH_SIMTIME() >= SIM_TIME) {
                 return;
             }
         }
@@ -546,7 +546,7 @@ code = '''
             SPIFFS_write(&spiffs, fd, wbuf, d) => d;
 
             // taking too long?
-            if (SIM_TIME && lfs3_kiwibd_simtime(CFG) >= SIM_TIME) {
+            if (SIM_TIME && BENCH_SIMTIME() >= SIM_TIME) {
                 return;
             }
         }
@@ -565,7 +565,7 @@ code = '''
             yaffs_write(fd, wbuf, d) => d;
 
             // taking too long?
-            if (SIM_TIME && lfs3_kiwibd_simtime(CFG) >= SIM_TIME) {
+            if (SIM_TIME && BENCH_SIMTIME() >= SIM_TIME) {
                 return;
             }
         }
@@ -574,13 +574,13 @@ code = '''
     #endif
 
     // reset our timer
-    lfs3_kiwibd_simreset(CFG);
+    BENCH_SIMRESET();
 
     // open the files
     BENCH_START("read");
     uint64_t readed = 0;
     while (!(SIM_SIZE && readed >= (uint64_t)SIM_SIZE)
-            && !(SIM_TIME && lfs3_kiwibd_simtime(CFG) >= SIM_TIME)) {
+            && !(SIM_TIME && BENCH_SIMTIME() >= SIM_TIME)) {
         // choose a random filename
         lfs3_off_t pos = BENCH_PRNG(&prng) % ((SIZE+(CHUNK-1))/CHUNK);
         char name[256];
@@ -618,7 +618,7 @@ code = '''
             readed += d;
 
             // taking too long?
-            if (SIM_TIME && lfs3_kiwibd_simtime(CFG) >= SIM_TIME) {
+            if (SIM_TIME && BENCH_SIMTIME() >= SIM_TIME) {
                 break;
             }
         }
