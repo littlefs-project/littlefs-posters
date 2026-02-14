@@ -51,10 +51,108 @@ BENCH_WT_BLOCK_SIZES ?= 4096,8192,16384,32768,65536,131072,$\
 #DEBUG ?= 1
 
 
-# we only care about littlefs3+nogbmap and littlefs2
-BENCH_FSS ?= lfs3nb lfs2
+# we only care about littlefs3+nogbmap, +fragmented, and littlefs2
+BENCH_FSS ?= lfs3nb lfs3nbf lfs3nb128 lfs3nb64 lfs3nb32 lfs3nb8 lfs3nb2 lfs2
 # we only care about NOR for now
 BENCH_SIMS ?= nor
+
+
+# extra lfs3nbf config
+U_lfs3nbf = LFS3NBF
+N_lfs3nbf = 31
+I_lfs3nbf = 6
+ifdef LIGHT
+C_lfs3nbf = \#da8bc3bf # pink
+else
+C_lfs3nbf = \#da8bc3bf # pink
+endif
+F_lfs3nbf = x # small x
+BENCH_LFS3NBF_RUNNER ?= $(BENCH_LFS3NB_RUNNER)
+BENCH_LFS3NBF_FILTER ?= $(BENCH_LFS3NB_FILTER)
+
+U_lfs3nb128 = LFS3NB128
+N_lfs3nb128 = 32
+I_lfs3nb128 = 7
+ifdef LIGHT
+C_lfs3nb128 = \#8172b3bf # purple
+else
+C_lfs3nb128 = \#d0bbffbf # purple
+endif
+F_lfs3nb128 = 2 # small tri up
+BENCH_LFS3NB128_RUNNER ?= $(BENCH_LFS3NB_RUNNER)
+BENCH_LFS3NB128_FILTER ?= $(BENCH_LFS3NB_FILTER)
+
+U_lfs3nb64 = LFS3NB64
+N_lfs3nb64 = 33
+I_lfs3nb64 = 8
+ifdef LIGHT
+C_lfs3nb64 = \#8172b3bf # purple
+else
+C_lfs3nb64 = \#d0bbffbf # purple
+endif
+F_lfs3nb64 = 2 # small tri up
+BENCH_LFS3NB64_RUNNER ?= $(BENCH_LFS3NB_RUNNER)
+BENCH_LFS3NB64_FILTER ?= $(BENCH_LFS3NB_FILTER)
+
+U_lfs3nb32 = LFS3NB32
+N_lfs3nb32 = 34
+I_lfs3nb32 = 9
+ifdef LIGHT
+C_lfs3nb32 = \#8172b3bf # purple
+else
+C_lfs3nb32 = \#d0bbffbf # purple
+endif
+F_lfs3nb32 = 2 # small tri up
+BENCH_LFS3NB32_RUNNER ?= $(BENCH_LFS3NB_RUNNER)
+BENCH_LFS3NB32_FILTER ?= $(BENCH_LFS3NB_FILTER)
+
+U_lfs3nb16 = LFS3NB16
+N_lfs3nb16 = 35
+I_lfs3nb16 = 10
+ifdef LIGHT
+C_lfs3nb16 = \#8172b3bf # purple
+else
+C_lfs3nb16 = \#d0bbffbf # purple
+endif
+F_lfs3nb16 = 1 # small tri down
+BENCH_LFS3NB16_RUNNER ?= $(BENCH_LFS3NB_RUNNER)
+BENCH_LFS3NB16_FILTER ?= $(BENCH_LFS3NB_FILTER)
+
+U_lfs3nb8 = LFS3NB8
+N_lfs3nb8 = 36
+I_lfs3nb8 = 11
+ifdef LIGHT
+C_lfs3nb8 = \#8172b3bf # purple
+else
+C_lfs3nb8 = \#d0bbffbf # purple
+endif
+F_lfs3nb8 = 1 # small tri down
+BENCH_LFS3NB8_RUNNER ?= $(BENCH_LFS3NB_RUNNER)
+BENCH_LFS3NB8_FILTER ?= $(BENCH_LFS3NB_FILTER)
+
+U_lfs3nb4 = LFS3NB4
+N_lfs3nb4 = 37
+I_lfs3nb4 = 12
+ifdef LIGHT
+C_lfs3nb4 = \#8172b3bf # purple
+else
+C_lfs3nb4 = \#d0bbffbf # purple
+endif
+F_lfs3nb4 = 1 # small tri down
+BENCH_LFS3NB4_RUNNER ?= $(BENCH_LFS3NB_RUNNER)
+BENCH_LFS3NB4_FILTER ?= $(BENCH_LFS3NB_FILTER)
+
+U_lfs3nb2 = LFS3NB2
+N_lfs3nb2 = 38
+I_lfs3nb2 = 13
+ifdef LIGHT
+C_lfs3nb2 = \#8172b3bf # purple
+else
+C_lfs3nb2 = \#d0bbffbf # purple
+endif
+F_lfs3nb2 = 1 # small tri down
+BENCH_LFS3NB2_RUNNER ?= $(BENCH_LFS3NB_RUNNER)
+BENCH_LFS3NB2_FILTER ?= $(BENCH_LFS3NB_FILTER)
 
 
 # override bench rules
@@ -133,6 +231,14 @@ $1: $(BENCH_$(U_$2)_RUNNER)
 		$(BENCHFLAGS) \
 		-DDISK_SIZE=$(DISK_SIZE) \
 		-DFS=$(N_$2) \
+		$(if $(filter lfs3nbf,$2),-DCRYSTAL_THRESH=-1) \
+		$(if $(filter lfs3nb128,$2),-DCRYSTAL_DIV=128) \
+		$(if $(filter lfs3nb64,$2),-DCRYSTAL_DIV=64) \
+		$(if $(filter lfs3nb32,$2),-DCRYSTAL_DIV=32) \
+		$(if $(filter lfs3nb16,$2),-DCRYSTAL_DIV=16) \
+		$(if $(filter lfs3nb8,$2),-DCRYSTAL_DIV=8) \
+		$(if $(filter lfs3nb4,$2),-DCRYSTAL_DIV=4) \
+		$(if $(filter lfs3nb2,$2),-DCRYSTAL_DIV=2) \
 		$(if $(SIMPLE),-DDISK_SIM=1) \
 		$(if $(NAND), \
 			-DDISK_GEOMETRY=1, \
@@ -163,16 +269,16 @@ $(PLOTSDIR)/bench_p26_poster_rbyd.csv: \
 			-Dprobe=create,delete,lookup \
 			-bprobe -bORDER -bn -bSEED \
 			-fbench_simtime='float(delta( \
-					bench_simtime, \
-					probe, ORDER, SEED)) \
+					probe, ORDER, SEED; \
+					bench_simtime)) \
 				/1.0e9' \
 			-o-) \
 		<(./scripts/csv.py $^ \
 			-Dprobe=fetch \
 			-bprobe='%(probe)s+per' -bORDER -bn -bSEED \
 			-fbench_simtime='float(delta( \
-					bench_simtime, \
-					probe, ORDER, SEED)) \
+					probe, ORDER, SEED; \
+					bench_simtime)) \
 				/1.0e9/float(n)' \
 			-o-) \
 		<(./scripts/csv.py $^ \
@@ -257,8 +363,8 @@ $(PLOTSDIR)/bench_p26_poster_btree.csv: \
 			-Dprobe=commit,lookup \
 			-bprobe -bBLOCK_SIZE -bn -bSEED \
 			-fbench_simtime='float(delta( \
-					bench_simtime, \
-					probe, BLOCK_SIZE, SEED)) \
+					probe, BLOCK_SIZE, SEED; \
+					bench_simtime)) \
 				/1.0e9' \
 			-o-) \
 		<(./scripts/csv.py $^ \

@@ -147,9 +147,22 @@
     BENCH_DEFINE(GC_COMPACT_THRESH,     0                                   )
     BENCH_DEFINE(SHRUB_SIZE,            BLOCK_SIZE/4                        )
     // TODO crystal/fragment_thresh 1/16 or 1/8?
-    BENCH_DEFINE(FRAGMENT_SIZE,         LFS3_MIN(BLOCK_SIZE/16, 512)        )
+    BENCH_DEFINE(CRYSTAL_DIV,           0                                   )
+    BENCH_DEFINE(FRAGMENT_SIZE,         (CRYSTAL_DIV)
+                                            ? LFS3_MIN(
+                                                BLOCK_SIZE/CRYSTAL_DIV,
+                                                512)
+                                            : LFS3_MIN(
+                                                BLOCK_SIZE/16,
+                                                    512)                    )
     // TODO should max-prog_size be enforced in lfs3_init?
-    BENCH_DEFINE(CRYSTAL_THRESH,        LFS3_MAX(BLOCK_SIZE/16, PROG_SIZE)  )
+    BENCH_DEFINE(CRYSTAL_THRESH,        (CRYSTAL_DIV)
+                                            ? LFS3_MAX(
+                                                BLOCK_SIZE/CRYSTAL_DIV,
+                                                PROG_SIZE)
+                                            : LFS3_MAX(
+                                                BLOCK_SIZE/16,
+                                                PROG_SIZE)                  )
     BENCH_DEFINE(LOOKGBMAP_THRESH,      BLOCK_COUNT/4                       )
     // littlefs2 specific defines
     #elif defined(LFS2)
