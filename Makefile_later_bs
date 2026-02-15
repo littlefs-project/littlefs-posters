@@ -122,7 +122,7 @@ $(PLOTSDIR)/bench_p26_later_bs_wt.%.svg: \
 			-Dcase=bench_p26_wt_linear \
 			-ybench_throughput \
 			--y2 --yunits=B/s \
-			--title=linear \
+			--title=sequential \
 			--ylabel=throughput \
 			--subplot-below=\" \
 				-Dcase=bench_p26_wt_linear \

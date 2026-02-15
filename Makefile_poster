@@ -449,7 +449,7 @@ $(PLOTSDIR)/bench_p26_poster_wt.svg: \
 		-ybench_throughput \
 		--subplot=" \
 			-Dcase=bench_p26_wt_linear \
-			--title=linear" \
+			--title=sequential" \
 		--subplot-right=" \
 			-Dcase=bench_p26_wt_random \
 			--title=random \
