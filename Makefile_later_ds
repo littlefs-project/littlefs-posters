@@ -15,7 +15,7 @@ BENCH_CHUNK ?= 64
 # disk sizes to benchmark
 BENCH_DISK_SIZES ?= 8388608,16777216,33554432,67108864,134217728,$\
 	268435456,536870912,1073741824,2147483648
-# prevent parallel benching
+# you can go bigger, but you will need this to prevent parallel benching
 #DISK_BIG = 1
 
 # how long to simulate
