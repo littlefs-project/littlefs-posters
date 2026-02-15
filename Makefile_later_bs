@@ -135,7 +135,6 @@ $(PLOTSDIR)/bench_p26_later_bs_wt.%.svg: \
 			-ybench_throughput \
 			--y2 --yunits=B/s \
 			--title=random \
-			-W0.5 \
 			$(if $(filter nand,$*), \
 				--subplot-below=\" \
 					-Dcase=bench_p26_wt_random \
@@ -153,7 +152,6 @@ $(PLOTSDIR)/bench_p26_later_bs_wt.%.svg: \
 			-ybench_throughput \
 			--y2 --yunits=B/s \
 			--title=logging \
-			-W0.3333333 \
 			--subplot-below=\" \
 				-Dcase=bench_p26_wt_logging \
 				-ybench_ram \
@@ -164,7 +162,6 @@ $(PLOTSDIR)/bench_p26_later_bs_wt.%.svg: \
 			-ybench_throughput \
 			--y2 --yunits=B/s \
 			--title=many \
-			-W0.25 \
 			$(if $(filter nand,$*), \
 				--subplot-below=\" \
 					-Dcase=bench_p26_wt_many \
