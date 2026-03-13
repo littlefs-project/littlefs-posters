@@ -1,0 +1,6 @@
+# Build dirs
+build/
+results/
+
+# Misc
+clip
