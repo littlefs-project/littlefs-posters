@@ -1,0 +1,140 @@
+
+For poster:
+
+- Ran with COMB=16 PRECISE=1
+
+Useful flags:
+
+- DEBUG=1 - Does several things:
+  - Builds with debug flags: -Os -g3
+  - Enables asserts and logging output
+  - Switches to BUILDDIR=build_dbg
+
+- PRECISE=1 - Enables precise mode, by default things are imprecise for
+  faster dev time:
+  - 1M benches: 10 minutes -> 1 hour
+  - 1G benches: 1 hour -> 1 day
+  - Some other flags such as SKIP_WARMUP are set in cases where they
+    shouldn't matter
+
+- THUMB=1 - Switches to thumb mode:
+  - Cross-compiles with arm-linux-gnueabi-gcc -mthumb -march=armv7 --static
+  - Runs benches under qemu-arm
+  - Note this is slow!
+
+Bugs:
+
+- Sometimes littlefs2 returns garbage in lfs2_fs_traverse. Probably a bug.
+
+- Sometimes littlefs2 just breaks when creating many files. Not sure why.
+
+- yaffs2 does not work with >=1MiB block sizes for some reason, errors
+  with ENOSPC (twisted internally to EINVAL?). Note sure why.
+
+- yaffs2 keeps track of all files (not just opened ones) with a linked-list
+  that makes many testing grow O(n^2). This makes many benchmarking
+  extremely slow and doesn't trigger an early exit because we ignore CPU
+  time.
+
+Runtime:
+
+- time ( THUMB=1 make -f Makefile_1M plot-p26-wt )
+
+  real    547m4.922s
+  user    4644m37.692s
+  sys     2m22.246s
+
+- time ( THUMB=1 make -f Makefile_1M plot-p26-wt )
+
+  real    560m46.904s
+  user    4736m33.792s
+  sys     2m29.099s
+
+- time ( make -f Makefile_y_ls_1G plot )
+
+  real    406m37.655s
+  user    399m54.279s
+  sys     8m15.947s
+
+- time ( make -f Makefile_y_bt_1G plot )
+
+  real    333m10.509s
+  user    328m1.621s
+  sys     6m32.032s
+
+- time ( make -f Makefile_1G plot-p26-rt )
+
+  real    1047m7.833s
+  user    1038m27.485s
+  sys     11m48.744s
+
+- time ( make -f Makefile_y_ct_n plot )
+
+  real    104m27.969s
+  user    843m34.197s
+  sys     2m4.110s
+
+- time ( make -f Makefile_y_ct_n plot )
+
+  real    162m45.982s
+  user    909m15.368s
+  sys     1m51.596s
+
+- time ( make -f Makefile_x_n_1G plot )
+
+  387m31.579s
+  381m17.568s
+  7m30.933s
+
+- time ( BENCHFLAGS=-j5 BENCH_FSS='lfs3 lfs3nb lfs2' BENCH_SIMS='nor nand' DISK_SIZE=2147483648 PRECISE=1 make -f Makefile_x_n_1G plot )
+
+  real    1191m21.465s
+  user    5460m34.353s
+
+- time ( make -f Makefile_1M plot-p26-wt )
+
+  real    59m9.258s
+  user    468m45.978s
+  sys     2m15.132s
+
+- time ( THUMB=1 make -f Makefile_1M plot-p26-wt )
+
+  real    637m51.744s
+  user    5343m54.006s
+  sys     2m29.721s
+
+- time ( make -f Makefile_y_ls_1G plot )
+
+  real    1100m30.094s
+  user    1091m3.210s
+  sys     13m1.059s
+
+# this is the minimum we need for 1M
+- time ( THUMB=1 BENCH_SIMS='nor nand' P26_T_SIZES=1048576 make -f Makefile_1M plot-p26-wt )
+
+  real    149m44.224s
+  user    150m12.181s
+  sys     0m46.952s
+
+# this one was killed after multiple days to limit to just
+# lfs3/lfs3nb/lfs2 :/
+- time ( BENCHFLAGS=-j5 BENCH_SIMS='nor nand' DISK_SIZE=2147483648 PRECISE=1 make -f Makefile_x_n_1G plot )
+
+# what I _should_ have run
+- time ( BENCHFLAGS=-j5 BENCH_SIMS='nor nand' BENCH_FSS='lfs3 lfs3nb lfs2' DISK_SIZE=2147483648 PRECISE=1 make -f Makefile_x_n_1G plot )
+
+# trying 2GiB
+- time ( RESULTSDIR=results_x_n_2G PLOTSDIR=plots_x_n_2G TIKZDIR=tikz_x_n_2G BENCH_SIMS='nor nand' BENCH_FSS='lfs3 lfs3nb lfs2' DISK_SIZE=4294967296 P26_T_SIZES=2147483648 PRECISE=1 make -f Makefile_x_n_1G plot )
+
+  real    437m31.105s
+  user    438m17.043s
+  sys     0m36.526s  
+
+# forgot to time this one :/
+- BENCHFLAGS=-j5 BENCH_FSS='lfs3 lfs3nb lfs3nf lfs2' DISK_SIZE=2147483648 PRECISE=1 make -f Makefile_x_n_1G plot
+
+- time ( THUMB=1 BENCH_SIMS='nor nand' P26_T_SIZES=1048576 PRECISE=1 make -f Makefile_1M plot-p26-wt -j12 )
+
+  real    247m21.843s
+  user    2207m16.664s
+  sys     5m25.171s

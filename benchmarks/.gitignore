@@ -1,0 +1,16 @@
+# Build stuff
+build*/
+results*/
+plots*/
+tikz*/
+
+# Intermediate csv files
+*.avg.csv
+*.amor.csv
+*.per.csv
+
+# Misc
+tags
+clip
+disk
+.gdb_history

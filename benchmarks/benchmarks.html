@@ -1,0 +1,337 @@
+<html>
+<head>
+    <title>littlefs3-benchmarks</title>
+    <link rel="icon" href="favicon.ico">
+    <style>
+    body {
+        background-color: #443333;
+        color: #ffffff;
+        max-width: 750px;
+        margin: 0 auto;
+    }
+    a {
+        color: #7997b7;
+    }
+    .codemaps {
+        text-align: center;
+    }
+    .codemaps:img {
+        display: inline-block;
+    }
+    </style>
+</head>
+<body>
+    <h1 align="center">littlefs v3 benchmarks</h1>
+    <div class="codemaps">
+        <a href="codemaps.html"><img src="codemaps/codemap_lfs1_tiny.svg"></a>
+        <a href="codemaps.html"><img src="codemaps/codemap_lfs2_tiny.svg"></a>
+        <a href="codemaps.html"><img src="codemaps/codemap_lfs3nb_tiny.svg"></a>
+        <a href="codemaps.html"><img src="codemaps/codemap_lfs3_tiny.svg"></a>
+    </div>
+    <ul>
+        <li>
+            <a href="codemaps.html">codemaps</a>
+            - Codemaps for exploring code cost
+        </li>
+        <hr/>
+        <li>
+            <a href="bench_p26_litmus.html">bench_p26_litmus</a>
+            - High-level litmus benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_litmus_ops.html">bench_p26_litmus_ops</a>
+            - High-level litmus benchmarks with more details
+        </li>
+        <li>
+            <a href="bench_p26_litmus_1M.html">bench_p26_litmus_1M</a>
+            - High-level 1MiB litmus benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_litmus_1M_ops.html">bench_p26_litmus_1M_ops</a>
+            - High-level 1MiB litmus benchmarks with more details
+        </li>
+        <hr/>
+        <li>
+            <a href="bench_p26_wt.html">bench_p26_wt</a>
+            - High-level write-throughput benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_wt_1M.html">bench_p26_wt_1M</a>
+            - High-level 1MiB write-throughput benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_wt_1G.html">bench_p26_wt_1G</a>
+            - High-level 1GiB write-throughput benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_rt.html">bench_p26_rt</a>
+            - High-level write-throughput benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_rt_1M.html">bench_p26_rt_1M</a>
+            - High-level 1MiB write-throughput benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_rt_1G.html">bench_p26_rt_1G</a>
+            - High-level 1GiB write-throughput benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_wt_usage.html">bench_p26_wt_usage</a>
+            - High-level write-throughput usage benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_wt_usage_1M.html">bench_p26_wt_usage_1M</a>
+            - High-level 1MiB write-throughput usage benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_wt_usage_1G.html">bench_p26_wt_usage_1G</a>
+            - High-level 1GiB write-throughput usage benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_wt_stack.html">bench_p26_wt_stack</a>
+            - High-level write-throughput stack benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_wt_stack_1M.html">bench_p26_wt_stack_1M</a>
+            - High-level 1MiB write-throughput stack benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_wt_stack_1G.html">bench_p26_wt_stack_1G</a>
+            - High-level 1GiB write-throughput stack benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_wt_heap.html">bench_p26_wt_heap</a>
+            - High-level write-throughput heap benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_wt_heap_1M.html">bench_p26_wt_heap_1M</a>
+            - High-level 1MiB write-throughput heap benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_wt_heap_1G.html">bench_p26_wt_heap_1G</a>
+            - High-level 1GiB write-throughput heap benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_wt_ram.html">bench_p26_wt_ram</a>
+            - High-level write-throughput ram benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_wt_ram_1M.html">bench_p26_wt_ram_1M</a>
+            - High-level 1MiB write-throughput ram benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_wt_ram_1G.html">bench_p26_wt_ram_1G</a>
+            - High-level 1GiB write-throughput ram benchmarks
+        </li>
+        <hr/>
+        <li>
+            <a href="bench_p26_ds.html">bench_p26_ds</a>
+            - High-level disk size benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_ds_usage.html">bench_p26_ds_usage</a>
+            - High-level disk size usage benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_ds_ram.html">bench_p26_ds_ram</a>
+            - High-level disk size RAM benchmarks
+        </li>
+        <hr/>
+        <li>
+            <a href="bench_p26_bs.html">bench_p26_bs</a>
+            - High-level block size benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_bs_usage.html">bench_p26_bs_usage</a>
+            - High-level block size usage benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_bs_ram.html">bench_p26_bs_ram</a>
+            - High-level block size RAM benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_bs_1M.html">bench_p26_bs_1M</a>
+            - High-level 1MiB block size benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_bs_usage_1M.html">bench_p26_bs_usage_1M</a>
+            - High-level 1MiB block size usage benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_bs_ram_1M.html">bench_p26_bs_ram_1M</a>
+            - High-level 1MiB block size RAM benchmarks
+        </li>
+        <hr/>
+        <li>
+            <a href="bench_p26_et.html">bench_p26_et</a>
+            - High-level erase timing benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_et_1M.html">bench_p26_et_1M</a>
+            - High-level 1MiB erase timing benchmarks
+        </li>
+        <hr/>
+        <li>
+            <a href="bench_p26_gs.html">bench_p26_gs</a>
+            - High-level page size benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_gs_usage.html">bench_p26_gs_usage</a>
+            - High-level page size usage benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_gs_ram.html">bench_p26_gs_ram</a>
+            - High-level page size RAM benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_gs_1M.html">bench_p26_gs_1M</a>
+            - High-level 1MiB page size benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_gs_usage_1M.html">bench_p26_gs_usage_1M</a>
+            - High-level 1MiB page size usage benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_gs_ram_1M.html">bench_p26_gs_ram_1M</a>
+            - High-level 1MiB page size RAM benchmarks
+        </li>
+        <hr/>
+        <li>
+            <a href="bench_p26_cs.html">bench_p26_cs</a>
+            - High-level cache size benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_cs_usage.html">bench_p26_cs_usage</a>
+            - High-level cache size usage benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_cs_ram.html">bench_p26_cs_ram</a>
+            - High-level cache size RAM benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_cs_1M.html">bench_p26_cs_1M</a>
+            - High-level 1MiB cache size benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_cs_usage_1M.html">bench_p26_cs_usage_1M</a>
+            - High-level 1MiB cache size usage benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_cs_ram_1M.html">bench_p26_cs_ram_1M</a>
+            - High-level 1MiB cache size RAM benchmarks
+        </li>
+        <hr/>
+        <li>
+            <a href="bench_p26_x_ds.html">bench_p26_x_ds</a>
+            - Interesting disk size benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_x_bs.html">bench_p26_x_bs</a>
+            - Interesting block size benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_x_gs.html">bench_p26_x_gs</a>
+            - Interesting page size benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_x_rs.html">bench_p26_x_rs</a>
+            - Interesting read size benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_x_ps.html">bench_p26_x_ps</a>
+            - Interesting prog size benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_x_cs.html">bench_p26_x_cs</a>
+            - Interesting cache size benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_x_mr.html">bench_p26_x_mr</a>
+            - Interesting metadata ratio benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_x_n_1G.html">bench_p26_x_n_1G</a>
+            - Interesting target size n benchmarks
+        </li>
+        <hr/>
+        <li>
+            <a href="bench_p26_y_cs.html">bench_p26_y_cs</a>
+            - Interesting cache size benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_y_fs.html">bench_p26_y_fs</a>
+            - Interesting fragment size benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_y_ct.html">bench_p26_y_ct</a>
+            - Interesting crystal thresh benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_y_ct_n.html">bench_p26_y_ct_n</a>
+            - Interesting crystal thresh n benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_y_ss.html">bench_p26_y_ss</a>
+            - Interesting shrub size benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_y_ss_n.html">bench_p26_y_ss_n</a>
+            - Interesting shrub size n benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_y_ss_mr.html">bench_p26_y_ss_mr</a>
+            - Interesting shrub size metadata ratio benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_y_br.html">bench_p26_y_br</a>
+            - Interesting block recycles benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_y_br_gs.html">bench_p26_y_br_gs</a>
+            - Interesting block recycles + page size benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_y_ls.html">bench_p26_y_ls</a>
+            - Interesting lookahead size benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_y_ls_1G.html">bench_p26_y_ls_1G</a>
+            - Interesting 1GiB lookahead size benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_y_bt.html">bench_p26_y_bt</a>
+            - Interesting bmap thresh benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_y_bt_1G.html">bench_p26_y_bt_1G</a>
+            - Interesting 1GiB bmap thresh benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_y_bt_ls.html">bench_p26_y_bt_ls</a>
+            - Interesting bmap thresh + lookahead buffer benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_y_bt_ls_1G.html">bench_p26_y_bt_ls_1G</a>
+            - Interestingu 1GiB bmap thresh + lookahead buffer benchmarks
+        </li>
+        <hr/>
+        <li>
+            <a href="bench_p26_poster.html">bench_p26_poster</a>
+            - Poster related benchmarks
+        </li>
+        <hr/>
+        <li>
+            <a href="bench_p26_later_ds.html">bench_p26_later_ds</a>
+            - Later disk size benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_later_bs.html">bench_p26_later_bs</a>
+            - Later block size benchmarks
+        </li>
+        <li>
+            <a href="bench_p26_later_g.html">bench_p26_later_g</a>
+            - Later geometry benchmarks
+        </li>
+    </ul>
+</body>
+</html>
